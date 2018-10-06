@@ -4,7 +4,7 @@
 
 namespace arduino { namespace test
 {
-  class Tests : public ::testing::Test
+  class TestAnyRtttl : public ::testing::Test
   {
   public:
     virtual void SetUp();

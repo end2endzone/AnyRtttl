@@ -1,17 +1,20 @@
-// testAnyRtttl.cpp : Defines the entry point for the console application.
+// TestAnyRtttl.cpp : Defines the entry point for the console application.
 //
 
-#include "targetver.h"
-
 #include <stdio.h>
-#include <tchar.h>
-
 #include <string>
-#include "arduino.h"
+
+#include "TestAnyRtttl.h"
+#include "Arduino.h"
 #include "anyrtttl.h"
 #include "bitreader.h"
-#include "tests.h"
-#include "gTestHelper.h"
+
+#include "rapidassist/strings.h"
+#include "rapidassist/gtesthelp.h"
+
+#include "RealtimeClockStrategy.h"
+
+using namespace testarduino;
 
 //rtttl native format
 const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
@@ -47,9 +50,9 @@ namespace arduino { namespace test
     return bits;
   }
   
-  void filterToneFunctions(gTestHelper::StringVector & calls)
+  void filterToneFunctions(ra::strings::StringVector & calls)
   {
-    gTestHelper::StringVector copy = calls;
+    ra::strings::StringVector copy = calls;
     calls.clear();
 
     for(size_t i=0; i<copy.size(); i++)
@@ -66,21 +69,23 @@ namespace arduino { namespace test
 
 
   //--------------------------------------------------------------------------------------------------
-  void Tests::SetUp()
+  void TestAnyRtttl::SetUp()
   {
+    RealtimeClockStrategy & gClock = RealtimeClockStrategy::getInstance();
+    
     //force realtime strategy of win32Arduino library
-    arduino_stub::setClockStrategy(arduino_stub::CLOCK_REALTIME);
+    testarduino::setClockStrategy(&gClock);
   }
   //--------------------------------------------------------------------------------------------------
-  void Tests::TearDown()
+  void TestAnyRtttl::TearDown()
   {
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(Tests, testNonBlockingPlay)
+  TEST_F(TestAnyRtttl, testNonBlockingPlay)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     //play the actual content
     anyrtttl::nonblocking::begin(PIEZO_PIN, tetris);
@@ -92,11 +97,10 @@ namespace arduino { namespace test
     //assert
 
     //load both files into memory
-    gTestHelper & helper = gTestHelper::getInstance();
-    gTestHelper::StringVector expectedCalls;
-    ASSERT_TRUE (helper.getTextFileContent("expected_call_stack.log", expectedCalls));
-    gTestHelper::StringVector actualCalls;
-    ASSERT_TRUE (helper.getTextFileContent(logFile.c_str(), actualCalls));
+    ra::strings::StringVector expectedCalls;
+    ASSERT_TRUE (ra::gtesthelp::getTextFileContent("expected_call_stack.log", expectedCalls));
+    ra::strings::StringVector actualCalls;
+    ASSERT_TRUE (ra::gtesthelp::getTextFileContent(logFile.c_str(), actualCalls));
 
     //assert that file ends with a noTone();
     std::string lastCall = actualCalls[actualCalls.size()-1];
@@ -119,11 +123,11 @@ namespace arduino { namespace test
     }
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(Tests, testInterruptedPlay)
+  TEST_F(TestAnyRtttl, testInterruptedPlay)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     anyrtttl::nonblocking::begin(PIEZO_PIN, tetris);
 
@@ -140,61 +144,57 @@ namespace arduino { namespace test
     //assert
 
     //load output file into memory
-    gTestHelper & helper = gTestHelper::getInstance();
-    gTestHelper::StringVector actualCalls;
-    ASSERT_TRUE (helper.getTextFileContent(logFile.c_str(), actualCalls));
+    ra::strings::StringVector actualCalls;
+    ASSERT_TRUE (ra::gtesthelp::getTextFileContent(logFile.c_str(), actualCalls));
 
     //assert that file ends with a noTone();
     std::string lastCall = actualCalls[actualCalls.size()-1];
     ASSERT_NE(lastCall.find("noTone("), std::string::npos);
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(Tests, testBlockingPlay)
+  TEST_F(TestAnyRtttl, testBlockingPlay)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     //play the actual content
     anyrtttl::blocking::play(PIEZO_PIN, tetris);
 
     //assert
-    gTestHelper & helper = gTestHelper::getInstance();
     std::string diffReason;
-    bool fileAreIdentical = helper.isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(Tests, testBlockingPlay10)
+  TEST_F(TestAnyRtttl, testBlockingPlay10)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     //play the actual content
     bitreader.setBuffer(tetris10);
     anyrtttl::blocking::play10Bits(PIEZO_PIN, tetris10_length, &readNextBits);
 
     //assert
-    gTestHelper & helper = gTestHelper::getInstance();
     std::string diffReason;
-    bool fileAreIdentical = helper.isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(Tests, testBlockingPlay16)
+  TEST_F(TestAnyRtttl, testBlockingPlay16)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     //play the actual content
     anyrtttl::blocking::play16Bits(PIEZO_PIN, tetris16, tetris16_length);
 
     //assert
-    gTestHelper & helper = gTestHelper::getInstance();
     std::string diffReason;
-    bool fileAreIdentical = helper.isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
@@ -214,11 +214,11 @@ namespace arduino { namespace test
     delayCounts++;
   }
 
-  TEST_F(Tests, testCustomFunctionsPlay)
+  TEST_F(TestAnyRtttl, testCustomFunctionsPlay)
   {
     //setup log file
     std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    arduino_stub::setLogFile(logFile.c_str());
+    testarduino::setLogFile(logFile.c_str());
 
     toneCounts = 0;
     noToneCounts = 0;
