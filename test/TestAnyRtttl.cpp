@@ -123,10 +123,10 @@ namespace arduino { namespace test
     return true;
   }
 
-  bool fileSearchAndReplace(const char * iPath, const std::string & iOldValue, const std::string & iNewValue)
+  bool fileContentReplace(const std::string & iPath, const std::string & iOldValue, const std::string & iNewValue)
   {
     std::string content;
-    if (!readFile(iPath, content))
+    if (!readFile(iPath.c_str(), content))
       return false;
 
     int num_finding = ra::strings::replace(content, iOldValue, iNewValue);
@@ -134,14 +134,13 @@ namespace arduino { namespace test
     //does the file was modified?
     if (num_finding)
     {
-      //yes, update the file
-      if (!writeFile(iPath, content))
+      //yes, write modifications to the file
+      if (!writeFile(iPath.c_str(), content))
         return false;
     }
 
     return true;
   }
-
 
   //--------------------------------------------------------------------------------------------------
   void TestAnyRtttl::SetUp()
@@ -237,8 +236,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play(PIEZO_PIN, tetris);
 
     //assert
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
@@ -255,8 +254,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play10Bits(PIEZO_PIN, tetris10_length, &readNextBits);
 
     //assert
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
@@ -272,8 +271,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play16Bits(PIEZO_PIN, tetris16, tetris16_length);
 
     //assert
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
-    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
