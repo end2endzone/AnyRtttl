@@ -1,0 +1,10 @@
+BitReader	KEYWORD1
+BitWriter	KEYWORD1
+BitAddress	KEYWORD2
+add	KEYWORD2
+next	KEYWORD2
+setBuffer	KEYWORD2
+read	KEYWORD2
+write	KEYWORD2
+skip	KEYWORD2
+getAddress  KEYWORD2
