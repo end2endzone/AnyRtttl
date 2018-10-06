@@ -3,6 +3,7 @@ play16Bits	KEYWORD2
 play10Bits	KEYWORD2
 begin	KEYWORD2
 play	KEYWORD2
+playProgMem	KEYWORD2
 stop	KEYWORD2
 isPlaying	KEYWORD2
 done	KEYWORD2

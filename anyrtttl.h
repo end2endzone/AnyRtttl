@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// AnyRtttl Library - v2.0 - 05/21/2016
+// AnyRtttl Library - v2.1 - 06/05/2016
 // Copyright (C) 2016 Antoine Beauchamp
 // The code & updates for the library can be found on http://end2endzone.com
 //
@@ -52,6 +52,7 @@
 // HISTORY:
 // 03/19/2016 v1.0 - Initial release of NonBlockingRtttl.
 // 05/21/2016 v2.0 - Library converted to AnyRtttl.
+// 06/05/2016 v2.1 - Implemented support for RTTTL in Program Memory (PROGMEM).
 //
 // ---------------------------------------------------------------------------
 
@@ -148,6 +149,15 @@ namespace blocking
  *   iBuffer: The string buffer of the RTTTL melody.
  ****************************************************************************/
 void play(byte iPin, const char * iBuffer);
+
+/****************************************************************************
+ * Description:
+ *   Plays a native RTTTL melody which is stored in Program Memory (PROGMEM).
+ * Parameters:
+ *   iPin:    The pin which is connected to the piezo buffer.
+ *   iBuffer: The string buffer of the RTTTL melody.
+ ****************************************************************************/
+void playProgMem(byte iPin, const char * iBuffer);
 
 /****************************************************************************
  * Description:

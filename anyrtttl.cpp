@@ -1,9 +1,59 @@
 // ---------------------------------------------------------------------------
-// AnyRtttl Library - v2.0 - 05/21/2016
+// AnyRtttl Library - v2.1 - 06/05/2016
 // Copyright (C) 2016 Antoine Beauchamp
 // The code & updates for the library can be found on http://end2endzone.com
 //
-// See "AnyRtttl.h" for license, purpose, syntax, version history, links, and more.
+// AUTHOR/LICENSE:
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 3.0 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License (LGPL-3.0) for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// DISCLAIMER:
+//  This software is furnished "as is", without technical support, and with no 
+//  warranty, express or implied, as to its usefulness for any purpose.
+//
+// PURPOSE:
+//  After publishing my NonBlockingRtttl arduino library, I started using the
+//  library in more complex projects which was requiring other libraries.
+//  I quickly ran into the hell of library dependencies and library conflicts.
+//  I realized that I needed more features that could help me prototype faster.
+//
+//  Other libraries available which allows you to play a melody in RTTTL format
+//  suffer the same issue: they are based on blocking APIs or the RTTTL data is
+//  not optimized for space.
+//
+//  AnyRtttl is different since it packs multiple RTTTL related features in a
+//  single library. It supports blocking & non-blocking API which makes it
+//  suitable to be used by more advanced algorithm. For instance, when using
+//  the non-blocking API, the melody can be stopped when a button is pressed.
+//  The library is also compatible with external Tone libraries and supports
+//  highly compressed RTTTL binary formats.
+//
+// USAGE:
+//  The library has multiple examples which shows how to use the library with
+//  each features. Refers the to examples details. More information is also
+//  available on the project's home page: http://end2endzone.com.
+//
+//  Define ANY_RTTTL_INFO to enable the debugging of the library state
+//  on the serial port.
+//
+//  Use ANY_RTTTL_VERSION to get the current version of the library.
+//
+// HISTORY:
+// 03/19/2016 v1.0 - Initial release of NonBlockingRtttl.
+// 05/21/2016 v2.0 - Library converted to AnyRtttl.
+// 06/05/2016 v2.1 - Implemented support for RTTTL in Program Memory (PROGMEM).
+//
 // ---------------------------------------------------------------------------
 
 #include "arduino.h"
@@ -42,6 +92,52 @@ byte noteOffset;
 RTTTL_OCTAVE_VALUE scale;
 int tmpNumber;
 
+/**
+ * Description:
+ *   Class to encapsulate a string defined in program memory (PROGMEM)
+ */
+class ProgramMemoryString
+{
+public:
+  ProgramMemoryString(const char * iBuffer) {
+    mOffset = 0;
+    mBuffer = iBuffer;
+    findLength();
+  }
+  
+  char operator[] (int16_t iOffset) const {
+    if (iOffset > mLength)
+      return '\0'; //out of bounds
+    return pgm_read_byte_near(mBuffer + iOffset);
+  }
+
+  void reset() { mOffset = 0; }
+  void setOffset(int16_t iOffset) { mOffset = iOffset; }
+  void operator ++ (int) { mOffset++; }
+  void operator -- (int) { mOffset--; }
+  void operator += (int16_t iOffset) { mOffset += iOffset; }
+  int16_t getLength() const { return mLength; }
+  
+  //implicit conversion to char
+  operator char() const { return (*this)[mOffset]; }
+
+private:
+  void findLength() {
+    mLength = 0;
+    char c = pgm_read_byte_near(mBuffer + mLength);
+    while(c != '\0') {
+      mLength++;
+      c = pgm_read_byte_near(mBuffer + mLength);
+    }
+  }
+  
+  //attributes
+private:
+  int16_t mOffset;
+  int16_t mLength;
+  const char * mBuffer;
+};
+
 const char * readNumber(const char * iBuffer, int & oValue)
 {
   oValue = 0;
@@ -50,6 +146,16 @@ const char * readNumber(const char * iBuffer, int & oValue)
     oValue = (oValue * 10) + (*iBuffer++ - '0');
   }
   return iBuffer;
+}
+
+void readNumber(ProgramMemoryString & iString, int & oValue)
+{
+  oValue = 0;
+  while(isdigit(iString))
+  {
+    oValue = (oValue * 10) + (iString - '0');
+    iString++;
+  }
 }
 
 /****************************************************************************
@@ -187,6 +293,143 @@ void play(byte iPin, const char * iBuffer) {
 
     if(*iBuffer == ',')
       iBuffer++;       // skip comma for next note (or we may be at the end)
+
+    // now play the note
+    if(noteOffset)
+    {
+      uint16_t frequency = notes[(scale - 4) * NOTES_PER_OCTAVE + noteOffset];
+
+      #ifdef ANY_RTTTL_INFO
+      Serial.print("Playing: ");
+      Serial.print(scale, 10); Serial.print(' ');
+      Serial.print(noteOffset, 10); Serial.print(" (");
+      Serial.print(frequency, 10);
+      Serial.print(") ");
+      Serial.println(duration, 10);
+      #endif
+
+      _tone(iPin, frequency, duration);
+      _delay(duration+1);
+      _noTone(iPin);
+    }
+    else
+    {
+      #ifdef ANY_RTTTL_INFO
+      Serial.print("Pausing: ");
+      Serial.println(duration, 10);
+      #endif
+      _delay(duration);
+    }
+  }
+}
+
+
+void playProgMem(byte iPin, const char * iProgMemBuffer) {
+  // Absolutely no error checking in here
+
+  default_dur = 4;
+  default_oct = 6;
+  bpm = 63;
+
+  //create a class which encapsulate the string defined in PROGMEM
+  ProgramMemoryString buffer(iProgMemBuffer);
+
+  // format: d=N,o=N,b=NNN:
+  // find the start (skip name, etc)
+
+  while(buffer != ':') buffer++;          // ignore name
+  buffer++;                               // skip ':'
+
+  // get default duration
+  if(buffer == 'd')
+  {
+    buffer++; buffer++;                   // skip "d="
+    readNumber(buffer, tmpNumber);
+    if(tmpNumber > 0)
+      default_dur = tmpNumber;
+    buffer++;                             // skip comma
+  }
+
+  #ifdef ANY_RTTTL_INFO
+  Serial.print("ddur: "); Serial.println(default_dur, 10);
+  #endif
+
+  // get default octave
+  if(buffer == 'o')
+  {
+    buffer++; buffer++;                   // skip "o="
+    readNumber(buffer, tmpNumber);
+    if(tmpNumber >= 3 && tmpNumber <= 7)
+      default_oct = tmpNumber;
+    buffer++;                             // skip comma
+  }
+
+  #ifdef ANY_RTTTL_INFO
+  Serial.print("doct: "); Serial.println(default_oct, 10);
+  #endif
+
+  // get BPM
+  if(buffer == 'b')
+  {
+    buffer++; buffer++;                   // skip "b="
+    readNumber(buffer, tmpNumber);
+    bpm = tmpNumber;
+    buffer++;                             // skip colon
+  }
+
+  #ifdef ANY_RTTTL_INFO
+  Serial.print("bpm: "); Serial.println(bpm, 10);
+  #endif
+
+  // BPM usually expresses the number of quarter notes per minute
+  wholenote = (60 * 1000L / bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+
+  #ifdef ANY_RTTTL_INFO
+  Serial.print("wn: "); Serial.println(wholenote, 10);
+  #endif
+
+  // now begin note loop
+  while(buffer)
+  {
+    // first, get note duration, if available
+    readNumber(buffer, tmpNumber);
+    
+    if(tmpNumber)
+      duration = wholenote / tmpNumber;
+    else
+      duration = wholenote / default_dur;  // we will need to check if we are a dotted noteOffset after
+
+    // now get the note
+    noteOffset = getNoteOffsetFromLetter(buffer);
+    buffer++;
+
+    // now, get optional '#' sharp
+    if(buffer == '#')
+    {
+      noteOffset++;
+      buffer++;
+    }
+
+    // now, get optional '.' dotted note
+    if(buffer == '.')
+    {
+      duration += duration/2;
+      buffer++;
+    }
+  
+    // now, get scale
+    if(isdigit(buffer))
+    {
+      scale = buffer - '0';
+      buffer++;
+    }
+    else
+    {
+      scale = default_oct;
+    }
+
+    if(buffer == ',')
+      buffer++;       // skip comma for next note (or we may be at the end)
 
     // now play the note
     if(noteOffset)
