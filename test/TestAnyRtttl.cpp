@@ -11,6 +11,7 @@
 
 #include "rapidassist/strings.h"
 #include "rapidassist/gtesthelp.h"
+#include "rapidassist/filesystem.h"
 
 #include "RealtimeClockStrategy.h"
 
@@ -66,6 +67,80 @@ namespace arduino { namespace test
     }
   }
 
+  bool readFile(const char * iPath, std::string & content)
+  {
+    //static const std::string EMPTY;
+    content = "";
+
+    //allocate a buffer which can hold the content of the file
+    uint32_t file_size = ra::filesystem::getFileSize(iPath);
+    //uint32_t buffer_size = file_size + 1; //+1 for the ending \0 character
+
+    FILE * f = fopen(iPath, "rb");
+    if (!f)
+      return false;
+
+    char * buffer = new char[file_size]; 
+    if (!buffer)
+    {
+      fclose(f);
+      return false;
+    }
+    memset(buffer, 0, file_size);
+
+    //read the content
+    size_t read_size = fread(buffer, 1, file_size, f);
+    if (read_size != file_size)
+    {
+      delete[] buffer;
+      fclose(f);
+      return false;
+    }
+
+    fclose(f);
+
+    //copy the content of the buffer to the output string
+    content.assign(buffer, file_size);
+
+    bool success = (content.size() == file_size);
+    return success;
+  }
+
+  bool writeFile(const char * iPath, const std::string & content)
+  {
+    FILE * f = fopen(iPath, "wb");
+    if (!f)
+      return false;
+
+    size_t write_size = fwrite(content.c_str(), 1, content.size(), f);
+    if (write_size != content.size())
+    {
+      fclose(f);
+      return false;
+    }
+
+    fclose(f);
+    return true;
+  }
+
+  bool fileSearchAndReplace(const char * iPath, const std::string & iOldValue, const std::string & iNewValue)
+  {
+    std::string content;
+    if (!readFile(iPath, content))
+      return false;
+
+    int num_finding = ra::strings::replace(content, iOldValue, iNewValue);
+
+    //does the file was modified?
+    if (num_finding)
+    {
+      //yes, update the file
+      if (!writeFile(iPath, content))
+        return false;
+    }
+
+    return true;
+  }
 
 
   //--------------------------------------------------------------------------------------------------
@@ -162,6 +237,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play(PIEZO_PIN, tetris);
 
     //assert
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
@@ -178,6 +255,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play10Bits(PIEZO_PIN, tetris10_length, &readNextBits);
 
     //assert
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
@@ -193,6 +272,8 @@ namespace arduino { namespace test
     anyrtttl::blocking::play16Bits(PIEZO_PIN, tetris16, tetris16_length);
 
     //assert
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\n",   "") );
+    ASSERT_TRUE( fileSearchAndReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
     bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
