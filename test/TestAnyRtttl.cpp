@@ -13,7 +13,7 @@
 #include "rapidassist/gtesthelp.h"
 #include "rapidassist/filesystem.h"
 
-#include "RealtimeClockStrategy.h"
+#include "IncrementalClockStrategy.h"
 
 using namespace testarduino;
 
@@ -145,7 +145,8 @@ namespace arduino { namespace test
   //--------------------------------------------------------------------------------------------------
   void TestAnyRtttl::SetUp()
   {
-    RealtimeClockStrategy & gClock = RealtimeClockStrategy::getInstance();
+    IncrementalClockStrategy & gClock = IncrementalClockStrategy::getInstance();
+    gClock.setMicrosecondsResolution(3000); //3ms increments
     
     //force realtime strategy of win32Arduino library
     testarduino::setClockStrategy(&gClock);
