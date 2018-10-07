@@ -1,4 +1,4 @@
-# Install
+# Install #
 
 The library can be found, installed, or updated from the Arduino IDE using the official Arduino Library Manager (available from IDE version 1.6.2).
 
@@ -10,7 +10,15 @@ Refer to [Installing Additional Arduino Libraries](https://www.arduino.cc/en/Gui
 
 
 
-# Build
+# Dependencies #
+The following Arduino Library must be installed on the system to use the library.
+
+* [BitReader v1.3.0](https://github.com/end2endzone/BitReader/tree/1.3.0)
+
+
+
+
+# Build #
 
 The library unit tests can be build on Windows/Linux platform to maintain the product stability and level of quality.
 
@@ -18,19 +26,11 @@ This section explains how to compile and build the software and how to get a tes
 
 
 
-
 ## Prerequisites ##
 
 
-### Arduino library dependencies ###
-The following Arduino Library must be installed on the system to use the library.
-
-* [BitReader v1.3.0](https://github.com/end2endzone/BitReader/tree/1.3.0)
-
-
-
 ### Software Requirements ###
-The following software must be installed on the system before compiling source code:
+The following software must be installed on the system before compiling unit test source code:
 
 * [Google C++ Testing Framework v1.8.0](https://github.com/google/googletest/tree/release-1.8.0)
 * [RapidAssist v0.5.0](https://github.com/end2endzone/RapidAssist/tree/0.5.0)
