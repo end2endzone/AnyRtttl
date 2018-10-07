@@ -62,7 +62,7 @@
 
 #define ANY_RTTTL_VERSION 2.0
 
-#include "arduino.h"
+#include "Arduino.h"
 #include "pitches.h"
 
 //#define ANY_RTTTL_DEBUG

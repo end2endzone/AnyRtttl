@@ -59,7 +59,7 @@
 #ifndef BINRTTTL_H
 #define BINRTTTL_H
 
-#include "arduino.h"
+#include "Arduino.h"
 
 #define RTTTL_SONG_NAME_SIZE 11
 #define RTTTL_NOTE_SIZE_BITS 10

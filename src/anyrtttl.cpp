@@ -56,7 +56,7 @@
 //
 // ---------------------------------------------------------------------------
 
-#include "arduino.h"
+#include "Arduino.h"
 #include "anyrtttl.h"
 #include "binrtttl.h"
 
