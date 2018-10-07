@@ -1,59 +1,8 @@
 // ---------------------------------------------------------------------------
-// AnyRtttl Library - v2.1 - 06/05/2016
-// Copyright (C) 2016 Antoine Beauchamp
-// The code & updates for the library can be found on http://end2endzone.com
-//
 // AUTHOR/LICENSE:
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 3.0 of the License, or (at your option) any later version.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License (LGPL-3.0) for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//
-// DISCLAIMER:
-//  This software is furnished "as is", without technical support, and with no 
-//  warranty, express or implied, as to its usefulness for any purpose.
-//
-// PURPOSE:
-//  After publishing my NonBlockingRtttl arduino library, I started using the
-//  library in more complex projects which was requiring other libraries.
-//  I quickly ran into the hell of library dependencies and library conflicts.
-//  I realized that I needed more features that could help me prototype faster.
-//
-//  Other libraries available which allows you to play a melody in RTTTL format
-//  suffer the same issue: they are based on blocking APIs or the RTTTL data is
-//  not optimized for space.
-//
-//  AnyRtttl is different since it packs multiple RTTTL related features in a
-//  single library. It supports blocking & non-blocking API which makes it
-//  suitable to be used by more advanced algorithm. For instance, when using
-//  the non-blocking API, the melody can be stopped when a button is pressed.
-//  The library is also compatible with external Tone libraries and supports
-//  highly compressed RTTTL binary formats.
-//
-// USAGE:
-//  The library has multiple examples which shows how to use the library with
-//  each features. Refers the to examples details. More information is also
-//  available on the project's home page: http://end2endzone.com.
-//
-//  Define ANY_RTTTL_INFO to enable the debugging of the library state
-//  on the serial port.
-//
-//  Use ANY_RTTTL_VERSION to get the current version of the library.
-//
-// HISTORY:
-// 03/19/2016 v1.0 - Initial release of NonBlockingRtttl.
-// 05/21/2016 v2.0 - Library converted to AnyRtttl.
-// 06/05/2016 v2.1 - Implemented support for RTTTL in Program Memory (PROGMEM).
-//
+//  The following code was written by Antoine Beauchamp. For other authors, see AUTHORS file.
+//  The code & updates for the library can be found at https://github.com/end2endzone/AnyRtttl
+//  MIT License: http://www.opensource.org/licenses/mit-license.php
 // ---------------------------------------------------------------------------
 
 #ifndef BINRTTTL_H

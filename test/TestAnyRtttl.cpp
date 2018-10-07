@@ -1,5 +1,9 @@
-// TestAnyRtttl.cpp : Defines the entry point for the console application.
-//
+// ---------------------------------------------------------------------------
+// AUTHOR/LICENSE:
+//  The following code was written by Antoine Beauchamp. For other authors, see AUTHORS file.
+//  The code & updates for the library can be found at https://github.com/end2endzone/AnyRtttl
+//  MIT License: http://www.opensource.org/licenses/mit-license.php
+// ---------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <string>
