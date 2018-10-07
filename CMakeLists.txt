@@ -29,6 +29,18 @@ function(GIT_EXTERNAL DIR REPO_URL TAG)
   if(returncode)
     message(FATAL_ERROR "Clone failed: ${error}\n")
   endif()
+  message(STATUS "git clone completed")
+  
+  # Checking out the required tag
+  message(STATUS "git checkout ${TAG}")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" checkout ${TAG}
+    RESULT_VARIABLE returncode ERROR_VARIABLE error
+    WORKING_DIRECTORY "${REPO_DIR}")
+  if(returncode)
+    message(FATAL_ERROR "Checkout failed: ${error}\n")
+  endif()
+  message(STATUS "git checkout completed")
   
   # Delete the .git folder to simulate an export of the repository
   message(STATUS "Deleting ${REPO_DIR}/.git")
@@ -64,7 +76,8 @@ find_package(win32arduino 2.3.1 REQUIRED)
 find_package(Git REQUIRED)
 
 # Arduino BitReader library dependency
-GIT_EXTERNAL("${CMAKE_CURRENT_SOURCE_DIR}/external" "https://github.com/end2endzone/BitReader.git" "1.3.0")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external")
+GIT_EXTERNAL("${CMAKE_CURRENT_SOURCE_DIR}/external" "http://github.com/end2endzone/BitReader.git" "1.3.0")
 set(BITREADER_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/BitReader/src")
 
 ##############################################################################################################################################
