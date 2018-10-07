@@ -35,6 +35,8 @@ install:
 #---------------------------------#
 
 build_script:
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_library.bat
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\external\BitReader\ci\appveyor\arduino_library_install.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Basic
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingWithNonBlocking
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingDemo
