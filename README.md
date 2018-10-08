@@ -8,7 +8,7 @@
 
 # AnyRtttl #
 
-AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2endzone.com/anyrtttl-a-feature-rich-arduino-library-for-playing-rtttl-melodies/#Quick_recall_of_the_RTTTL_format) melodies. The library offers much more interesting features than relying on the widely available `void play_rtttl(char *p)` function. The AnyRtttl library supports all best RTTTL features.
+AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2endzone.com/anyrtttl-a-feature-rich-arduino-library-for-playing-rtttl-melodies/#Quick_recall_of_the_RTTTL_format) melodies. The library offers much more interesting features than relying on the widely available `void play_rtttl(char *p)` function. The library supports all best RTTTL features.
 
 Library features:
 
@@ -68,7 +68,7 @@ The library also supports custom `delay()` and `millis()` functions. If a projec
 
 ## Binary RTTTL ##
 
-The AnyRtttl library also supports playing RTTTL data which is stored as binary data instead of text. This is actually a custom implementation of the RTTTL format. Using these format, one can achieve storing an highly compressed RTTTL melody which saves memory.
+The AnyRtttl library also supports playing RTTTL data which is stored as binary data instead of text. This is actually a custom implementation of the RTTTL format. Using this format, one can achieve storing an highly compressed RTTTL melody which saves memory.
 
 
 
@@ -76,19 +76,23 @@ The AnyRtttl library also supports playing RTTTL data which is stored as binary 
 
 The following instructions show how to use the library.
 
-Define ANY_RTTTL_INFO to enable the debugging of the library state on the serial port.
+Define `ANY_RTTTL_INFO` to enable the debugging of the library state on the serial port.
 
-Use ANY_RTTTL_VERSION to get the current version of the library.
+Use `ANY_RTTTL_VERSION` to get the current version of the library.
+
+Note, the specified macros must be defined before including `anyrtttl.h` in your sketches.
 
 
 
 ## Non-blocking mode ##
 
-Call `anyrtttl::begin()` to setup the AnyRtttl library in non-blocking mode. Then call `anyrtttl::play()` to update the library’s state and play notes as required.
+Call `anyrtttl::begin()` to setup AnyRtttl library in non-blocking mode.
+
+Then call `anyrtttl::play()` to update the library’s state and play notes as required.
 
 Use `anyrtttl::done()` or `anyrtttl::isPlaying()` to know if the library is done playing the given song.
 
-Anytime one can call `anyrtttl::stop()` to stop playing the current song.
+Anytime, one can call `anyrtttl::stop()` to stop playing the current song.
 
 The following code shows how to use the library in non-blocking mode:
 
@@ -166,8 +170,6 @@ The following code shows how to use the library with 16-bits per note binary RTT
 #define BUZZER_PIN 8
 
 //RTTTL 16 bits binary format for the following: tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a
-//Compatible with AnyRtttl library v2.0
-//The code & updates for the AnyRtttl library can be found on http://end2endzone.com
 const unsigned char tetris16[] = {0x0A, 0x14, 0x12, 0x02, 0x33, 0x01, 0x03, 0x02, 0x0B, 0x02, 0x14, 0x02, 0x0C, 0x02, 0x03, 0x02, 0x33, 0x01, 0x2A, 0x01, 0x2B, 0x01, 0x03, 0x02, 0x12, 0x02, 0x0B, 0x02, 0x03, 0x02, 0x32, 0x01, 0x33, 0x01, 0x03, 0x02, 0x0A, 0x02, 0x12, 0x02, 0x02, 0x02, 0x2A, 0x01, 0x29, 0x01, 0x3B, 0x01, 0x0A, 0x02, 0x1B, 0x02, 0x2A, 0x02, 0x23, 0x02, 0x1B, 0x02, 0x12, 0x02, 0x13, 0x02, 0x03, 0x02, 0x12, 0x02, 0x0B, 0x02, 0x03, 0x02, 0x32, 0x01, 0x33, 0x01, 0x03, 0x02, 0x0A, 0x02, 0x12, 0x02, 0x02, 0x02, 0x2A, 0x01, 0x2A, 0x01};
 const int tetris16_length = 42;
 
@@ -194,7 +196,7 @@ Note that this mode requires that an RTTTL melody be already converted to 10-bit
 
 Create a function that will be used by AnyRtttl library to read bits as required. The signature of the library must look like this: `uint16_t function_name(uint8_t numBits)`.
 
-Note that this demo uses the arduino [BitReader](https://github.com/end2endzone/BitReader) library to extract bits from the RTTTL binary buffer. The implementation of `readNextBits()` function delegates the job to the BitReader's `read()` method.
+Note that this code requires the [BitReader](https://github.com/end2endzone/BitReader) library to extract bits from the RTTTL binary buffer. The implementation of `readNextBits()` function delegates the job to the BitReader's `read()` method.
 
 In the `setup()` function, setup the external library that is used for reading bits: `bitreader.setBuffer(tetris10);`.
 
@@ -213,8 +215,6 @@ The following code shows how to use the library with 10-bits per note binary RTT
 #define BUZZER_PIN 8
 
 //RTTTL 10 bits binary format for the following: tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a
-//Compatible with AnyRtttl library v2.0
-//The code & updates for the AnyRtttl library can be found on http://end2endzone.com
 const unsigned char tetris10[] = {0x0A, 0x14, 0x12, 0xCE, 0x34, 0xE0, 0x82, 0x14, 0x32, 0x38, 0xE0, 0x4C, 0x2A, 0xAD, 0x34, 0xA0, 0x84, 0x0B, 0x0E, 0x28, 0xD3, 0x4C, 0x03, 0x2A, 0x28, 0xA1, 0x80, 0x2A, 0xA5, 0xB4, 0x93, 0x82, 0x1B, 0xAA, 0x38, 0xE2, 0x86, 0x12, 0x4E, 0x38, 0xA0, 0x84, 0x0B, 0x0E, 0x28, 0xD3, 0x4C, 0x03, 0x2A, 0x28, 0xA1, 0x80, 0x2A, 0xA9, 0x04};
 const int tetris10_length = 42;
 
