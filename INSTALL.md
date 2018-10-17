@@ -11,7 +11,10 @@ Refer to [Installing Additional Arduino Libraries](https://www.arduino.cc/en/Gui
 
 
 # Dependencies #
-The following Arduino Library must be installed on the system to use the library.
+
+The AnyRtttl library have no dependencies on other Arduino library. However, some examples of the library requires external dependencies.
+
+The following Arduino Library must be installed on the system to use the library examples:
 
 * [BitReader v1.3.0](https://github.com/end2endzone/BitReader/tree/1.3.0)
 
@@ -29,7 +32,9 @@ This section explains how to compile and build the software and how to get a tes
 ## Prerequisites ##
 
 
+
 ### Software Requirements ###
+
 The following software must be installed on the system before compiling unit test source code:
 
 * [Google C++ Testing Framework v1.8.0](https://github.com/google/googletest/tree/release-1.8.0)
@@ -52,7 +57,6 @@ These are the base requirements to build source code:
 ### Windows Requirements ###
 
 * Microsoft Visual C++ 2010 or newer
-
 
 
 
@@ -89,6 +93,7 @@ make
 
 
 # Testing #
+
 AnyRtttl comes with unit tests which help maintaining the product stability and level of quality.
 
 Test are build using the Google Test v1.8.0 framework. For more information on how googletest is working, see the [google test documentation primer](https://github.com/google/googletest/blob/release-1.8.0/googletest/docs/V1_6_Primer.md).  
