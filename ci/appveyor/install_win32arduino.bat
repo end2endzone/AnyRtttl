@@ -30,13 +30,13 @@ mkdir build >NUL 2>NUL
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=%win32arduino_DIR% ..
 if %errorlevel% neq 0 exit /b %errorlevel%
-cmake --build . --config Release
+cmake --build . --config %Configuration%
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 
 echo ============================================================================
 echo Installing into %win32arduino_DIR%
 echo ============================================================================
-cmake --build . --config Release --target INSTALL
+cmake --build . --config %Configuration% --target INSTALL
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
