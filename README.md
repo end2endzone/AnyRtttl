@@ -352,6 +352,8 @@ The following code shows how to use the library with 10-bits per note binary RTT
 #include <binrtttl.h>
 #include <pitches.h>
 
+//The BitReader library is required for extracting 10 bit blocks from the RTTTL buffer.
+//It can be installed from Arduino Library Manager or from https://github.com/end2endzone/BitReader/releases
 #include <bitreader.h>
 
 //project's constants
