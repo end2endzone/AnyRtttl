@@ -29,13 +29,12 @@ Build:
 | Service | Build | Tests |
 |----|-------|-------|
 | AppVeyor | [![Build status](https://img.shields.io/appveyor/ci/end2endzone/AnyRtttl/master.svg?logo=appveyor)](https://ci.appveyor.com/project/end2endzone/AnyRtttl) | [![Tests status](https://img.shields.io/appveyor/tests/end2endzone/AnyRtttl/master.svg?logo=appveyor)](https://ci.appveyor.com/project/end2endzone/AnyRtttl/branch/master/tests) |
-| Travis CI | [![Build Status](https://img.shields.io/travis/end2endzone/AnyRtttl/master.svg?logo=travis&style=flat)](https://travis-ci.org/end2endzone/AnyRtttl) |  |
 
 Statistics:
 
-| AppVeyor | Travic CI |
-|----------|-----------|
-| [![Statistics](https://buildstats.info/appveyor/chart/end2endzone/AnyRtttl)](https://ci.appveyor.com/project/end2endzone/AnyRtttl/branch/master) | [![Statistics](https://buildstats.info/travisci/chart/end2endzone/AnyRtttl)](https://travis-ci.org/end2endzone/AnyRtttl) |
+| AppVeyor |
+|----------|
+| [![Statistics](https://buildstats.info/appveyor/chart/end2endzone/AnyRtttl)](https://ci.appveyor.com/project/end2endzone/AnyRtttl/branch/master) |
 
 
 
