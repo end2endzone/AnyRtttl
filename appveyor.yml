@@ -9,7 +9,7 @@ version: "{branch} (#{build})"
 branches:
   only:
     - master
-    - feature-issue5
+    - /feature-issue.*/
 
 #---------------------------------#
 #    environment configuration    #
