@@ -9,7 +9,7 @@ const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,
 //*******************************************************************************************************************
 //  The following replacement functions prints the function call & parameters to the serial port.
 //*******************************************************************************************************************
-void serialTone(byte pin, uint16_t frequency, uint32_t duration) {
+void serialTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
   Serial.print("tone(");
   Serial.print(pin);
   Serial.print(",");
@@ -19,13 +19,13 @@ void serialTone(byte pin, uint16_t frequency, uint32_t duration) {
   Serial.println(");");
 }
 
-void serialNoTone(byte pin) {
+void serialNoTone(uint8_t pin) {
   Serial.print("noTone(");
   Serial.print(pin);
   Serial.println(");");
 }
 
-void serialDelay(uint32_t duration) {
+void serialDelay(unsigned long duration) {
   Serial.print("delay(");
   Serial.print(duration);
   Serial.println(");");

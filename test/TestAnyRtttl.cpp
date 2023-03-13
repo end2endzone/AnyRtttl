@@ -14,7 +14,7 @@
 #include "bitreader.h"
 
 #include "rapidassist/strings.h"
-#include "rapidassist/gtesthelp.h"
+#include "rapidassist/testing.h"
 #include "rapidassist/filesystem.h"
 
 #include "IncrementalClockStrategy.h"
@@ -77,7 +77,7 @@ namespace arduino { namespace test
     content = "";
 
     //allocate a buffer which can hold the content of the file
-    uint32_t file_size = ra::filesystem::getFileSize(iPath);
+    uint32_t file_size = ra::filesystem::GetFileSize(iPath);
     //uint32_t buffer_size = file_size + 1; //+1 for the ending \0 character
 
     FILE * f = fopen(iPath, "rb");
@@ -133,7 +133,7 @@ namespace arduino { namespace test
     if (!readFile(iPath.c_str(), content))
       return false;
 
-    int num_finding = ra::strings::replace(content, iOldValue, iNewValue);
+    int num_finding = ra::strings::Replace(content, iOldValue, iNewValue);
 
     //does the file was modified?
     if (num_finding)
@@ -177,9 +177,9 @@ namespace arduino { namespace test
 
     //load both files into memory
     ra::strings::StringVector expectedCalls;
-    ASSERT_TRUE (ra::gtesthelp::getTextFileContent("expected_call_stack.log", expectedCalls));
+    ASSERT_TRUE (ra::testing::GetTextFileContent("expected_call_stack.log", expectedCalls));
     ra::strings::StringVector actualCalls;
-    ASSERT_TRUE (ra::gtesthelp::getTextFileContent(logFile.c_str(), actualCalls));
+    ASSERT_TRUE (ra::testing::GetTextFileContent(logFile.c_str(), actualCalls));
 
     //assert that file ends with a noTone();
     std::string lastCall = actualCalls[actualCalls.size()-1];
@@ -224,7 +224,7 @@ namespace arduino { namespace test
 
     //load output file into memory
     ra::strings::StringVector actualCalls;
-    ASSERT_TRUE (ra::gtesthelp::getTextFileContent(logFile.c_str(), actualCalls));
+    ASSERT_TRUE (ra::testing::GetTextFileContent(logFile.c_str(), actualCalls));
 
     //assert that file ends with a noTone();
     std::string lastCall = actualCalls[actualCalls.size()-1];
@@ -244,7 +244,7 @@ namespace arduino { namespace test
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
-    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::testing::IsFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ namespace arduino { namespace test
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
-    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::testing::IsFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
@@ -279,22 +279,22 @@ namespace arduino { namespace test
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\n",   "") );
     ASSERT_TRUE( fileContentReplace(logFile.c_str(), "millis();\r\n", "") ); //windows
     std::string diffReason;
-    bool fileAreIdentical = ra::gtesthelp::isFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
+    bool fileAreIdentical = ra::testing::IsFileEquals("expected_call_stack.log", logFile.c_str(), diffReason, 1);
     ASSERT_TRUE( fileAreIdentical ) << diffReason.c_str();
   }
   //--------------------------------------------------------------------------------------------------
   static int toneCounts = 0;
   static int noToneCounts = 0;
   static int delayCounts = 0;
-  void myToneFunc(byte pin, uint16_t frequency, uint32_t duration)
+  void myToneFunc(uint8_t pin, unsigned int frequency, unsigned long duration)
   {
     toneCounts++;
   }
-  void myNoToneFunc(byte pin)
+  void myNoToneFunc(uint8_t pin)
   {
     noToneCounts++;
   }
-  void myDelayFunc(uint32_t duration)
+  void myDelayFunc(unsigned long duration)
   {
     delayCounts++;
   }
