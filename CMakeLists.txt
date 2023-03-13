@@ -64,6 +64,10 @@ function(add_example name)
  
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
   set_target_properties(${name} PROPERTIES FOLDER "examples")
+
+  # 1>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\ostream(743,1): warning C4530: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+  # 1>D:\dev\AnyRtttl\master\third_parties\win32Arduino\install\include\win32arduino-2.4.0\SerialPrinter.h(202): message : see reference to function template instantiation 'std::basic_ostream<char,std::char_traits<char>> &std::operator <<<std::char_traits<char>>(std::basic_ostream<char,std::char_traits<char>> &,const char *)' being compiled
+  set_target_properties(${name} PROPERTIES COMPILE_FLAGS "/wd4530")
  
 endfunction()
 
@@ -117,6 +121,10 @@ endif()
 
 #link libraries
 target_link_libraries(anyrtttl_unittest PRIVATE win32arduino rapidassist ${PTHREAD_LIBRARIES} ${GTEST_LIBRARIES} )
+
+# 1>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\ostream(743,1): warning C4530: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+# 1>D:\dev\AnyRtttl\master\third_parties\win32Arduino\install\include\win32arduino-2.4.0\SerialPrinter.h(202): message : see reference to function template instantiation 'std::basic_ostream<char,std::char_traits<char>> &std::operator <<<std::char_traits<char>>(std::basic_ostream<char,std::char_traits<char>> &,const char *)' being compiled
+set_target_properties(anyrtttl_unittest PROPERTIES COMPILE_FLAGS "/wd4530")
 
 # Copy `expected_call_stack.log` to expected locations
 configure_file(${PROJECT_SOURCE_DIR}/test/expected_call_stack.log ${PROJECT_BINARY_DIR}/expected_call_stack.log COPYONLY)
