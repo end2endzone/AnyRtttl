@@ -149,7 +149,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: |
-        UNITTEST_REPORT_PATH=$(find . -name 'softtimers_unittest*.xml')
+        UNITTEST_REPORT_PATH=$(find . -name 'anyrtttl_unittest*.xml')
         echo UNITTEST_REPORT_PATH=$UNITTEST_REPORT_PATH
         echo UNITTEST_REPORT_PATH=$UNITTEST_REPORT_PATH >> $GITHUB_ENV
       
