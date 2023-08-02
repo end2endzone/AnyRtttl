@@ -97,20 +97,35 @@ jobs:
       shell: cmd
       run: call ci\github\arduino_build_sketch.bat Basic
 
+    - name: Build Arduino sketch - BlockingProgramMemoryRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: call ci\github\arduino_build_sketch.bat BlockingProgramMemoryRtttl
+
+    - name: Build Arduino sketch - BlockingRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: call ci\github\arduino_build_sketch.bat BlockingRtttl
+
     - name: Build Arduino sketch - BlockingWithNonBlocking
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
       run: call ci\github\arduino_build_sketch.bat BlockingWithNonBlocking
 
-    - name: Build Arduino sketch - NonBlockingDemo
+    - name: Build Arduino sketch - NonBlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat NonBlockingDemo
+      run: call ci\github\arduino_build_sketch.bat NonBlockingProgramMemoryRtttl
 
-    - name: Build Arduino sketch - NonBlockingInterruptedDemo
+    - name: Build Arduino sketch - NonBlockingRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat NonBlockingInterruptedDemo
+      run: call ci\github\arduino_build_sketch.bat NonBlockingRtttl
+
+    - name: Build Arduino sketch - NonBlockingStopBeforeEnd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: call ci\github\arduino_build_sketch.bat NonBlockingStopBeforeEnd
 
     - name: Build Arduino sketch - Play10Bits
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -121,11 +136,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
       run: call ci\github\arduino_build_sketch.bat Play16Bits
-
-    - name: Build Arduino sketch - ProgramMemoryRtttl
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: cmd
-      run: call ci\github\arduino_build_sketch.bat ProgramMemoryRtttl
 
     - name: Build Arduino sketch - Rtttl2Code
       working-directory: ${{env.GITHUB_WORKSPACE}}

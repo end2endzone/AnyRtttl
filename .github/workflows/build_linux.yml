@@ -105,20 +105,35 @@ jobs:
       shell: bash
       run: ./ci/github/arduino_build_sketch.sh Basic
 
+    - name: Build Arduino sketch - BlockingProgramMemoryRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/arduino_build_sketch.sh BlockingProgramMemoryRtttl
+
+    - name: Build Arduino sketch - BlockingRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/arduino_build_sketch.sh BlockingRtttl
+
     - name: Build Arduino sketch - BlockingWithNonBlocking
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: ./ci/github/arduino_build_sketch.sh BlockingWithNonBlocking
 
-    - name: Build Arduino sketch - NonBlockingDemo
+    - name: Build Arduino sketch - NonBlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
-      run: ./ci/github/arduino_build_sketch.sh NonBlockingDemo
+      run: ./ci/github/arduino_build_sketch.sh NonBlockingProgramMemoryRtttl
 
-    - name: Build Arduino sketch - NonBlockingInterruptedDemo
+    - name: Build Arduino sketch - NonBlockingRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
-      run: ./ci/github/arduino_build_sketch.sh NonBlockingInterruptedDemo
+      run: ./ci/github/arduino_build_sketch.sh NonBlockingRtttl
+
+    - name: Build Arduino sketch - NonBlockingStopBeforeEnd
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/arduino_build_sketch.sh NonBlockingStopBeforeEnd
 
     - name: Build Arduino sketch - Play10Bits
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -129,11 +144,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: ./ci/github/arduino_build_sketch.sh Play16Bits
-
-    - name: Build Arduino sketch - ProgramMemoryRtttl
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/arduino_build_sketch.sh ProgramMemoryRtttl
 
     - name: Build Arduino sketch - Rtttl2Code
       working-directory: ${{env.GITHUB_WORKSPACE}}
