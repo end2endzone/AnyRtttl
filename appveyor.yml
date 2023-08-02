@@ -52,13 +52,16 @@ build_script:
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_library.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\external\BitReader\ci\appveyor\arduino_library_install.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Basic
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingProgramMemoryRtttl
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingRtttl
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingWithNonBlocking
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingDemo
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingInterruptedDemo
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingProgramMemoryRtttl
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingRtttl
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingStopBeforeEnd
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Play10Bits
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Play16Bits
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat ProgramMemoryRtttl
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Rtttl2Code
+
 
 #---------------------------------#
 #       tests configuration       #

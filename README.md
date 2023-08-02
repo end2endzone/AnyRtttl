@@ -90,13 +90,14 @@ Note, the specified macros must be defined before including `anyrtttl.h` in your
 
 ## Non-blocking mode ##
 
-Call `anyrtttl::begin()` to setup AnyRtttl library in non-blocking mode.
+      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
+Call `anyrtttl::nonblocking::begin()` to setup AnyRtttl library in non-blocking mode.
 
-Then call `anyrtttl::play()` to update the library's state and play notes as required.
+Then call `anyrtttl::nonblocking::play()` to update the library's state and play notes as required.
 
-Use `anyrtttl::done()` or `anyrtttl::isPlaying()` to know if the library is done playing the given song.
+Use `anyrtttl::done()` or `anyrtttl::nonblocking::isPlaying()` to know if the library is done playing the given song.
 
-Anytime, one can call `anyrtttl::stop()` to stop playing the current song.
+Anytime, one can call `anyrtttl::nonblocking::stop()` to stop playing the current song.
 
 The following code shows how to use the library in non-blocking mode:
 
@@ -120,34 +121,19 @@ void setup() {
 }
 
 void loop() {
+  // If we are not playing something 
   if ( !anyrtttl::nonblocking::isPlaying() )
   {
+    // Play a song based on songIndex.
     if (songIndex == 0)
-    {
-      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
-      songIndex++; //ready for next song
-
-      //play for 5 sec then stop.
-      //note: this is a blocking code section
-      //use to demonstrate the use of stop()
-      unsigned long start = millis();
-      while( millis() - start < 5000 ) 
-      {
-        anyrtttl::nonblocking::play();
-      }
-      anyrtttl::nonblocking::stop();
-      
-    }
-    else if (songIndex == 1)
-    {
-      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
-      songIndex++; //ready for next song
-    }
-    else if (songIndex == 2)
-    {
       anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
-      songIndex++; //ready for next song
-    }
+    else if (songIndex == 1)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
+    else if (songIndex == 2)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
+
+    //Set songIndex ready for next song
+    songIndex++;
   }
   else
   {
@@ -160,7 +146,9 @@ void loop() {
 
 ## Playing RTTTL data stored in flash (program) memory ##
 
-AnyRtttl also supports RTTTL melodies stored in Program Memory (PROGMEM).
+AnyRtttl also supports RTTTL melodies stored in flash or Program Memory (PROGMEM).
+
+The `anyrtttl::nonblocking::begin()` function supports _Program Memory_ macros such as `FPSTR()` or `F()`.
 
 The following code shows how to use the library with RTTTL data stored in flash (program) memory instead of SRAM:
 
@@ -172,19 +160,38 @@ The following code shows how to use the library with RTTTL data stored in flash 
 //project's constants
 #define BUZZER_PIN 8
 const char tetris[] PROGMEM = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+const char arkanoid[] PROGMEM = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
+const char mario[] PROGMEM = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
+// James Bond theme defined in inline code below (also stored in flash memory) 
+byte songIndex = 0; //which song to play when the previous one finishes
 
 void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("ready");
+  Serial.println();
 }
 
 void loop() {
-  anyrtttl::blocking::playProgMem(BUZZER_PIN, tetris);
-
-  while(true)
+  // If we are not playing something 
+  if ( !anyrtttl::nonblocking::isPlaying() )
   {
+    // Play a song based on songIndex.
+    if (songIndex == 0)
+      anyrtttl::nonblocking::beginProgMem(BUZZER_PIN, tetris);
+    else if (songIndex == 1)
+      anyrtttl::nonblocking::begin_P(BUZZER_PIN, arkanoid);
+    else if (songIndex == 2)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, FPSTR(mario));
+    else if (songIndex == 3)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, F("Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6"));
+
+    //Set songIndex ready for next song
+    songIndex++;
+  }
+  else
+  {
+    anyrtttl::nonblocking::play();
   }
 }
 ```
@@ -402,9 +409,12 @@ void loop() {
 More AnyRtttl examples are also available:
 
 * [Basic](examples/Basic/Basic.ino)
+* [BlockingProgramMemoryRtttl](examples/BlockingProgramMemoryRtttl/BlockingProgramMemoryRtttl.ino)
+* [BlockingRtttl](examples/BlockingRtttl/BlockingRtttl.ino)
 * [BlockingWithNonBlocking](examples/BlockingWithNonBlocking/BlockingWithNonBlocking.ino)
-* [NonBlockingDemo](examples/NonBlockingDemo/NonBlockingDemo.ino)
-* [NonBlockingInterruptedDemo](examples/NonBlockingInterruptedDemo/NonBlockingInterruptedDemo.ino)
+* [NonBlockingProgramMemoryRtttl](examples/NonBlockingProgramMemoryRtttl/NonBlockingProgramMemoryRtttl.ino)
+* [NonBlockingRtttl](examples/NonBlockingRtttl/NonBlockingRtttl.ino)
+* [NonBlockingStopBeforeEnd](examples/NonBlockingStopBeforeEnd/NonBlockingStopBeforeEnd.ino)
 * [Play10Bits](examples/Play10Bits/Play10Bits.ino)
 * [Play16Bits](examples/Play16Bits/Play16Bits.ino)
 * [ProgramMemoryRtttl](examples/ProgramMemoryRtttl/ProgramMemoryRtttl.ino)

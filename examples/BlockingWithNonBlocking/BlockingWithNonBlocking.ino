@@ -17,22 +17,28 @@ void setup() {
 
 void loop() {
 
-  anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
+  // Play tetris and wait until done playing before jumping to the next song.
+  anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
   while( !anyrtttl::nonblocking::done() ) 
   {
     anyrtttl::nonblocking::play();
   }
 
+  // Play arkanoid and loop until done playing before jumping to the next song.
   anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
   while( !anyrtttl::nonblocking::done() ) 
   {
     anyrtttl::nonblocking::play();
   }
   
-  anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
+  // Play mario and loop until done playing before looping again.
+  anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
   while( !anyrtttl::nonblocking::done() ) 
   {
     anyrtttl::nonblocking::play();
   }
- 
+
+  while(true)
+  {
+  } 
 }

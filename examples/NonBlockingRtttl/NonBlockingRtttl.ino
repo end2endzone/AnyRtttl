@@ -17,34 +17,19 @@ void setup() {
 }
 
 void loop() {
+  // If we are not playing something 
   if ( !anyrtttl::nonblocking::isPlaying() )
   {
+    // Play a song based on songIndex.
     if (songIndex == 0)
-    {
-      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
-      songIndex++; //ready for next song
-
-      //play for 5 sec then stop.
-      //note: this is a blocking code section
-      //use to demonstrate the use of stop()
-      unsigned long start = millis();
-      while( millis() - start < 5000 ) 
-      {
-        anyrtttl::nonblocking::play();
-      }
-      anyrtttl::nonblocking::stop();
-      
-    }
-    else if (songIndex == 1)
-    {
-      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
-      songIndex++; //ready for next song
-    }
-    else if (songIndex == 2)
-    {
       anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
-      songIndex++; //ready for next song
-    }
+    else if (songIndex == 1)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
+    else if (songIndex == 2)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
+
+    //Set songIndex ready for next song
+    songIndex++;
   }
   else
   {
