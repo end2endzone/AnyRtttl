@@ -8,7 +8,7 @@
 #ifndef ANY_RTTTL_H
 #define ANY_RTTTL_H
 
-#define ANY_RTTTL_VERSION 2.2
+#define ANY_RTTTL_VERSION 2.3
 
 #include "Arduino.h"
 #include "pitches.h"
@@ -82,6 +82,28 @@ void setMillisFunction(MillisFuncPtr iFunc);
 
 
 
+/****************************************************************************
+ * Description:
+ *   Defines a function pointer to read a single char from a buffer
+ ****************************************************************************/
+typedef char (*ReadCharFuncPtr)(const char *);
+
+/****************************************************************************
+ * Description:
+ *   Read the first byte of a buffer stored in RAM.
+ * Parameters:
+ *   iBuffer: A string buffer stored in RAM.
+ ****************************************************************************/
+char readChar(const char * iBuffer);
+
+/****************************************************************************
+ * Description:
+ *   Read the first byte of a buffer stored in PROGMEM.
+ * Parameters:
+ *   iBuffer: A string buffer stored in PROGMEM.
+ ****************************************************************************/
+char readChar_P(const char * iBuffer);
+
 
 /****************************************************************************
  * Blocking API
@@ -92,6 +114,16 @@ namespace blocking
 /****************************************************************************
  * Description:
  *   Plays a native RTTTL melody.
+ * Parameters:
+ *   iPin:          The pin which is connected to the piezo buffer.
+ *   iBuffer:       The string buffer of the RTTTL melody.
+ *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
+ ****************************************************************************/
+void play(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+
+/****************************************************************************
+ * Description:
+ *   Plays a native RTTTL melody which is stored in RAM.
  * Parameters:
  *   iPin:    The pin which is connected to the piezo buffer.
  *   iBuffer: The string buffer of the RTTTL melody.
@@ -105,7 +137,10 @@ void play(byte iPin, const char * iBuffer);
  *   iPin:    The pin which is connected to the piezo buffer.
  *   iBuffer: The string buffer of the RTTTL melody.
  ****************************************************************************/
+void play(byte iPin, const __FlashStringHelper* str);
 void playProgMem(byte iPin, const char * iBuffer);
+void play_P(byte iPin, const char * iBuffer);
+void play_P(byte iPin, const __FlashStringHelper* str);
 
 /****************************************************************************
  * Description:
@@ -160,10 +195,34 @@ namespace nonblocking
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song.
  * Parameters:
- *   iPin:    The pin which is connected to the piezo buffer.
- *   iBuffer: The string buffer of the RTTTL song.
+ *   iPin:          The pin which is connected to the piezo buffer.
+ *   iBuffer:       The string buffer of the RTTTL song.
+ *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
+ ****************************************************************************/
+void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+
+/****************************************************************************
+ * Description:
+ *   Setups the AnyRtttl library for non-blocking mode and ready to
+ *   decode a new RTTTL song stored in RAM.
+ * Parameters:
+ *   iPin:      The pin which is connected to the piezo buffer.
+ *   iBuffer:   The string buffer of the RTTTL song.
  ****************************************************************************/
 void begin(byte iPin, const char * iBuffer);
+
+/****************************************************************************
+ * Description:
+ *   Setups the AnyRtttl library for non-blocking mode and ready to
+ *   decode a new RTTTL song stored in Program Memory (PROGMEM).
+ * Parameters:
+ *   iPin:    The pin which is connected to the piezo buffer.
+ *   iBuffer: The string buffer of the RTTTL melody.
+ ****************************************************************************/
+void begin(byte iPin, const __FlashStringHelper* str);
+void beginProgMem(byte iPin, const char * iBuffer);
+void begin_P(byte iPin, const char * iBuffer);
+void begin_P(byte iPin, const __FlashStringHelper* str);
 
 /****************************************************************************
  * Description:

@@ -4,7 +4,6 @@
 //  The code & updates for the library can be found at https://github.com/end2endzone/AnyRtttl
 //  MIT License: http://www.opensource.org/licenses/mit-license.php
 // ---------------------------------------------------------------------------
-
 #include "Arduino.h"
 #include "anyrtttl.h"
 #include "binrtttl.h"
@@ -28,6 +27,7 @@ typedef uint16_t TONE_DURATION;
 static const byte NOTES_PER_OCTAVE = 12;
 
 const char * buffer = "";
+ReadCharFuncPtr readCharFunc = &readChar;
 int bufferIndex = -32760;
 byte default_dur = 4;
 byte default_oct = 5;
@@ -41,69 +41,24 @@ byte noteOffset;
 RTTTL_OCTAVE_VALUE scale;
 int tmpNumber;
 
-/**
- * Description:
- *   Class to encapsulate a string defined in program memory (PROGMEM)
- */
-class ProgramMemoryString
-{
-public:
-  ProgramMemoryString(const char * iBuffer) {
-    mOffset = 0;
-    mBuffer = iBuffer;
-    findLength();
-  }
-  
-  char operator[] (int16_t iOffset) const {
-    if (iOffset > mLength)
-      return '\0'; //out of bounds
-    return pgm_read_byte_near(mBuffer + iOffset);
-  }
-
-  void reset() { mOffset = 0; }
-  void setOffset(int16_t iOffset) { mOffset = iOffset; }
-  void operator ++ (int) { mOffset++; }
-  void operator -- (int) { mOffset--; }
-  void operator += (int16_t iOffset) { mOffset += iOffset; }
-  int16_t getLength() const { return mLength; }
-  
-  //implicit conversion to char
-  operator char() const { return (*this)[mOffset]; }
-
-private:
-  void findLength() {
-    mLength = 0;
-    char c = pgm_read_byte_near(mBuffer + mLength);
-    while(c != '\0') {
-      mLength++;
-      c = pgm_read_byte_near(mBuffer + mLength);
-    }
-  }
-  
-  //attributes
-private:
-  int16_t mOffset;
-  int16_t mLength;
-  const char * mBuffer;
-};
-
-const char * readNumber(const char * iBuffer, int & oValue)
+const char * readNumber(const char * iBuffer, int & oValue, ReadCharFuncPtr iReadCharFunc)
 {
   oValue = 0;
-  while(isdigit(*iBuffer))
+  while(isdigit(iReadCharFunc(iBuffer)))
   {
-    oValue = (oValue * 10) + (*iBuffer++ - '0');
+    oValue = (oValue * 10) + (readCharFunc(buffer) - '0');
+    iBuffer++;
   }
   return iBuffer;
 }
 
-void readNumber(ProgramMemoryString & iString, int & oValue)
+void serialPrint(const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
 {
-  oValue = 0;
-  while(isdigit(iString))
-  {
-    oValue = (oValue * 10) + (iString - '0');
-    iString++;
+  char c = readCharFunc(iBuffer);
+  while(c) {
+    Serial.print(c);
+    iBuffer++;
+    c = readCharFunc(iBuffer);
   }
 }
 
@@ -132,6 +87,15 @@ void setMillisFunction(MillisFuncPtr iFunc) {
   _millis = iFunc;
 }
 
+char readChar(const char * iBuffer) {
+  return *iBuffer;
+}
+
+char readChar_P(const char * iBuffer) {
+  return pgm_read_byte_near(iBuffer);
+}
+
+
 
 /****************************************************************************
  * Blocking API
@@ -139,164 +103,35 @@ void setMillisFunction(MillisFuncPtr iFunc) {
 namespace blocking
 {
 
-void play(byte iPin, const char * iBuffer) {
+void play(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc) {
   // Absolutely no error checking in here
 
   default_dur = 4;
   default_oct = 6;
   bpm = 63;
-
-  // format: d=N,o=N,b=NNN:
-  // find the start (skip name, etc)
-
-  while(*iBuffer != ':') iBuffer++; // ignore name
-  iBuffer++;                        // skip ':'
-
-  // get default duration
-  if(*iBuffer == 'd')
-  {
-    iBuffer++; iBuffer++;           // skip "d="
-    iBuffer = readNumber(iBuffer, tmpNumber);
-    if(tmpNumber > 0)
-      default_dur = tmpNumber;
-    iBuffer++;                      // skip comma
-  }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(default_dur, 10);
-  #endif
-
-  // get default octave
-  if(*iBuffer == 'o')
-  {
-    iBuffer++; iBuffer++;           // skip "o="
-    iBuffer = readNumber(iBuffer, tmpNumber);
-    if(tmpNumber >= 3 && tmpNumber <= 7)
-      default_oct = tmpNumber;
-    iBuffer++;                      // skip comma
-  }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(default_oct, 10);
-  #endif
-
-  // get BPM
-  if(*iBuffer == 'b')
-  {
-    iBuffer++; iBuffer++;         // skip "b="
-    iBuffer = readNumber(iBuffer, tmpNumber);
-    bpm = tmpNumber;
-    iBuffer++;                    // skip colon
-  }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("bpm: "); Serial.println(bpm, 10);
-  #endif
-
-  // BPM usually expresses the number of quarter notes per minute
-  wholenote = (60 * 1000L / bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(wholenote, 10);
-  #endif
-
-  // now begin note loop
-  while(*iBuffer)
-  {
-    // first, get note duration, if available
-    iBuffer = readNumber(iBuffer, tmpNumber);
-    
-    if(tmpNumber)
-      duration = wholenote / tmpNumber;
-    else
-      duration = wholenote / default_dur;  // we will need to check if we are a dotted noteOffset after
-
-    // now get the note
-    noteOffset = getNoteOffsetFromLetter(*iBuffer);
-    iBuffer++;
-
-    // now, get optional '#' sharp
-    if(*iBuffer == '#')
-    {
-      noteOffset++;
-      iBuffer++;
-    }
-
-    // now, get optional '.' dotted note
-    if(*iBuffer == '.')
-    {
-      duration += duration/2;
-      iBuffer++;
-    }
+  buffer = iBuffer;
+  readCharFunc = iReadCharFunc;
   
-    // now, get scale
-    if(isdigit(*iBuffer))
-    {
-      scale = *iBuffer - '0';
-      iBuffer++;
-    }
-    else
-    {
-      scale = default_oct;
-    }
-
-    if(*iBuffer == ',')
-      iBuffer++;       // skip comma for next note (or we may be at the end)
-
-    // now play the note
-    if(noteOffset)
-    {
-      uint16_t frequency = notes[(scale - 4) * NOTES_PER_OCTAVE + noteOffset];
-
-      #ifdef ANY_RTTTL_INFO
-      Serial.print("Playing: ");
-      Serial.print(scale, 10); Serial.print(' ');
-      Serial.print(noteOffset, 10); Serial.print(" (");
-      Serial.print(frequency, 10);
-      Serial.print(") ");
-      Serial.println(duration, 10);
-      #endif
-
-      _tone(iPin, frequency, duration);
-      _delay(duration+1);
-      _noTone(iPin);
-    }
-    else
-    {
-      #ifdef ANY_RTTTL_INFO
-      Serial.print("Pausing: ");
-      Serial.println(duration, 10);
-      #endif
-      _delay(duration);
-    }
-  }
-}
-
-
-void playProgMem(byte iPin, const char * iProgMemBuffer) {
-  // Absolutely no error checking in here
-
-  default_dur = 4;
-  default_oct = 6;
-  bpm = 63;
-
-  //create a class which encapsulate the string defined in PROGMEM
-  ProgramMemoryString buffer(iProgMemBuffer);
+  #ifdef ANY_RTTTL_DEBUG
+  Serial.print("playing: ");
+  serialPrint(buffer, readCharFunc);
+  Serial.println();
+  #endif
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
-  while(buffer != ':') buffer++;          // ignore name
-  buffer++;                               // skip ':'
+  while(readCharFunc(buffer) != ':') buffer++; // ignore name
+  buffer++;                        // skip ':'
 
   // get default duration
-  if(buffer == 'd')
+  if(readCharFunc(buffer) == 'd')
   {
-    buffer++; buffer++;                   // skip "d="
-    readNumber(buffer, tmpNumber);
+    buffer++; buffer++;           // skip "d="
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     if(tmpNumber > 0)
       default_dur = tmpNumber;
-    buffer++;                             // skip comma
+    buffer++;                      // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -304,13 +139,13 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
   #endif
 
   // get default octave
-  if(buffer == 'o')
+  if(readCharFunc(buffer) == 'o')
   {
-    buffer++; buffer++;                   // skip "o="
-    readNumber(buffer, tmpNumber);
+    buffer++; buffer++;           // skip "o="
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     if(tmpNumber >= 3 && tmpNumber <= 7)
       default_oct = tmpNumber;
-    buffer++;                             // skip comma
+    buffer++;                      // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -318,12 +153,12 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
   #endif
 
   // get BPM
-  if(buffer == 'b')
+  if(readCharFunc(buffer) == 'b')
   {
-    buffer++; buffer++;                   // skip "b="
-    readNumber(buffer, tmpNumber);
+    buffer++; buffer++;         // skip "b="
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     bpm = tmpNumber;
-    buffer++;                             // skip colon
+    buffer++;                    // skip colon
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -338,10 +173,10 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
   #endif
 
   // now begin note loop
-  while(buffer)
+  while(readCharFunc(buffer))
   {
     // first, get note duration, if available
-    readNumber(buffer, tmpNumber);
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     
     if(tmpNumber)
       duration = wholenote / tmpNumber;
@@ -349,27 +184,27 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
       duration = wholenote / default_dur;  // we will need to check if we are a dotted noteOffset after
 
     // now get the note
-    noteOffset = getNoteOffsetFromLetter(buffer);
+    noteOffset = getNoteOffsetFromLetter(readCharFunc(buffer));
     buffer++;
 
     // now, get optional '#' sharp
-    if(buffer == '#')
+    if(readCharFunc(buffer) == '#')
     {
       noteOffset++;
       buffer++;
     }
 
     // now, get optional '.' dotted note
-    if(buffer == '.')
+    if(readCharFunc(buffer) == '.')
     {
       duration += duration/2;
       buffer++;
     }
   
     // now, get scale
-    if(isdigit(buffer))
+    if(isdigit(readCharFunc(buffer)))
     {
-      scale = buffer - '0';
+      scale = readCharFunc(buffer) - '0';
       buffer++;
     }
     else
@@ -377,7 +212,7 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
       scale = default_oct;
     }
 
-    if(buffer == ',')
+    if(readCharFunc(buffer) == ',')
       buffer++;       // skip comma for next note (or we may be at the end)
 
     // now play the note
@@ -409,6 +244,12 @@ void playProgMem(byte iPin, const char * iProgMemBuffer) {
   }
 }
 
+void play(byte iPin, const char * iBuffer)              { play(iPin, iBuffer, &readChar); }
+
+void play(byte iPin, const __FlashStringHelper* str)    { play(iPin, (const char *)str, &readChar_P); }
+void playProgMem(byte iPin, const char * iBuffer)       { play(iPin, iBuffer, &readChar_P); }
+void play_P(byte iPin, const char * iBuffer)            { play(iPin, iBuffer, &readChar_P); }
+void play_P(byte iPin, const __FlashStringHelper* str)  { play(iPin, (const char *)str, &readChar_P); }
 
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
@@ -589,13 +430,8 @@ namespace nonblocking
 //pre-declaration
 void nextnote();
 
-void begin(byte iPin, const char * iBuffer)
+void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
 {
-  #ifdef ANY_RTTTL_DEBUG
-  Serial.print("playing: ");
-  Serial.println(buffer);
-  #endif
-    
   //init values
   pin = iPin;
   buffer = iBuffer;
@@ -605,11 +441,14 @@ void begin(byte iPin, const char * iBuffer)
   bpm=63;
   playing = true;
   delayToNextNote = 0;
-  #ifdef ANY_RTTTL_DEBUG
-  Serial.print("delayToNextNote=");
-  Serial.println(delayToNextNote);
-  #endif
+  readCharFunc = iReadCharFunc;
   
+  #ifdef ANY_RTTTL_DEBUG
+  Serial.print("playing: ");
+  serialPrint(buffer, readCharFunc);
+  Serial.println();
+  #endif
+
   //stop current note
   noTone(pin);
 
@@ -617,14 +456,14 @@ void begin(byte iPin, const char * iBuffer)
   // find the start (skip name, etc)
 
   //read buffer until first note
-  while(*buffer != ':') buffer++;     // ignore name
+  while(readCharFunc(buffer) != ':') buffer++;     // ignore name
   buffer++;                           // skip ':'
 
   // get default duration
-  if(*buffer == 'd')
+  if(readCharFunc(buffer) == 'd')
   {
     buffer++; buffer++;               // skip "d="
-    buffer = readNumber(buffer, tmpNumber);
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     if(tmpNumber > 0)
       default_dur = tmpNumber;
     buffer++;                         // skip comma
@@ -635,10 +474,10 @@ void begin(byte iPin, const char * iBuffer)
   #endif
   
   // get default octave
-  if(*buffer == 'o')
+  if(readCharFunc(buffer) == 'o')
   {
     buffer++; buffer++;               // skip "o="
-    buffer = readNumber(buffer, tmpNumber);
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     if(tmpNumber >= 3 && tmpNumber <= 7)
       default_oct = tmpNumber;
     buffer++;                         // skip comma
@@ -649,10 +488,10 @@ void begin(byte iPin, const char * iBuffer)
   #endif
   
   // get BPM
-  if(*buffer == 'b')
+  if(readCharFunc(buffer) == 'b')
   {
     buffer++; buffer++;              // skip "b="
-    buffer = readNumber(buffer, tmpNumber);
+    buffer = readNumber(buffer, tmpNumber, readCharFunc);
     bpm = tmpNumber;
     buffer++;                   // skip colon
   }
@@ -669,13 +508,20 @@ void begin(byte iPin, const char * iBuffer)
   #endif
 }
 
+void begin(byte iPin, const char * iBuffer)             { begin(iPin, iBuffer, &readChar); }
+
+void begin(byte iPin, const __FlashStringHelper* str)   { begin(iPin, (const char *)str, &readChar_P); }
+void beginProgMem(byte iPin, const char * iBuffer)      { begin(iPin, iBuffer, &readChar_P); }
+void begin_P(byte iPin, const char * iBuffer)           { begin(iPin, iBuffer, &readChar_P); }
+void begin_P(byte iPin, const __FlashStringHelper* str) { begin(iPin, (const char *)str, &readChar_P); }
+
 void nextnote()
 {
   //stop current note
   _noTone(pin);
 
   // first, get note duration, if available
-  buffer = readNumber(buffer, tmpNumber);
+  buffer = readNumber(buffer, tmpNumber, readCharFunc);
   
   if(tmpNumber)
     duration = wholenote / tmpNumber;
@@ -683,27 +529,27 @@ void nextnote()
     duration = wholenote / default_dur;  // we will need to check if we are a dotted noteOffset after
 
   // now get the note
-  noteOffset = getNoteOffsetFromLetter(*buffer);
+  noteOffset = getNoteOffsetFromLetter(readCharFunc(buffer));
   buffer++;
 
   // now, get optional '#' sharp
-  if(*buffer == '#')
+  if(readCharFunc(buffer) == '#')
   {
     noteOffset++;
     buffer++;
   }
 
   // now, get optional '.' dotted note
-  if(*buffer == '.')
+  if(readCharFunc(buffer) == '.')
   {
     duration += duration/2;
     buffer++;
   }
 
   // now, get scale
-  if(isdigit(*buffer))
+  if(isdigit(readCharFunc(buffer)))
   {
-    scale = *buffer - '0';
+    scale = readCharFunc(buffer) - '0';
     buffer++;
   }
   else
@@ -711,7 +557,7 @@ void nextnote()
     scale = default_oct;
   }
 
-  if(*buffer == ',')
+  if(readCharFunc(buffer) == ',')
     buffer++;       // skip comma for next note (or we may be at the end)
 
   // now play the note
@@ -767,7 +613,7 @@ void play()
   }
 
   //ready to play the next note
-  if (*buffer == '\0')
+  if (readCharFunc(buffer) == '\0')
   {
     //no more notes. Reached the end of the last note
 
@@ -799,7 +645,7 @@ void stop()
   if (playing)
   {
     //increase song buffer until the end
-    while (*buffer != '\0')
+    while (readCharFunc(buffer) != '\0')
     {
       buffer++;
     }
