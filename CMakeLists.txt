@@ -147,12 +147,14 @@ add_custom_command(
 ##############################################################################################################################################
 if(ANYRTTTL_BUILD_EXAMPLES)
   add_example("Basic")
+  add_example("BlockingProgramMemoryRtttl")
+  add_example("BlockingRtttl")
   add_example("BlockingWithNonBlocking")
-  add_example("NonBlockingDemo")
-  add_example("NonBlockingInterruptedDemo")
+  add_example("NonBlockingProgramMemoryRtttl")
+  add_example("NonBlockingRtttl")
+  add_example("NonBlockingStopBeforeEnd")
   add_example("Play10Bits")
   add_example("Play16Bits")
-  add_example("ProgramMemoryRtttl")
   add_example("Rtttl2Code")
 endif()
  
