@@ -417,7 +417,6 @@ More AnyRtttl examples are also available:
 * [NonBlockingStopBeforeEnd](examples/NonBlockingStopBeforeEnd/NonBlockingStopBeforeEnd.ino)
 * [Play10Bits](examples/Play10Bits/Play10Bits.ino)
 * [Play16Bits](examples/Play16Bits/Play16Bits.ino)
-* [ProgramMemoryRtttl](examples/ProgramMemoryRtttl/ProgramMemoryRtttl.ino)
 * [Rtttl2Code](examples/Rtttl2Code/Rtttl2Code.ino)
 
 
