@@ -1,1 +1,2 @@
-typedef unsigned char byte;
+#define F(expr) expr
+#define PROGMEM

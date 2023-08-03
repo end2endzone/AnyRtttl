@@ -45,7 +45,7 @@ echo.
 echo ============================================================================
 echo Patching win32Arduino for type __FlashStringHelper...
 echo ============================================================================
-python "%PRODUCT_SOURCE_DIR%\ci\generic\patch.py" -i "%PRODUCT_SOURCE_DIR%\third_parties\win32Arduino\include\Arduino.h" -o "%PRODUCT_SOURCE_DIR%\third_parties\win32Arduino\include\Arduino.h" -p "%PRODUCT_SOURCE_DIR%\ci\generic\win32arduino.pattern.txt" -r "%PRODUCT_SOURCE_DIR%\ci\generic\win32arduino.replace.txt"
+python "%PRODUCT_SOURCE_DIR%\ci\generic\patch.py" -i "%PRODUCT_SOURCE_DIR%\third_parties\win32Arduino\include\avr\pgmspace.h" -o "%PRODUCT_SOURCE_DIR%\third_parties\win32Arduino\include\avr\pgmspace.h" -p "%PRODUCT_SOURCE_DIR%\ci\generic\win32arduino.pattern.txt" -r "%PRODUCT_SOURCE_DIR%\ci\generic\win32arduino.replace.txt"
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 
