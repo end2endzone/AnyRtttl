@@ -40,7 +40,11 @@ typedef void (*NoToneFuncPtr)(uint8_t);
  * Description:
  *   Defines a function pointer to a delay() function
  ****************************************************************************/
+#if defined(ESP32)
+typedef void (*DelayFuncPtr)(uint32_t);
+#else
 typedef void (*DelayFuncPtr)(unsigned long);
+#endif
 
 /****************************************************************************
  * Description:
