@@ -26,8 +26,10 @@ void loop() {
       anyrtttl::nonblocking::beginProgMem(BUZZER_PIN, tetris);
     else if (songIndex == 1)
       anyrtttl::nonblocking::begin_P(BUZZER_PIN, arkanoid);
+#if defined(ESP8266)
     else if (songIndex == 2)
       anyrtttl::nonblocking::begin(BUZZER_PIN, FPSTR(mario));
+#endif
     else if (songIndex == 3)
       anyrtttl::nonblocking::begin(BUZZER_PIN, F("Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6"));
 
