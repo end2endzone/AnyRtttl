@@ -1,0 +1,10 @@
+typedef unsigned char byte /* patched */ ;
+typedef struct __FlashStringHelper {
+    char c;
+} __FlashStringHelper_t;
+#ifndef FPSTR
+#   define FPSTR(expr)  ((const __FlashStringHelper *)expr)
+#endif
+#ifndef F
+#   define F(expr)  ((const __FlashStringHelper *)expr)
+#endif

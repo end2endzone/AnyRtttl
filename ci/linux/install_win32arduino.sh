@@ -38,11 +38,18 @@ git -c advice.detachedHead=false checkout 2.4.0
 echo
 
 echo ============================================================================
+echo Patching win32Arduino for type __FlashStringHelper...
+echo ============================================================================
+python "$PRODUCT_SOURCE_DIR/ci/generic/patch.py" -i "$PRODUCT_SOURCE_DIR/third_parties/win32Arduino/include/Arduino.h" -o "$PRODUCT_SOURCE_DIR/third_parties/win32Arduino/include/Arduino.h" -p "$PRODUCT_SOURCE_DIR/ci/generic/win32arduino.pattern.txt" -r "$PRODUCT_SOURCE_DIR/ci/generic/win32arduino.replace.txt"
+echo
+
+echo ============================================================================
 echo Generating win32Arduino...
 echo ============================================================================
 mkdir -p build
 cd build
 cmake -Wno-dev -DCMAKE_BUILD_TYPE=$PRODUCT_BUILD_TYPE -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" ..
+echo
 
 echo ============================================================================
 echo Compiling win32Arduino...
