@@ -43,6 +43,12 @@ git -c advice.detachedHead=false checkout 2.4.0
 echo.
 
 echo ============================================================================
+echo Patching win32Arduino for type __FlashStringHelper...
+echo ============================================================================
+set ARDUINO_HEADER_FILE=%PRODUCT_SOURCE_DIR%\third_parties\win32Arduino\include\Arduino.h
+powershell -nologo -executionpolicy bypass -command "(Get-Content '%ARDUINO_HEADER_FILE%').replace('typedef unsigned char byte;', 'typedef unsigned char byte;typedef struct __FlashStringHelper { char c; } __FlashStringHelper_t;') | Set-Content '%ARDUINO_HEADER_FILE%'"
+
+echo ============================================================================
 echo Compiling win32Arduino...
 echo ============================================================================
 mkdir build >NUL 2>NUL
