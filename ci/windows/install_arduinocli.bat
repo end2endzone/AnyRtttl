@@ -32,7 +32,9 @@ echo.
 
 echo Installing esp8266:esp8266 core...
 REM Use `--skip-post-install` on AppVeyor to skip UAC prompt which is blocking the build.
-arduino-cli core install esp8266:esp8266 --skip-post-install --config-file esp8266.cli-config.yaml
+type "%~dp0.esp8266.cli-config.yaml"
+if %errorlevel% neq 0 exit /b %errorlevel%
+arduino-cli core install esp8266:esp8266 --skip-post-install --config-file "%~dp0.esp8266.cli-config.yaml"
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 
