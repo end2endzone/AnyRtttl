@@ -33,7 +33,7 @@ arduino-cli core install arduino:avr
 echo
 
 echo Installing esp8266:esp8266 core...
-arduino-cli core install esp8266:esp8266
+arduino-cli core install esp8266:esp8266 --config-file esp8266.cli-config.yaml
 echo
 
 # Also install esp32:esp32 ?
