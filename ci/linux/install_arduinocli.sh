@@ -45,6 +45,7 @@ echo
 
 echo Installing esp8266:esp8266 core...
 cat "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
+arduino-cli core update-index --config-file "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
 arduino-cli core install esp8266:esp8266 --config-file "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
 echo
 
