@@ -46,7 +46,7 @@ const char * readNumber(const char * iBuffer, int & oValue, ReadCharFuncPtr iRea
   oValue = 0;
   while(isdigit(iReadCharFunc(iBuffer)))
   {
-    oValue = (oValue * 10) + (readCharFunc(buffer) - '0');
+    oValue = (oValue * 10) + (readCharFunc(iBuffer) - '0');
     iBuffer++;
   }
   return iBuffer;
