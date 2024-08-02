@@ -65,6 +65,11 @@ jobs:
         gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.GITHUB_WORKFLOW}}.json
         file_path: ./ci/github/tests_not_available.badge.json
     
+    - name: Install yamlpath
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/install_yamlpath.sh
+    
     - name: Install Arduino CLI
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash

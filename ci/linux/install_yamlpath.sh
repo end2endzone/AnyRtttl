@@ -31,9 +31,9 @@ arduino-cli version
 echo
 echo
 
-echo Initialize configuration file...
+echo Initialize configuration file
 # Expecting something like:  Config file written: /home/$USER/.arduino15/arduino-cli.yaml
-arduino-cli config init --overwrite
+arduino-cli config init
 echo
 echo
 
@@ -47,18 +47,7 @@ arduino-cli core install "esp8266:esp8266"
 echo
 echo
 
-echo Merging arduino-cli configuration file with temp-esp32.yaml...
-yaml-merge temp-esp32.yaml '/home/$USER/.arduino15/arduino-cli.yaml' --overwrite='/home/$USER/.arduino15/arduino-cli.yaml'
-cat '/home/$USER/.arduino15/arduino-cli.yaml'
-echo
-echo
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo Installing "esp32:esp32" core...
-arduino-cli core install "esp32:esp32"
-echo
-echo
 
-echo Listing all installed cores...
-arduino-cli core list
-echo
-echo
+# Also install esp32:esp32 ?

@@ -28,6 +28,7 @@ clone_folder: c:\projects\AnyRtttl
 
 # scripts that run after cloning repository
 install:
+- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\install_yamlpath.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\install_arduinocli.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_install_libraries.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\install_this.bat
