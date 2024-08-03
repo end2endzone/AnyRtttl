@@ -74,6 +74,11 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: ./ci/github/install_arduinocli.sh
+    
+    - name: Install Arduino cores
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/install_arduino_cores.sh
 
     - name: Install Arduino library dependnecies
       working-directory: ${{env.GITHUB_WORKSPACE}}

@@ -36,29 +36,3 @@ echo Initialize configuration file...
 arduino-cli config init --overwrite
 echo
 echo
-
-echo Installing "arduino:avr" core...
-arduino-cli core install "arduino:avr"
-echo
-echo
-
-echo Installing "esp8266:esp8266" core...
-arduino-cli core install "esp8266:esp8266"
-echo
-echo
-
-echo Merging arduino-cli configuration file with temp-esp32.yaml...
-yaml-merge temp-esp32.yaml '/home/$USER/.arduino15/arduino-cli.yaml' --overwrite='/home/$USER/.arduino15/arduino-cli.yaml'
-cat '/home/$USER/.arduino15/arduino-cli.yaml'
-echo
-echo
-
-echo Installing "esp32:esp32" core...
-arduino-cli core install "esp32:esp32"
-echo
-echo
-
-echo Listing all installed cores...
-arduino-cli core list
-echo
-echo
