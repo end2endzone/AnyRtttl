@@ -12,6 +12,7 @@ if errorlevel 1 (
 )
 echo Found python interpreter
 python --version
+echo.
 
 :: Validate if pip is installed
 where pip.exe >NUL 2>NUL
@@ -19,6 +20,7 @@ if errorlevel 1 (
   echo Command failed. Please install pip ^(Package Installer Python^) to continue.
   exit /B %errorlevel%
 )
+echo.
 
 :: Installing yamlpath.
 echo Proceeding with instaling yamlpath...
@@ -27,6 +29,7 @@ if errorlevel 1 (
   echo Command failed. An error was found while installing yamlpath.
   exit /B %errorlevel%
 )
+echo.
 
 echo yamlpath was installed on the system without error.
 echo.

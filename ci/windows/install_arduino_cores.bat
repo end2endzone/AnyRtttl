@@ -1,6 +1,14 @@
 @echo off
 cd /d %~dp0
 
+:: Check Arduino CLI installation
+echo Expecting Arduino CLI installed in directory: %ARDUINO_CLI_INSTALL_DIR%
+echo Searching for arduino cli executable...
+set PATH=%PATH%;%ARDUINO_CLI_INSTALL_DIR%
+where arduino-cli.exe
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+
 :: Set arduino-cli config file path
 set ARDUINO_CONFIG_PATH=C:\Users\%USERNAME%\AppData\Local\Arduino15\arduino-cli.yaml
 echo ARDUINO_CONFIG_PATH set to '%ARDUINO_CONFIG_PATH%'

@@ -1,6 +1,13 @@
 # Any commands which fail will cause the shell script to exit immediately
 set -e
 
+# Check Arduino CLI installation
+echo Expecting Arduino IDE installed in directory: $ARDUINO_CLI_INSTALL_DIR
+echo Searching for arduino cli executable...
+export PATH=$PATH:$ARDUINO_CLI_INSTALL_DIR
+which arduino-cli
+echo
+
 # Set arduino-cli config file path
 export ARDUINO_CONFIG_PATH="/home/$USER/.arduino15/arduino-cli.yaml"
 echo ARDUINO_CONFIG_PATH set to '$ARDUINO_CONFIG_PATH'
