@@ -22,6 +22,18 @@ type "%ARDUINO_CONFIG_PATH%"
 echo.
 echo.
 
+echo arduino update-index...
+arduino-cli core update-index
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
+echo arduino board install...
+arduino-cli board install
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
 echo Installing arduino:avr core...
 REM Use `--skip-post-install` on AppVeyor to skip UAC prompt which is blocking the build.
 arduino-cli core install arduino:avr --skip-post-install
@@ -36,10 +48,6 @@ echo.
 echo.
 
 echo Installing esp32:esp32 core...
-arduino-cli core update-index
-if %errorlevel% neq 0 exit /b %errorlevel%
-arduino-cli board listall
-if %errorlevel% neq 0 exit /b %errorlevel%
 arduino-cli core install esp32:esp32
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.

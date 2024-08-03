@@ -20,6 +20,16 @@ cat "$ARDUINO_CONFIG_PATH"
 echo
 echo
 
+echo arduino update-index...
+arduino-cli core update-index
+echo
+echo
+
+echo arduino board install...
+arduino-cli board install
+echo
+echo
+
 echo Installing "arduino:avr" core...
 arduino-cli core install "arduino:avr"
 echo
