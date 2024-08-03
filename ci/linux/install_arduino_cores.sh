@@ -9,13 +9,13 @@ echo.
 echo.
 
 echo Adding arduinocli-core-esp8266.yaml to arduino-cli config...
-yaml-merge arduinocli-core-esp8266.yaml '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
+yaml-merge --nostdin arduinocli-core-esp8266.yaml '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
 cat "$ARDUINO_CONFIG_PATH"
 echo
 echo
 
 echo Adding arduinocli-core-esp32.yaml to arduino-cli config...
-yaml-merge arduinocli-core-esp32.yaml '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
+yaml-merge --nostdin arduinocli-core-esp32.yaml '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
 cat "$ARDUINO_CONFIG_PATH"
 echo
 echo
