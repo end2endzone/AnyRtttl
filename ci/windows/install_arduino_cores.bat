@@ -12,25 +12,25 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 
 :: Set arduino-cli config file path
-set ARDUINO_CONFIG_PATH=C:\Users\%USERNAME%\AppData\Local\Arduino15\arduino-cli.yaml
-echo ARDUINO_CONFIG_PATH set to '%ARDUINO_CONFIG_PATH%'
-type "%ARDUINO_CONFIG_PATH%"
+set ARDUINO_CONFIG_FILE_PATH=C:\Users\%USERNAME%\AppData\Local\Arduino15\arduino-cli.yaml
+echo ARDUINO_CONFIG_FILE_PATH set to '%ARDUINO_CONFIG_FILE_PATH%'
+type "%ARDUINO_CONFIG_FILE_PATH%"
 echo.
 echo.
 
 set YAML_MERGE_FILE=..\arduinocli-core-esp8266.yaml
 echo Adding %YAML_MERGE_FILE% to arduino-cli config...
-yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
+yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_FILE_PATH%" --overwrite="%ARDUINO_CONFIG_FILE_PATH%"
 if %errorlevel% neq 0 exit /b %errorlevel%
-type "%ARDUINO_CONFIG_PATH%"
+type "%ARDUINO_CONFIG_FILE_PATH%"
 echo.
 echo.
 
 set YAML_MERGE_FILE=..\arduinocli-core-esp32.yaml
 echo Adding %YAML_MERGE_FILE% to arduino-cli config...
-yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
+yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_FILE_PATH%" --overwrite="%ARDUINO_CONFIG_FILE_PATH%"
 if %errorlevel% neq 0 exit /b %errorlevel%
-type "%ARDUINO_CONFIG_PATH%"
+type "%ARDUINO_CONFIG_FILE_PATH%"
 echo.
 echo.
 

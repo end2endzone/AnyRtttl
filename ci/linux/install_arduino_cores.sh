@@ -12,23 +12,23 @@ which arduino-cli
 echo
 
 # Set arduino-cli config file path
-export ARDUINO_CONFIG_PATH="/home/$USER/.arduino15/arduino-cli.yaml"
-echo ARDUINO_CONFIG_PATH set to '$ARDUINO_CONFIG_PATH'
-cat "$ARDUINO_CONFIG_PATH"
+export ARDUINO_CONFIG_FILE_PATH="/home/$USER/.arduino15/arduino-cli.yaml"
+echo ARDUINO_CONFIG_FILE_PATH set to '$ARDUINO_CONFIG_FILE_PATH'
+cat "$ARDUINO_CONFIG_FILE_PATH"
 echo
 echo
 
 export YAML_MERGE_FILE="../arduinocli-core-esp8266.yaml"
 echo Adding $YAML_MERGE_FILE to arduino-cli config...
-yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
-cat "$ARDUINO_CONFIG_PATH"
+yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_FILE_PATH' --overwrite='$ARDUINO_CONFIG_FILE_PATH'
+cat "$ARDUINO_CONFIG_FILE_PATH"
 echo
 echo
 
 set YAML_MERGE_FILE="../arduinocli-core-esp32.yaml"
 echo Adding $YAML_MERGE_FILE to arduino-cli config...
-yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_PATH' --overwrite='$ARDUINO_CONFIG_PATH'
-cat "$ARDUINO_CONFIG_PATH"
+yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_FILE_PATH' --overwrite='$ARDUINO_CONFIG_FILE_PATH'
+cat "$ARDUINO_CONFIG_FILE_PATH"
 echo
 echo
 
