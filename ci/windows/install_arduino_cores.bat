@@ -5,9 +5,14 @@ cd /d %~dp0
 
 :: Check Arduino CLI installation
 echo Expecting Arduino CLI installed in directory: %ARDUINO_CLI_INSTALL_DIR%
-echo Searching for arduino cli executable...
+echo Searching for arduino-cli executable...
 set PATH=%PATH%;%ARDUINO_CLI_INSTALL_DIR%
 where arduino-cli.exe
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+
+echo Searching for yaml-merge executable...
+where yaml-merge
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 

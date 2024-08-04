@@ -6,9 +6,14 @@ cd "$(dirname "$0")"
 
 # Check Arduino CLI installation
 echo Expecting Arduino IDE installed in directory: $ARDUINO_CLI_INSTALL_DIR
-echo Searching for arduino cli executable...
+echo Searching for arduino-cli executable...
 export PATH=$PATH:$ARDUINO_CLI_INSTALL_DIR
 which arduino-cli
+echo
+
+echo Searching for yaml-merge executable...
+export PATH=$PATH:~/.local/bin
+which yaml-merge
 echo
 
 # Set arduino-cli config file path
@@ -20,14 +25,14 @@ echo
 
 export YAML_MERGE_FILE="../arduinocli-core-esp8266.yaml"
 echo Adding $YAML_MERGE_FILE to arduino-cli config...
-yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_FILE_PATH' --overwrite='$ARDUINO_CONFIG_FILE_PATH'
+yaml-merge --nostdin "$YAML_MERGE_FILE" "$ARDUINO_CONFIG_FILE_PATH" --overwrite="$ARDUINO_CONFIG_FILE_PATH"
 cat "$ARDUINO_CONFIG_FILE_PATH"
 echo
 echo
 
-set YAML_MERGE_FILE="../arduinocli-core-esp32.yaml"
+export YAML_MERGE_FILE="../arduinocli-core-esp32.yaml"
 echo Adding $YAML_MERGE_FILE to arduino-cli config...
-yaml-merge --nostdin '$YAML_MERGE_FILE' '$ARDUINO_CONFIG_FILE_PATH' --overwrite='$ARDUINO_CONFIG_FILE_PATH'
+yaml-merge --nostdin "$YAML_MERGE_FILE" "$ARDUINO_CONFIG_FILE_PATH" --overwrite="$ARDUINO_CONFIG_FILE_PATH"
 cat "$ARDUINO_CONFIG_FILE_PATH"
 echo
 echo
