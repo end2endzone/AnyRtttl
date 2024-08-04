@@ -23,4 +23,4 @@ pip install yamlpath
 echo
 
 echo yamlpath was installed on the system without error.
-echo.
+echo
