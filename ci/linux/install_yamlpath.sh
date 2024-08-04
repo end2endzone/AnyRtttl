@@ -5,14 +5,14 @@ set -e
 # https://github.com/wwkimball/yamlpath
 # https://pypi.org/project/yamlpath/
 
-# Validate if python launcher is installed
-which py.exe
+echo Validate if python launcher is installed
+which py
 echo Found python interpreter
 python --version
 echo
 
-# Validate if pip is installed
-which pip.exe
+echo Validate if pip is installed
+which pip
 echo
 
 # Installing yamlpath.
