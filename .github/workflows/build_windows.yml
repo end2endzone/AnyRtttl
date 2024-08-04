@@ -73,7 +73,7 @@ jobs:
       shell: cmd
       run: call ci\github\install_arduino_cores.bat
 
-    - name: Install Arduino library dependnecies
+    - name: Install Arduino library dependencies
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
       run: call ci\github\arduino_install_libraries.bat
