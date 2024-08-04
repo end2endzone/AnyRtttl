@@ -1,4 +1,6 @@
 @echo off
+
+:: Set current directory to local script
 cd /d %~dp0
 
 :: Check Arduino CLI installation

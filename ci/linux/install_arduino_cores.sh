@@ -1,6 +1,9 @@
 # Any commands which fail will cause the shell script to exit immediately
 set -e
 
+# Set current directory to local script
+cd "$(dirname "$0")"
+
 # Check Arduino CLI installation
 echo Expecting Arduino IDE installed in directory: $ARDUINO_CLI_INSTALL_DIR
 echo Searching for arduino cli executable...
