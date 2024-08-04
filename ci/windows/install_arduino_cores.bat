@@ -18,15 +18,17 @@ type "%ARDUINO_CONFIG_PATH%"
 echo.
 echo.
 
-echo Adding arduinocli-core-esp8266.yaml to arduino-cli config...
-yaml-merge --nostdin arduinocli-core-esp8266.yaml "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
+set YAML_MERGE_FILE=..\arduinocli-core-esp8266.yaml
+echo Adding %YAML_MERGE_FILE% to arduino-cli config...
+yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
 if %errorlevel% neq 0 exit /b %errorlevel%
 type "%ARDUINO_CONFIG_PATH%"
 echo.
 echo.
 
-echo Adding arduinocli-core-esp32.yaml to arduino-cli config...
-yaml-merge --nostdin arduinocli-core-esp32.yaml "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
+set YAML_MERGE_FILE=..\arduinocli-core-esp32.yaml
+echo Adding %YAML_MERGE_FILE% to arduino-cli config...
+yaml-merge --nostdin "%YAML_MERGE_FILE%" "%ARDUINO_CONFIG_PATH%" --overwrite="%ARDUINO_CONFIG_PATH%"
 if %errorlevel% neq 0 exit /b %errorlevel%
 type "%ARDUINO_CONFIG_PATH%"
 echo.
@@ -34,12 +36,6 @@ echo.
 
 echo arduino update-index...
 arduino-cli core update-index
-if %errorlevel% neq 0 exit /b %errorlevel%
-echo.
-echo.
-
-echo arduino board install...
-arduino-cli board install
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 echo.
