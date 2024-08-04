@@ -5,12 +5,14 @@ set -e
 # https://github.com/wwkimball/yamlpath
 # https://pypi.org/project/yamlpath/
 
-echo Validate if python launcher is installed
-which py
+# Search for python
+echo Validate if python is installed
+which python
 echo Found python interpreter
 python --version
 echo
 
+# Search for pip
 echo Validate if pip is installed
 which pip
 echo
