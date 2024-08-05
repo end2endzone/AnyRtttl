@@ -22,7 +22,7 @@ echo
 export ARDUINO_INO_FILE=$PRODUCT_SOURCE_DIR/examples/$1/$1.ino
 
 echo ==========================================================================================================
-echo Compiling $ARDUINO_INO_FILE (atmega328)
+echo Compiling $ARDUINO_INO_FILE \(atmega328\)
 echo ==========================================================================================================
 cd $PRODUCT_SOURCE_DIR/examples/$1
 arduino-cli compile --fqbn "arduino:avr:nano:cpu=atmega328" "$1.ino"
@@ -30,7 +30,7 @@ echo
 echo
 
 echo ==========================================================================================================
-echo Compiling $ARDUINO_INO_FILE (esp8266)
+echo Compiling $ARDUINO_INO_FILE \(esp8266\)
 echo ==========================================================================================================
 cd $PRODUCT_SOURCE_DIR/examples/$1
 arduino-cli compile --fqbn "esp8266:esp8266:nodemcuv2" "$1.ino"
@@ -38,7 +38,7 @@ echo
 echo
 
 echo ==========================================================================================================
-echo Compiling $ARDUINO_INO_FILE (esp32)
+echo Compiling $ARDUINO_INO_FILE \(esp32\)
 echo ==========================================================================================================
 cd $PRODUCT_SOURCE_DIR/examples/$1
 arduino-cli compile --fqbn "esp32:esp32:esp32" "$1.ino"
