@@ -63,6 +63,11 @@ jobs:
       shell: cmd
       run: call ci\github\install_yamlpath.bat
     
+    - name: Install pyserial
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: call ci\github\install_pyserial.bat
+    
     - name: Install Arduino CLI
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
