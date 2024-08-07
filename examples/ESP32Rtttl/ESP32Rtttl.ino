@@ -24,8 +24,7 @@ void esp32Tone(uint8_t pin, unsigned int frq, unsigned long duration) {
 }
 
 void esp32ToneSetup(uint8_t pin) {
-  ledcSetup(0, 1000, 10); // resolution always seems to be 10bit, no matter what is given
-  ledcAttachPin(pin, 0);
+  ledcAttach(0, 1000, 10); // resolution always seems to be 10bit, no matter what is given
 }
 
 void setup() {
