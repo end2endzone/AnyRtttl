@@ -50,4 +50,13 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 echo.
 echo.
 
+echo ==========================================================================================================
+echo Compiling %ARDUINO_INO_FILE% (esp32wroverkit)
+echo ==========================================================================================================
+cd /d "%PRODUCT_SOURCE_DIR%\examples\%~1"
+arduino-cli compile --fqbn "esp32:esp32:esp32wroverkit" %~1.ino
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
 cd /d "%~dp0"

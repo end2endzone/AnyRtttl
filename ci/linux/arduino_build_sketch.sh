@@ -45,4 +45,12 @@ arduino-cli compile --fqbn "esp32:esp32:esp32" "$1.ino"
 echo
 echo
 
+echo ==========================================================================================================
+echo Compiling $ARDUINO_INO_FILE \(esp32wroverkit\)
+echo ==========================================================================================================
+cd $PRODUCT_SOURCE_DIR/examples/$1
+arduino-cli compile --fqbn "esp32:esp32:esp32wroverkit" "$1.ino"
+echo
+echo
+
 cd "$(dirname "$0")"
