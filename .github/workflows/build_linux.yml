@@ -136,6 +136,11 @@ jobs:
       shell: bash
       run: ./ci/github/arduino_build_sketch.sh BlockingWithNonBlocking
 
+    - name: Build Arduino sketch - ESP32Rtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: ./ci/github/arduino_build_sketch.sh ESP32Rtttl
+
     - name: Build Arduino sketch - NonBlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
