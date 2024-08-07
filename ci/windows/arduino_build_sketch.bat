@@ -24,10 +24,39 @@ echo.
 set ARDUINO_INO_FILE=%PRODUCT_SOURCE_DIR%\examples\%~1\%~1.ino
 
 echo ==========================================================================================================
-echo Compiling %ARDUINO_INO_FILE%
+echo Compiling %ARDUINO_INO_FILE% (atmega328)
 echo ==========================================================================================================
 cd /d "%PRODUCT_SOURCE_DIR%\examples\%~1"
-arduino-cli compile -b arduino:avr:nano:cpu=atmega328 %~1.ino
+arduino-cli compile --fqbn "arduino:avr:nano:cpu=atmega328" %~1.ino
 if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
+echo ==========================================================================================================
+echo Compiling %ARDUINO_INO_FILE% (esp8266)
+echo ==========================================================================================================
+cd /d "%PRODUCT_SOURCE_DIR%\examples\%~1"
+arduino-cli compile --fqbn "esp8266:esp8266:nodemcuv2" %~1.ino
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
+echo ==========================================================================================================
+echo Compiling %ARDUINO_INO_FILE% (esp32)
+echo ==========================================================================================================
+cd /d "%PRODUCT_SOURCE_DIR%\examples\%~1"
+arduino-cli compile --fqbn "esp32:esp32:esp32" %~1.ino
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
+
+echo ==========================================================================================================
+echo Compiling %ARDUINO_INO_FILE% (esp32wroverkit)
+echo ==========================================================================================================
+cd /d "%PRODUCT_SOURCE_DIR%\examples\%~1"
+arduino-cli compile --fqbn "esp32:esp32:esp32wroverkit" %~1.ino
+if %errorlevel% neq 0 exit /b %errorlevel%
+echo.
+echo.
 
 cd /d "%~dp0"

@@ -24,12 +24,14 @@ fi
 echo Downloading file https://downloads.arduino.cc/arduino-cli/$ARDUINO_CLI_FILENAME
 wget --no-verbose https://downloads.arduino.cc/arduino-cli/$ARDUINO_CLI_FILENAME
 echo
+echo
 
 # Installing
 export ARDUINO_CLI_INSTALL_DIR=$HOME/arduino-cli
 echo Installing Arduino CLI to directory: $ARDUINO_CLI_INSTALL_DIR
 mkdir -p $ARDUINO_CLI_INSTALL_DIR
 tar xf $ARDUINO_CLI_FILENAME --directory $ARDUINO_CLI_INSTALL_DIR
+echo
 echo
 
 # Verify
@@ -38,15 +40,12 @@ export PATH=$PATH:$ARDUINO_CLI_INSTALL_DIR
 which arduino-cli
 arduino-cli version
 echo
-
-echo Installing arduino:avr core...
-arduino-cli core install arduino:avr
 echo
 
-echo Installing esp8266:esp8266 core...
-cat "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
-arduino-cli core update-index --config-file "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
-arduino-cli core install esp8266:esp8266 --config-file "$PRODUCT_SOURCE_DIR/ci/linux/.esp8266.cli-config.yaml"
+echo Initialize configuration file...
+# Expecting something like:  Config file written: /home/$USER/.arduino15/arduino-cli.yaml
+arduino-cli config init --overwrite
+echo
 echo
 
 # Also install esp32:esp32 ?
