@@ -28,19 +28,23 @@ namespace anyrtttl
  * Description:
  *   Defines a function pointer to a tone() function
  ****************************************************************************/
-typedef void (*ToneFuncPtr)(uint8_t _pin, unsigned int, unsigned long);
+typedef void (*ToneFuncPtr)(uint8_t pin, unsigned int frequency, unsigned long duration);
 
 /****************************************************************************
  * Description:
  *   Defines a function pointer to a noTone() function
  ****************************************************************************/
-typedef void (*NoToneFuncPtr)(uint8_t);
+typedef void (*NoToneFuncPtr)(uint8_t pin);
 
 /****************************************************************************
  * Description:
  *   Defines a function pointer to a delay() function
  ****************************************************************************/
+#if defined(ESP32)
+typedef void (*DelayFuncPtr)(uint32_t);
+#else
 typedef void (*DelayFuncPtr)(unsigned long);
+#endif
 
 /****************************************************************************
  * Description:
