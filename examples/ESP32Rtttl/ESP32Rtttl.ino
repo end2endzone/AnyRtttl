@@ -15,17 +15,17 @@ const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6
 // and https://github.com/espressif/arduino-esp32/issues/1720
 void esp32NoTone(uint8_t pin) {
   // don't care about the given pin
-  ledcWrite(0, 0); // channel, volume
+  ledcWrite(pin, 0); // pin, volume
 }
 
 void esp32Tone(uint8_t pin, unsigned int frq, unsigned long duration) {
   // don't care about the given pin or the duration
-  ledcWriteTone(0, frq); // channel, freq
-  ledcWrite(0, 255); // channel, volume
+  ledcWriteTone(pin, frq); // pin, freq
+  ledcWrite(pin, 255); // pin, volume
 }
 
 void esp32ToneSetup(uint8_t pin) {
-  ledcAttach(0, 1000, 10); // resolution always seems to be 10bit, no matter what is given
+  ledcAttach(pin, 1000, 10); // resolution always seems to be 10bit, no matter what is given
 }
 #endif
 
