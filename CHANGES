@@ -1,4 +1,9 @@
-Changes for 2.3
+Changes for 2.3.1
+
+* Fixed issue #53 - Fix ESP32Rtttl.ino example
+
+
+Changes for 2.3.0
 
 * New feature: Official support for ESP8266 and ESP32.
 * Fixed issue #2 - Support for PROGMEM / FLASH melodies in non-blocking mode.
