@@ -58,7 +58,7 @@ jobs:
         mkdir ~/Desktop     #required for TestUser.testFoldersExisting() because /home/travis/Desktop   does not exists!
         
     - name: Deploy 'tests not available' badge before building
-      if: github.event.pull_request.head.repo.full_name == github.repository
+      if: github.event.pull_request.head.repo.fork == false
       #uses: exuanbo/actions-deploy-gist@v1
       uses: end2endzone/actions-deploy-gist@main
       with:
@@ -190,7 +190,7 @@ jobs:
       run: python ci/github/maketestbadge.py ${{env.UNITTEST_REPORT_PATH}}
 
     - name: Deploy test badge to gist
-      if: github.event.pull_request.head.repo.full_name == github.repository
+      if: github.event.pull_request.head.repo.fork == false
       #uses: exuanbo/actions-deploy-gist@v1
       uses: end2endzone/actions-deploy-gist@main
       with:
