@@ -12,8 +12,37 @@ const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6
 #ifdef ESP_ARDUINO_VERSION
   #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
     // Code specific to ESP32 core 3.x
-    
-    #error ESP32 arduino version unsupported
+    // Core 3.x manages channels automatically:
+    // in all esp32 functions, input parameter 'channel' has been changed to 'pin'.
+    // See official documentation for migrating from core 2.x to 3.x:
+    // https://docs.espressif.com/projects/arduino-esp32/en/latest/migration_guides/2.x_to_3.0.html
+
+    #define LEDC_RESOLUTION 10
+
+    // Function esp32NoTone() stop the PWM signal for the given pin.
+    // It does not detach the pin from it's assigned channel.
+    // You can have sequential calls to esp32Tone() and esp32NoTone()
+    // without having to call esp32ToneSetup() between calls.
+    void esp32NoTone(uint8_t pin) {
+      ledcWriteTone(pin, 0);
+    }
+
+    // Function esp32Tone() set a pin to output a PWM signal that matches the given frequency.
+    // The duration argument is ignored. The function signature 
+    // matches arduino's tone() function for compatibility reasons.
+    // Arduino tone() function:
+    //   https://docs.arduino.cc/language-reference/en/functions/advanced-io/tone/
+    // ESP32 ledcWriteTone() function:
+    //   https://github.com/espressif/arduino-esp32/blob/2.0.17/cores/esp32/esp32-hal-ledc.c#L118
+    void esp32Tone(uint8_t pin, unsigned int frq, unsigned long duration) {
+      // don't care about the given duration
+      ledcWriteTone(pin, frq);
+    }
+
+    // Function esp32ToneSetup() setup the given pin to output a PWM signal for generating tones with a piezo buzzer.
+    void esp32ToneSetup(uint8_t pin) {
+      ledcAttach(pin, 1000, LEDC_RESOLUTION);
+    }
     
   #elif ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
     // Code specific to ESP32 core 2.x
@@ -44,7 +73,7 @@ const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6
       ledcWriteTone(channel, 0); // Silence the buzzer without detaching
     }
 
-    // Function esp32Tone() set a pin for a given frequency.
+    // Function esp32Tone() set a pin to output a PWM signal that matches the given frequency.
     // The duration argument is ignored. The function signature 
     // matches arduino's tone() function for compatibility reasons.
     // Arduino tone() function:
@@ -57,8 +86,7 @@ const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6
       ledcWriteTone(channel, frq);
     }
 
-    // Function esp32ToneSetup() setup the given pin for generating a tone with a piezo buzzer.
-    // Compatible with arduino-esp32 core 2.x and 3.x.
+    // Function esp32ToneSetup() setup the given pin to output a PWM signal for generating tones with a piezo buzzer.
     void esp32ToneSetup(uint8_t pin) {
       uint8_t channel = esp32GetChannelForPin(pin);
       ledcAttachPin(BUZZER_PIN, channel); // Attach the pin to the LEDC channel
