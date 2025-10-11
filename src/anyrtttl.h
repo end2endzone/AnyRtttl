@@ -8,7 +8,7 @@
 #ifndef ANY_RTTTL_H
 #define ANY_RTTTL_H
 
-#define ANY_RTTTL_VERSION 2.3
+#define ANY_RTTTL_VERSION 2.4
 
 #include "Arduino.h"
 #include "pitches.h"
