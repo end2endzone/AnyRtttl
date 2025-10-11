@@ -112,57 +112,57 @@ jobs:
     - name: Build Arduino sketch - Basic
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat Basic
+      run: python ci\generic\arduino_build_sketch.py Basic
 
     - name: Build Arduino sketch - BlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat BlockingProgramMemoryRtttl
+      run: python ci\generic\arduino_build_sketch.py BlockingProgramMemoryRtttl
 
     - name: Build Arduino sketch - BlockingRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat BlockingRtttl
+      run: python ci\generic\arduino_build_sketch.py BlockingRtttl
 
     - name: Build Arduino sketch - BlockingWithNonBlocking
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat BlockingWithNonBlocking
+      run: python ci\generic\arduino_build_sketch.py BlockingWithNonBlocking
 
     - name: Build Arduino sketch - ESP32Rtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat ESP32Rtttl
+      run: python ci\generic\arduino_build_sketch.py ESP32Rtttl
 
     - name: Build Arduino sketch - NonBlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat NonBlockingProgramMemoryRtttl
+      run: python ci\generic\arduino_build_sketch.py NonBlockingProgramMemoryRtttl
 
     - name: Build Arduino sketch - NonBlockingRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat NonBlockingRtttl
+      run: python ci\generic\arduino_build_sketch.py NonBlockingRtttl
 
     - name: Build Arduino sketch - NonBlockingStopBeforeEnd
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat NonBlockingStopBeforeEnd
+      run: python ci\generic\arduino_build_sketch.py NonBlockingStopBeforeEnd
 
     - name: Build Arduino sketch - Play10Bits
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat Play10Bits
+      run: python ci\generic\arduino_build_sketch.py Play10Bits
 
     - name: Build Arduino sketch - Play16Bits
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat Play16Bits
+      run: python ci\generic\arduino_build_sketch.py Play16Bits
 
     - name: Build Arduino sketch - Rtttl2Code
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
-      run: call ci\github\arduino_build_sketch.bat Rtttl2Code
+      run: python ci\generic\arduino_build_sketch.py Rtttl2Code
 
     - name: Run unit tests
       working-directory: ${{env.GITHUB_WORKSPACE}}

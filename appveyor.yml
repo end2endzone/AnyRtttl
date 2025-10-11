@@ -54,17 +54,17 @@ configuration: Release
 build_script:
 - cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_library.bat
 - cmd: call %APPVEYOR_BUILD_FOLDER%\external\BitReader\ci\appveyor\arduino_library_install.bat
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Basic
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingProgramMemoryRtttl
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingRtttl
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat BlockingWithNonBlocking
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat ESP32Rtttl
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingProgramMemoryRtttl
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingRtttl
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat NonBlockingStopBeforeEnd
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Play10Bits
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Play16Bits
-- cmd: call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\arduino_build_sketch.bat Rtttl2Code
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py Basic
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py BlockingProgramMemoryRtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py BlockingRtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py BlockingWithNonBlocking
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py ESP32Rtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingProgramMemoryRtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingRtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingStopBeforeEnd
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py Play10Bits
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py Play16Bits
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py Rtttl2Code
 
 
 #---------------------------------#
