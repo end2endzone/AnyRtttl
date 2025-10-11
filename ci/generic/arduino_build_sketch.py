@@ -2,6 +2,9 @@ import os
 import sys
 import subprocess
 
+import functools
+print = functools.partial(print, flush=True)
+
 # Boards to compile for
 BOARDS = {
     "atmega328": "arduino:avr:nano:cpu=atmega328",
