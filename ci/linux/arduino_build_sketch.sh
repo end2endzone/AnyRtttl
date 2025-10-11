@@ -20,36 +20,71 @@ which arduino-cli
 echo
 
 export ARDUINO_INO_FILE=$PRODUCT_SOURCE_DIR/examples/$1/$1.ino
+export ARDUINO_BOARDS_FILE=$PRODUCT_SOURCE_DIR/examples/$1/boards.txt
+
+# Check for boards.txt
+if [[ -f "$ARDUINO_BOARDS_FILE" ]]; then
+  # ok
+  echo "Found boards.txt at $ARDUINO_BOARDS_FILE."
+  echo
+else
+  echo "No boards.txt found at $ARDUINO_BOARDS_FILE."
+  exit 1
+fi
 
 echo ==========================================================================================================
 echo Compiling $ARDUINO_INO_FILE \(atmega328\)
 echo ==========================================================================================================
-cd $PRODUCT_SOURCE_DIR/examples/$1
-arduino-cli compile --fqbn "arduino:avr:nano:cpu=atmega328" "$1.ino"
+board=atmega328
+fqbn="arduino:avr:nano:cpu=atmega328"
+if grep -q "^all$" "$ARDUINO_BOARDS_FILE" || grep -q "^$board$" "$ARDUINO_BOARDS_FILE"; then
+  cd $PRODUCT_SOURCE_DIR/examples/$1
+  arduino-cli compile --fqbn "$fqbn" "$1.ino"
+else
+  echo "Skipping $ARDUINO_BOARDS_FILE for $board (incompatible)."
+fi
 echo
 echo
 
 echo ==========================================================================================================
-echo Compiling $ARDUINO_INO_FILE \(esp8266\)
+echo Compiling $ARDUINO_INO_FILE \(nodemcuv2\)
 echo ==========================================================================================================
-cd $PRODUCT_SOURCE_DIR/examples/$1
-arduino-cli compile --fqbn "esp8266:esp8266:nodemcuv2" "$1.ino"
+board=nodemcuv2
+fqbn="esp8266:esp8266:nodemcuv2"
+if grep -q "^all$" "$ARDUINO_BOARDS_FILE" || grep -q "^$board$" "$ARDUINO_BOARDS_FILE"; then
+  cd $PRODUCT_SOURCE_DIR/examples/$1
+  arduino-cli compile --fqbn "$fqbn" "$1.ino"
+else
+  echo "Skipping $ARDUINO_BOARDS_FILE for $board (incompatible)."
+fi
 echo
 echo
 
 echo ==========================================================================================================
 echo Compiling $ARDUINO_INO_FILE \(esp32\)
 echo ==========================================================================================================
-cd $PRODUCT_SOURCE_DIR/examples/$1
-arduino-cli compile --fqbn "esp32:esp32:esp32" "$1.ino"
+board=esp32
+fqbn="esp32:esp32:esp32"
+if grep -q "^all$" "$ARDUINO_BOARDS_FILE" || grep -q "^$board$" "$ARDUINO_BOARDS_FILE"; then
+  cd $PRODUCT_SOURCE_DIR/examples/$1
+  arduino-cli compile --fqbn "$fqbn" "$1.ino"
+else
+  echo "Skipping $ARDUINO_BOARDS_FILE for $board (incompatible)."
+fi
 echo
 echo
 
 echo ==========================================================================================================
 echo Compiling $ARDUINO_INO_FILE \(esp32wroverkit\)
 echo ==========================================================================================================
-cd $PRODUCT_SOURCE_DIR/examples/$1
-arduino-cli compile --fqbn "esp32:esp32:esp32wroverkit" "$1.ino"
+board=esp32wroverkit
+fqbn="esp32:esp32:esp32wroverkit"
+if grep -q "^all$" "$ARDUINO_BOARDS_FILE" || grep -q "^$board$" "$ARDUINO_BOARDS_FILE"; then
+  cd $PRODUCT_SOURCE_DIR/examples/$1
+  arduino-cli compile --fqbn "$fqbn" "$1.ino"
+else
+  echo "Skipping $ARDUINO_BOARDS_FILE for $board (incompatible)."
+fi
 echo
 echo
 
