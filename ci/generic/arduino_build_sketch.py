@@ -22,7 +22,10 @@ def check_arduino_cli():
     if cli_path:
         os.environ["PATH"] += os.pathsep + cli_path
     try:
-        subprocess.run(["arduino-cli", "version"], check=True)
+        subprocess.run(["arduino-cli", "version"],
+            stdout=sys.stdout,
+            check=True
+        )
     except FileNotFoundError:
         print("arduino-cli not found in PATH.")
         sys.exit(1)
@@ -62,6 +65,7 @@ def compile_sketch(sketch_name):
             try:
                 subprocess.run(
                     ["arduino-cli", "compile", "--fqbn", fqbn, ino_file_path],
+                    stdout=sys.stdout,
                     cwd=sketch_dir_path,
                     check=True
                 )
@@ -69,7 +73,7 @@ def compile_sketch(sketch_name):
                 print(f"Compilation failed for {board} with error code {e.returncode}")
                 sys.exit(e.returncode)
         else:
-            print(f"Skipping {boards_file_path} for {board} (incompatible).")
+            print(f"Skipping sketch compilation for {board} which is incompatible according to it's boards.txt file.")
         print("\n")
 
 if __name__ == "__main__":
