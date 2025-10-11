@@ -59,6 +59,7 @@ build_script:
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py BlockingRtttl
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py BlockingWithNonBlocking
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py ESP32Rtttl
+- cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py ESP8266-NodeMCU
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingProgramMemoryRtttl
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingRtttl
 - cmd: python %APPVEYOR_BUILD_FOLDER%\ci\generic\arduino_build_sketch.py NonBlockingStopBeforeEnd
