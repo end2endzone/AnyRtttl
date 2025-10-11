@@ -105,16 +105,12 @@ const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6
 #endif
 
 void setup() {
-  Serial.println(__LINE__);
-  
   // silence BUZZER_PIN asap
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
 
   Serial.begin(115200);
   Serial.println("ready");
-
-  pinMode(BUZZER_PIN, OUTPUT);
 
 #ifdef ESP32
   // setup AnyRtttl for ESP32
