@@ -1,0 +1,3 @@
+nodemcuv2
+esp32
+esp32wroverkit
