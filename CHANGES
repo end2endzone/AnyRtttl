@@ -1,3 +1,8 @@
+Changes for 2.4.0
+
+* Fixed issue #15 - Compilation fails with the ESP32 core version 3.x.
+
+
 Changes for 2.3.1
 
 * Fixed issue #10 - Fix ESP32Rtttl.ino example by @IgorCode.
