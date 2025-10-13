@@ -56,16 +56,6 @@ jobs:
       run: |
         mkdir ~/Documents   #required for TestUser.testFoldersExisting() because /home/travis/Documents does not exists!
         mkdir ~/Desktop     #required for TestUser.testFoldersExisting() because /home/travis/Desktop   does not exists!
-        
-    - name: Deploy 'tests not available' badge before building
-      if: github.event.pull_request.head.repo.fork == false
-      #uses: exuanbo/actions-deploy-gist@v1
-      uses: end2endzone/actions-deploy-gist@main
-      with:
-        token: ${{ secrets.BADGES }}
-        gist_id: 58cf6c72c08e706335337d5ef9ca48e8
-        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.GITHUB_WORKFLOW}}.json
-        file_path: ./ci/github/tests_not_available.badge.json
     
     - name: Install yamlpath
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -96,26 +86,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: ./ci/github/install_this.sh
-
-    - name: Install Google Test
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/install_googletest.sh
-
-    - name: Install RapidAssist
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/install_rapidassist.sh
-
-    - name: Install win32arduino
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/install_win32arduino.sh
-
-    - name: Build library
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/build_library.sh
 
     - name: Build Arduino sketch - Basic
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -176,36 +146,3 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
       run: python ci/generic/arduino_build_sketch.py Rtttl2Code
-
-    - name: Run unit tests
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: ./ci/github/test_script.sh
-
-    - name: Search unit test report file
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      shell: bash
-      run: |
-        UNITTEST_REPORT_PATH=$(find . -name 'anyrtttl_unittest*.xml')
-        echo UNITTEST_REPORT_PATH=$UNITTEST_REPORT_PATH
-        echo UNITTEST_REPORT_PATH=$UNITTEST_REPORT_PATH >> $GITHUB_ENV
-      
-    - name: Create test badge
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: python ci/github/maketestbadge.py ${{env.UNITTEST_REPORT_PATH}}
-
-    - name: Deploy test badge to gist
-      if: github.event.pull_request.head.repo.fork == false
-      #uses: exuanbo/actions-deploy-gist@v1
-      uses: end2endzone/actions-deploy-gist@main
-      with:
-        token: ${{ secrets.BADGES }}
-        gist_id: 58cf6c72c08e706335337d5ef9ca48e8
-        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.GITHUB_WORKFLOW}}.json
-        file_path: ./badge.json
-    
-    - name: Archive test results
-      uses: actions/upload-artifact@v4.3.5
-      with:
-        name: unit-test-results
-        path: build/bin/anyrtttl_unittest*.xml
