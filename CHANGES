@@ -2,6 +2,7 @@ Changes for 2.4.0
 
 * Fixed issue #15 - Compilation fails with the ESP32 core version 3.x.
 * Fixed issue #17 - Deprecate AppVeyor-based compilation pipeline.
+* Fixed issue #18 - Deprecate x86_64 unit tests in favor of manual testing on actual hardware.
 
 
 Changes for 2.3.1
