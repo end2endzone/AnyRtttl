@@ -2,7 +2,12 @@
 #include <binrtttl.h>
 #include <pitches.h>
 
-#ifdef ESP32
+//#define LOCAL_DEBUGGING 1
+
+#define BUZZER_1_PIN  5 // Using GPIO5  (pin labeled  D5)
+#define BUZZER_2_PIN 32 // Using GPIO32 (pin labeled D32)
+
+#ifdef LOCAL_DEBUGGING
 #include "esp32-hal.h"
 #include "esp32-hal-ledc.h"
 #include "driver/ledc.h"
@@ -10,21 +15,15 @@
 #include "soc/gpio_sig_map.h"
 #include "esp_rom_gpio.h"
 #include "hal/ledc_ll.h"
-#endif // ESP32
+#endif // LOCAL_DEBUGGING
 
 // project's constants
 const char tetris[] PROGMEM = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
-const char arkanoid[] PROGMEM = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
 const char mario[] PROGMEM = "mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
-const char bond[] PROGMEM = "Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6";
-// Note: James Bond theme is defined as inline code in loop() function (also stored in flash memory) 
 
 #if defined(ESP8266)
   #error This sketch is not compatible with ESP8266.
 #endif
-
-#define BUZZER_1_PIN  5 // Using GPIO5  (pin labeled  D5)
-#define BUZZER_2_PIN 32 // Using GPIO32 (pin labeled D32)
 
 // project's variables
 bool buzzer1_has_started = false; // flag to know if buzzer 1 has started playing 
@@ -45,7 +44,7 @@ uint8_t getChannelForPin(uint8_t pin) {
   return 0xFF; // invalid
 }
 
-#ifdef ESP32
+#ifdef LOCAL_DEBUGGING
 void printBus(const char * name, ledc_channel_handle_t *bus) {
   Serial.println("=================");
   Serial.println(name);
@@ -56,7 +55,7 @@ void printBus(const char * name, ledc_channel_handle_t *bus) {
   Serial.println(bus->timer_num, HEX);
   Serial.println("=================");
 }
-#endif // ESP32
+#endif // LOCAL_DEBUGGING
 
 void setup() {
   // silence buzzer pins asap
@@ -85,12 +84,12 @@ void setup() {
   ledcAttachChannel(BUZZER_1_PIN, 1000, 10, channel_for_buzzer1); // Attach the pin to the LEDC channel
   ledcAttachChannel(BUZZER_2_PIN, 2000, 10, channel_for_buzzer2); // Attach the pin to the LEDC channel
   
-#ifdef ESP32
+#ifdef LOCAL_DEBUGGING
   ledc_channel_handle_t *bus1 = (ledc_channel_handle_t *)perimanGetPinBus(BUZZER_1_PIN, ESP32_BUS_TYPE_LEDC);
   ledc_channel_handle_t *bus2 = (ledc_channel_handle_t *)perimanGetPinBus(BUZZER_2_PIN, ESP32_BUS_TYPE_LEDC);  
   printBus("bus1", bus1);
   printBus("bus2", bus2);
-#endif // ESP32
+#endif // LOCAL_DEBUGGING
 
   delay(2000);
 
