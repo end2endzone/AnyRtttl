@@ -91,139 +91,139 @@ char readChar_P(const char * iBuffer) {
 namespace blocking
 {
 
-void play(rtttl_context_t & context, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc) {
+void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc) {
   // Absolutely no error checking in here
 
   // init context
-  initContext(context);
+  initContext(c);
   
-  context.pin = iPin;
-  context.default_dur = 4;
-  context.default_oct = 6;
-  context.bpm = 63;
-  context.buffer = iBuffer;
-  context.readCharFunc = iReadCharFunc;
+  c.pin = iPin;
+  c.default_dur = 4;
+  c.default_oct = 6;
+  c.bpm = 63;
+  c.buffer = iBuffer;
+  c.readCharFunc = iReadCharFunc;
   
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("playing: ");
-  serialPrint(context.buffer, context.readCharFunc);
+  serialPrint(c.buffer, c.readCharFunc);
   Serial.println();
   #endif
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
-  while(context.readCharFunc(context.buffer) != ':') context.buffer++; // ignore name
-  context.buffer++;                        // skip ':'
+  while(c.readCharFunc(c.buffer) != ':') c.buffer++; // ignore name
+  c.buffer++;                        // skip ':'
 
   // get default duration
-  if(context.readCharFunc(context.buffer) == 'd')
+  if(c.readCharFunc(c.buffer) == 'd')
   {
-    context.buffer++; context.buffer++;           // skip "d="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    if(context.tmpNumber > 0)
-      context.default_dur = context.tmpNumber;
-    context.buffer++;                      // skip comma
+    c.buffer++; c.buffer++;           // skip "d="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    if(c.tmpNumber > 0)
+      c.default_dur = c.tmpNumber;
+    c.buffer++;                      // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(context.default_dur, 10);
+  Serial.print("ddur: "); Serial.println(c.default_dur, 10);
   #endif
 
   // get default octave
-  if(context.readCharFunc(context.buffer) == 'o')
+  if(c.readCharFunc(c.buffer) == 'o')
   {
-    context.buffer++; context.buffer++;           // skip "o="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    if(context.tmpNumber >= 3 && context.tmpNumber <= 7)
-      context.default_oct = context.tmpNumber;
-    context.buffer++;                      // skip comma
+    c.buffer++; c.buffer++;           // skip "o="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    if(c.tmpNumber >= 3 && c.tmpNumber <= 7)
+      c.default_oct = c.tmpNumber;
+    c.buffer++;                      // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(context.default_oct, 10);
+  Serial.print("doct: "); Serial.println(c.default_oct, 10);
   #endif
 
   // get BPM
-  if(context.readCharFunc(context.buffer) == 'b')
+  if(c.readCharFunc(c.buffer) == 'b')
   {
-    context.buffer++; context.buffer++;         // skip "b="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    context.bpm = context.tmpNumber;
-    context.buffer++;                    // skip colon
+    c.buffer++; c.buffer++;         // skip "b="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    c.bpm = c.tmpNumber;
+    c.buffer++;                    // skip colon
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("bpm: "); Serial.println(context.bpm, 10);
+  Serial.print("bpm: "); Serial.println(c.bpm, 10);
   #endif
 
   // BPM usually expresses the number of quarter notes per minute
-  context.wholenote = (60 * 1000L / context.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(context.wholenote, 10);
+  Serial.print("wn: "); Serial.println(c.wholenote, 10);
   #endif
 
   // now begin note loop
-  while(context.readCharFunc(context.buffer))
+  while(c.readCharFunc(c.buffer))
   {
     // first, get note duration, if available
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
     
-    if(context.tmpNumber)
-      context.duration = context.wholenote / context.tmpNumber;
+    if(c.tmpNumber)
+      c.duration = c.wholenote / c.tmpNumber;
     else
-      context.duration = context.wholenote / context.default_dur;  // we will need to check if we are a dotted noteOffset after
+      c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
 
     // now get the note
-    context.noteOffset = getNoteOffsetFromLetter(context.readCharFunc(context.buffer));
-    context.buffer++;
+    c.noteOffset = getNoteOffsetFromLetter(c.readCharFunc(c.buffer));
+    c.buffer++;
 
     // now, get optional '#' sharp
-    if(context.readCharFunc(context.buffer) == '#')
+    if(c.readCharFunc(c.buffer) == '#')
     {
-      context.noteOffset++;
-      context.buffer++;
+      c.noteOffset++;
+      c.buffer++;
     }
 
     // now, get optional '.' dotted note
-    if(context.readCharFunc(context.buffer) == '.')
+    if(c.readCharFunc(c.buffer) == '.')
     {
-      context.duration += context.duration/2;
-      context.buffer++;
+      c.duration += c.duration/2;
+      c.buffer++;
     }
   
     // now, get scale
-    if(isdigit(context.readCharFunc(context.buffer)))
+    if(isdigit(c.readCharFunc(c.buffer)))
     {
-      context.scale = context.readCharFunc(context.buffer) - '0';
-      context.buffer++;
+      c.scale = c.readCharFunc(c.buffer) - '0';
+      c.buffer++;
     }
     else
     {
-      context.scale = context.default_oct;
+      c.scale = c.default_oct;
     }
 
-    if(context.readCharFunc(context.buffer) == ',')
-      context.buffer++;       // skip comma for next note (or we may be at the end)
+    if(c.readCharFunc(c.buffer) == ',')
+      c.buffer++;       // skip comma for next note (or we may be at the end)
 
     // now play the note
-    if(context.noteOffset)
+    if(c.noteOffset)
     {
-      uint16_t frequency = notes[(context.scale - 4) * NOTES_PER_OCTAVE + context.noteOffset];
+      uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
 
       #ifdef ANY_RTTTL_INFO
       Serial.print("Playing: ");
-      Serial.print(context.scale, 10); Serial.print(' ');
-      Serial.print(context.noteOffset, 10); Serial.print(" (");
+      Serial.print(c.scale, 10); Serial.print(' ');
+      Serial.print(c.noteOffset, 10); Serial.print(" (");
       Serial.print(frequency, 10);
       Serial.print(") ");
-      Serial.println(context.duration, 10);
+      Serial.println(c.duration, 10);
       #endif
 
-      _tone(context.pin, frequency, context.duration);
-      _delay(context.duration+1);
-      _noTone(context.pin);
+      _tone(c.pin, frequency, c.duration);
+      _delay(c.duration+1);
+      _noTone(c.pin);
     }
     else
     {
@@ -231,7 +231,7 @@ void play(rtttl_context_t & context, byte iPin, const char * iBuffer, ReadCharFu
       Serial.print("Pausing: ");
       Serial.println(duration, 10);
       #endif
-      _delay(context.duration);
+      _delay(c.duration);
     }
   }
 }
@@ -247,16 +247,16 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
 
   // Use global context for playing
-  rtttl_context_t & context = gGlobalContext;
-  initContext(context);
+  rtttl_context_t & c = gGlobalContext;
+  initContext(c);
 
-  context.pin = iPin;
-  context.buffer = (const char*)iBuffer;
+  c.pin = iPin;
+  c.buffer = (const char*)iBuffer;
 
   RTTTL_DEFAULT_VALUE_SECTION * defaultSection = (RTTTL_DEFAULT_VALUE_SECTION *)iBuffer;
   RTTTL_NOTE * notesBuffer = (RTTTL_NOTE *)iBuffer;
 
-  context.bpm = defaultSection->bpm;
+  c.bpm = defaultSection->bpm;
 
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("numNotes=");
@@ -267,39 +267,39 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   Serial.print(",o=");
   Serial.print(getNoteOctaveFromIndex(defaultSection->octaveIdx));
   Serial.print(",b=");
-  Serial.println(context.bpm);
+  Serial.println(c.bpm);
   #endif
   
   // BPM usually expresses the number of quarter notes per minute
-  context.wholenote = (60 * 1000L / context.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
 
   // now begin note loop
   for(int i=0; i<iNumNotes; i++) {
     const RTTTL_NOTE & n = notesBuffer[i+1]; //offset by 16 bits for RTTTL_DEFAULT_VALUE_SECTION
 
     // first, get note duration, if available
-    context.duration = context.wholenote / getNoteDurationFromIndex(n.durationIdx);
+    c.duration = c.wholenote / getNoteDurationFromIndex(n.durationIdx);
 
     // now get the note
-    //context.noteOffset = noteOffsets[n.noteIdx];
-    context.noteOffset = getNoteOffsetFromLetterIndex(n.noteIdx);
+    //c.noteOffset = noteOffsets[n.noteIdx];
+    c.noteOffset = getNoteOffsetFromLetterIndex(n.noteIdx);
 
     // now, get optional '#' sharp
     if(n.pound)
     {
-      context.noteOffset++;
+      c.noteOffset++;
     }
 
     // now, get optional '.' dotted note
     if(n.dotted)
     {
-      context.duration += context.duration/2;
+      c.duration += c.duration/2;
     }
 
     // now, get scale
-    context.scale = getNoteOctaveFromIndex(n.octaveIdx);
+    c.scale = getNoteOctaveFromIndex(n.octaveIdx);
 
-    if(context.noteOffset)
+    if(c.noteOffset)
     {
       #ifdef ANY_RTTTL_DEBUG
       Serial.print(getNoteDurationFromIndex(n.durationIdx));
@@ -310,11 +310,11 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
       Serial.println(getNoteOctaveFromIndex(n.octaveIdx));
       #endif
       
-      uint16_t frequency = notes[(context.scale - 4) * NOTES_PER_OCTAVE + context.noteOffset];
+      uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
 
-      _tone(context.pin, frequency, context.duration);
-      _delay(context.duration+1);
-      _noTone(context.pin);
+      _tone(c.pin, frequency, c.duration);
+      _delay(c.duration+1);
+      _noTone(c.pin);
     }
     else
     {
@@ -327,7 +327,7 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
       Serial.println();
       #endif
 
-      _delay(context.duration);
+      _delay(c.duration);
     }
   }
 }
@@ -336,16 +336,16 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
   // Absolutely no error checking in here
 
   // Use global context for playing
-  rtttl_context_t & context = gGlobalContext;
-  initContext(context);
+  rtttl_context_t & c = gGlobalContext;
+  initContext(c);
 
-  context.pin = iPin;
+  c.pin = iPin;
 
   //read default section
   RTTTL_DEFAULT_VALUE_SECTION defaultSection;
   defaultSection.raw = iFuncPtr(16);
 
-  context.bpm = defaultSection.bpm;
+  c.bpm = defaultSection.bpm;
 
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("numNotes=");
@@ -356,11 +356,11 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
   Serial.print(",o=");
   Serial.print(getNoteOctaveFromIndex(defaultSection.octaveIdx));
   Serial.print(",b=");
-  Serial.println(context.bpm);
+  Serial.println(c.bpm);
   #endif
   
   // BPM usually expresses the number of quarter notes per minute
-  context.wholenote = (60 * 1000L / context.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
 
   // now begin note loop
   for(int i=0; i<iNumNotes; i++) {
@@ -368,27 +368,27 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
     n.raw = iFuncPtr(10);
 
     // first, get note duration, if available
-    context.duration = context.wholenote / getNoteDurationFromIndex(n.durationIdx);
+    c.duration = c.wholenote / getNoteDurationFromIndex(n.durationIdx);
 
     // now get the note
-    context.noteOffset = getNoteOffsetFromLetterIndex(n.noteIdx);
+    c.noteOffset = getNoteOffsetFromLetterIndex(n.noteIdx);
 
     // now, get optional '#' sharp
     if(n.pound)
     {
-      context.noteOffset++;
+      c.noteOffset++;
     }
 
     // now, get optional '.' dotted note
     if(n.dotted)
     {
-      context.duration += context.duration/2;
+      c.duration += c.duration/2;
     }
 
     // now, get scale
-    context.scale = getNoteOctaveFromIndex(n.octaveIdx);
+    c.scale = getNoteOctaveFromIndex(n.octaveIdx);
 
-    if(context.noteOffset)
+    if(c.noteOffset)
     {
       #ifdef ANY_RTTTL_DEBUG
       Serial.print(getNoteDurationFromIndex(n.durationIdx));
@@ -399,9 +399,9 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
       Serial.println(getNoteOctaveFromIndex(n.octaveIdx));
       #endif
       
-      uint16_t frequency = notes[(context.scale - 4) * 12 + context.noteOffset];
-      _tone(context.pin, frequency, context.duration);
-      _delay(context.duration+1);
+      uint16_t frequency = notes[(c.scale - 4) * 12 + c.noteOffset];
+      _tone(c.pin, frequency, c.duration);
+      _delay(c.duration+1);
       _noTone(iPin);
     }
     else
@@ -415,7 +415,7 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
       Serial.println();
       #endif
 
-      _delay(context.duration);
+      _delay(c.duration);
     }
   }
 }
@@ -434,157 +434,157 @@ namespace nonblocking
 
 //pre-declaration
 void nextnote();
-void nextnote(rtttl_context_t & context);
+void nextnote(rtttl_context_t & c);
 
-void begin(rtttl_context_t & context, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
 {
   // init context
-  initContext(context);
+  initContext(c);
 
   //init values
-  context.pin = iPin;
-  context.buffer = iBuffer;
-  context.bufferIndex = 0;
-  context.default_dur = 4;
-  context.default_oct = 6;
-  context.bpm=63;
-  context.playing = true;
-  context.delayToNextNote = 0;
-  context.readCharFunc = iReadCharFunc;
+  c.pin = iPin;
+  c.buffer = iBuffer;
+  c.bufferIndex = 0;
+  c.default_dur = 4;
+  c.default_oct = 6;
+  c.bpm=63;
+  c.playing = true;
+  c.delayToNextNote = 0;
+  c.readCharFunc = iReadCharFunc;
   
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("playing: ");
-  serialPrint(context.buffer, context.readCharFunc);
+  serialPrint(c.buffer, c.readCharFunc);
   Serial.println();
   #endif
 
   //stop current note
-  noTone(context.pin);
+  noTone(c.pin);
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
   //read buffer until first note
-  while(context.readCharFunc(context.buffer) != ':') context.buffer++;     // ignore name
-  context.buffer++;                           // skip ':'
+  while(c.readCharFunc(c.buffer) != ':') c.buffer++;     // ignore name
+  c.buffer++;                           // skip ':'
 
   // get default duration
-  if(context.readCharFunc(context.buffer) == 'd')
+  if(c.readCharFunc(c.buffer) == 'd')
   {
-    context.buffer++; context.buffer++;               // skip "d="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    if(context.tmpNumber > 0)
-      context.default_dur = context.tmpNumber;
-    context.buffer++;                         // skip comma
+    c.buffer++; c.buffer++;               // skip "d="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    if(c.tmpNumber > 0)
+      c.default_dur = c.tmpNumber;
+    c.buffer++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(context.default_dur, 10);
+  Serial.print("ddur: "); Serial.println(c.default_dur, 10);
   #endif
   
   // get default octave
-  if(context.readCharFunc(context.buffer) == 'o')
+  if(c.readCharFunc(c.buffer) == 'o')
   {
-    context.buffer++; context.buffer++;               // skip "o="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    if(context.tmpNumber >= 3 && context.tmpNumber <= 7)
-      context.default_oct = context.tmpNumber;
-    context.buffer++;                         // skip comma
+    c.buffer++; c.buffer++;               // skip "o="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    if(c.tmpNumber >= 3 && c.tmpNumber <= 7)
+      c.default_oct = c.tmpNumber;
+    c.buffer++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(context.default_oct, 10);
+  Serial.print("doct: "); Serial.println(c.default_oct, 10);
   #endif
   
   // get BPM
-  if(context.readCharFunc(context.buffer) == 'b')
+  if(c.readCharFunc(c.buffer) == 'b')
   {
-    context.buffer++; context.buffer++;              // skip "b="
-    context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
-    context.bpm = context.tmpNumber;
-    context.buffer++;                   // skip colon
+    c.buffer++; c.buffer++;              // skip "b="
+    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    c.bpm = c.tmpNumber;
+    c.buffer++;                   // skip colon
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("bpm: "); Serial.println(context.bpm, 10);
+  Serial.print("bpm: "); Serial.println(c.bpm, 10);
   #endif
 
   // BPM usually expresses the number of quarter notes per minute
-  context.wholenote = (60 * 1000L / context.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(context.wholenote, 10);
+  Serial.print("wn: "); Serial.println(c.wholenote, 10);
   #endif
 }
 
 // helper functions
-void begin(rtttl_context_t & context, byte iPin, const char * iBuffer)             { begin(context, iPin, iBuffer, &readChar); }
-void begin(rtttl_context_t & context, byte iPin, const __FlashStringHelper* str)   { begin(context, iPin, (const char *)str, &readChar_P); }
-void beginProgMem(rtttl_context_t & context, byte iPin, const char * iBuffer)      { begin(context, iPin, iBuffer, &readChar_P); }
-void begin_P(rtttl_context_t & context, byte iPin, const char * iBuffer)           { begin(context, iPin, iBuffer, &readChar_P); }
-void begin_P(rtttl_context_t & context, byte iPin, const __FlashStringHelper* str) { begin(context, iPin, (const char *)str, &readChar_P); }
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &readChar); }
+void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &readChar_P); }
+void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &readChar_P); }
+void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &readChar_P); }
+void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &readChar_P); }
 
-void nextnote(rtttl_context_t & context)
+void nextnote(rtttl_context_t & c)
 {
   //stop current note
-  _noTone(context.pin);
+  _noTone(c.pin);
 
   // first, get note duration, if available
-  context.buffer = readNumber(context.buffer, context.tmpNumber, context.readCharFunc);
+  c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
   
-  if(context.tmpNumber)
-    context.duration = context.wholenote / context.tmpNumber;
+  if(c.tmpNumber)
+    c.duration = c.wholenote / c.tmpNumber;
   else
-    context.duration = context.wholenote / context.default_dur;  // we will need to check if we are a dotted noteOffset after
+    c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
 
   // now get the note
-  context.noteOffset = getNoteOffsetFromLetter(context.readCharFunc(context.buffer));
-  context.buffer++;
+  c.noteOffset = getNoteOffsetFromLetter(c.readCharFunc(c.buffer));
+  c.buffer++;
 
   // now, get optional '#' sharp
-  if(context.readCharFunc(context.buffer) == '#')
+  if(c.readCharFunc(c.buffer) == '#')
   {
-    context.noteOffset++;
-    context.buffer++;
+    c.noteOffset++;
+    c.buffer++;
   }
 
   // now, get optional '.' dotted note
-  if(context.readCharFunc(context.buffer) == '.')
+  if(c.readCharFunc(c.buffer) == '.')
   {
-    context.duration += context.duration/2;
-    context.buffer++;
+    c.duration += c.duration/2;
+    c.buffer++;
   }
 
   // now, get scale
-  if(isdigit(context.readCharFunc(context.buffer)))
+  if(isdigit(c.readCharFunc(c.buffer)))
   {
-    context.scale = context.readCharFunc(context.buffer) - '0';
-    context.buffer++;
+    c.scale = c.readCharFunc(c.buffer) - '0';
+    c.buffer++;
   }
   else
   {
-    context.scale = context.default_oct;
+    c.scale = c.default_oct;
   }
 
-  if(context.readCharFunc(context.buffer) == ',')
-    context.buffer++;       // skip comma for next note (or we may be at the end)
+  if(c.readCharFunc(c.buffer) == ',')
+    c.buffer++;       // skip comma for next note (or we may be at the end)
 
   // now play the note
-  if(context.noteOffset)
+  if(c.noteOffset)
   {
     #ifdef ANY_RTTTL_INFO
     Serial.print("Playing: ");
-    Serial.print(context.scale, 10); Serial.print(' ');
-    Serial.print(context.noteOffset, 10); Serial.print(" (");
-    Serial.print(notes[(context.scale - 4) * NOTES_PER_OCTAVE + context.noteOffset], 10);
+    Serial.print(c.scale, 10); Serial.print(' ');
+    Serial.print(c.noteOffset, 10); Serial.print(" (");
+    Serial.print(notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset], 10);
     Serial.print(") ");
-    Serial.println(context.duration, 10);
+    Serial.println(c.duration, 10);
     #endif
     
-    uint16_t frequency = notes[(context.scale - 4) * NOTES_PER_OCTAVE + context.noteOffset];
-    _tone(context.pin, frequency, context.duration);
+    uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
+    _tone(c.pin, frequency, c.duration);
     
-    context.delayToNextNote = _millis() + (context.duration+1);
+    c.delayToNextNote = _millis() + (c.duration+1);
   }
   else
   {
@@ -593,14 +593,14 @@ void nextnote(rtttl_context_t & context)
     Serial.println(duration, 10);
     #endif
     
-    context.delayToNextNote = _millis() + (context.duration);
+    c.delayToNextNote = _millis() + (c.duration);
   }
 }
 
-void play(rtttl_context_t & context)
+void play(rtttl_context_t & c)
 {
   //if done playing the song, return
-  if (!context.playing)
+  if (!c.playing)
   {
     #ifdef ANY_RTTTL_DEBUG
     Serial.println("done playing...");
@@ -611,7 +611,7 @@ void play(rtttl_context_t & context)
   
   //are we still playing a note ?
   unsigned long m = _millis();
-  if (m < context.delayToNextNote)
+  if (m < c.delayToNextNote)
   {
     #ifdef ANY_RTTTL_DEBUG
     Serial.println("still playing a note...");
@@ -622,7 +622,7 @@ void play(rtttl_context_t & context)
   }
 
   //ready to play the next note
-  if (context.readCharFunc(context.buffer) == '\0')
+  if (c.readCharFunc(c.buffer) == '\0')
   {
     //no more notes. Reached the end of the last note
 
@@ -630,10 +630,10 @@ void play(rtttl_context_t & context)
     Serial.println("end of note...");
     #endif
     
-    context.playing = false;
+    c.playing = false;
 
     //stop current note (if any)
-    _noTone(context.pin);
+    _noTone(c.pin);
 
     return; //end of the song
   }
@@ -645,35 +645,35 @@ void play(rtttl_context_t & context)
     Serial.println("next note...");
     #endif
     
-    nextnote(context);
+    nextnote(c);
   }
 }
 
-void stop(rtttl_context_t & context)
+void stop(rtttl_context_t & c)
 {
-  if (context.playing)
+  if (c.playing)
   {
     //increase song buffer until the end
-    while (context.readCharFunc(context.buffer) != '\0')
+    while (c.readCharFunc(c.buffer) != '\0')
     {
-      context.buffer++;
+      c.buffer++;
     }
   }
 
-  context.playing = false;
+  c.playing = false;
 
   //stop current note (if any)
-  _noTone(context.pin);
+  _noTone(c.pin);
 }
 
-bool done(rtttl_context_t & context)
+bool done(rtttl_context_t & c)
 {
-  return !context.playing;
+  return !c.playing;
 }
 
-bool isPlaying(rtttl_context_t & context)
+bool isPlaying(rtttl_context_t & c)
 {
-  return context.playing;
+  return c.playing;
 }
 
 /****************************************************************************

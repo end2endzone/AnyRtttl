@@ -235,37 +235,37 @@ namespace nonblocking
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song.
  * Parameters:
- *   context:       An RTTTL context used to keep track of the melody's state.
+ *   c:             An RTTTL context used to keep track of the melody's state.
  *   iPin:          The pin which is connected to the piezo buffer.
  *   iBuffer:       The string buffer of the RTTTL song.
  *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void begin(rtttl_context_t & context, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
 
 /****************************************************************************
  * Description:
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song stored in RAM.
  * Parameters:
- *   context:   An RTTTL context used to keep track of the melody's state.
+ *   c:         An RTTTL context used to keep track of the melody's state.
  *   iPin:      The pin which is connected to the piezo buffer.
  *   iBuffer:   The string buffer of the RTTTL song.
  ****************************************************************************/
-void begin(rtttl_context_t & context, byte iPin, const char * iBuffer);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer);
 
 /****************************************************************************
  * Description:
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song stored in Program Memory (PROGMEM).
  * Parameters:
- *   context: An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context used to keep track of the melody's state.
  *   iPin:    The pin which is connected to the piezo buffer.
  *   iBuffer: The string buffer of the RTTTL melody.
  ****************************************************************************/
-void begin(rtttl_context_t & context, byte iPin, const __FlashStringHelper* str);
-void beginProgMem(rtttl_context_t & context, byte iPin, const char * iBuffer);
-void begin_P(rtttl_context_t & context, byte iPin, const char * iBuffer);
-void begin_P(rtttl_context_t & context, byte iPin, const __FlashStringHelper* str);
+void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
+void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer);
+void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer);
+void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
 
 /****************************************************************************
  * Description:
@@ -274,33 +274,33 @@ void begin_P(rtttl_context_t & context, byte iPin, const __FlashStringHelper* st
  *   Warning: inserting too long delays within the loop function may
  *   disrupt the NON-BLOCKING RTTTL library from playing properly.
  * Parameters:
- *   context: An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-void play(rtttl_context_t & context);
+void play(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Stops playing the current song.
  * Parameters:
- *   context: An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-void stop(rtttl_context_t & context);
+void stop(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Return true when the library is playing the given RTTTL melody.
  * Parameters:
- *   context: An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-bool isPlaying(rtttl_context_t & context);
+bool isPlaying(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Return true when the library is done playing the given RTTTL song.
  * Parameters:
- *   context: An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-bool done(rtttl_context_t & context);
+bool done(rtttl_context_t & c);
 
 
 /****************************************************************************
