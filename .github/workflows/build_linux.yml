@@ -117,6 +117,11 @@ jobs:
       shell: bash
       run: python ci/generic/arduino_build_sketch.py ESP8266-NodeMCU
 
+    - name: Build Arduino sketch - IoT-beeps
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: python ci/generic/arduino_build_sketch.py IoT-beeps
+
     - name: Build Arduino sketch - NonBlockingProgramMemoryRtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
