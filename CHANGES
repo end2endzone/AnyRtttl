@@ -1,6 +1,8 @@
 Changes for 2.5.0
 
 * New feature: example `IoT-beeps` exploring device state feedback with RTTTL melodies.
+* New feature: Support for playing RTTTL melodies on 2 speakers simultaneously.
+* Fixed issue #9 - Question - can we target two speakers ?
 
 
 Changes for 2.4.0
