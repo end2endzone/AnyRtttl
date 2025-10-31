@@ -107,6 +107,11 @@ jobs:
       shell: bash
       run: python ci/generic/arduino_build_sketch.py BlockingWithNonBlocking
 
+    - name: Build Arduino sketch - ESP32DualPlayRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: bash
+      run: python ci/generic/arduino_build_sketch.py ESP32DualPlayRtttl
+
     - name: Build Arduino sketch - ESP32Rtttl
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: bash
