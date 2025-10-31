@@ -80,7 +80,7 @@ void setup() {
   // To be able to play multiple rtttl melodies simultaneously,
   // we need to bind a unique timer for each buzzer.
   // In other words, we cannot use `anyrtttl::esp32::toneSetup(BUZZER_PIN)`.
-  // To force a unique timer for each buzzer we register each pins to use a different frequency.
+  // To force a unique timer for each buzzer we register each pins to use a different timer frequency.
   ledcAttachChannel(BUZZER_1_PIN, 1000, 10, channel_for_buzzer1); // Attach the pin to the LEDC channel
   ledcAttachChannel(BUZZER_2_PIN, 2000, 10, channel_for_buzzer2); // Attach the pin to the LEDC channel
   
@@ -95,8 +95,8 @@ void setup() {
 
   // Compute time stamps at which each melody must start playing
   unsigned long now = millis();
-  buzzer1_start_time = now + 2000;
-  buzzer2_start_time = now + 5000;
+  buzzer1_start_time = now + 1000;
+  buzzer2_start_time = now + 4000; // second melody shall start 3 seconds after the first has started.
 }
 
 void loop() {
