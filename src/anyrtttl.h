@@ -11,6 +11,7 @@
 #define ANY_RTTTL_VERSION 2.4
 
 #include "Arduino.h"
+#include "binrtttl.h"
 #include "pitches.h"
 
 //#define ANY_RTTTL_DEBUG
@@ -18,6 +19,49 @@
 
 namespace anyrtttl
 {
+/****************************************************************************
+ * Custom typedefs
+ ****************************************************************************/
+
+/****************************************************************************
+ * Description:
+ *   Defines a function pointer to read a single char from a buffer
+ ****************************************************************************/
+typedef char (*ReadCharFuncPtr)(const char *);
+
+/****************************************************************************
+ * Description:
+ *   Defines a custom type for storing a note duration.
+ ****************************************************************************/
+typedef uint16_t TONE_DURATION;
+
+/****************************************************************************
+ * Structure definitions
+ ****************************************************************************/
+typedef struct rtttl_context_t {
+  byte pin; // the pin assigned to this context
+  const char * buffer;  // buffer address of the melody. Can be from RAM or PROGMEM address space.
+  ReadCharFuncPtr readCharFunc; // a custom function pointer to read 1 byte from `buffer`.
+  int bufferIndex;  // index of the next byte to read from `buffer`.
+  byte default_dur;
+  byte default_oct;
+  RTTTL_BPM bpm;
+  RTTTL_OCTAVE_VALUE scale;
+  RTTTL_DURATION wholenote;
+  TONE_DURATION duration;
+  unsigned long delayToNextNote; //milliseconds before playing the next note
+  bool playing;
+  byte noteOffset;
+  int tmpNumber; // a temporary variable used for parsing digits or an integer from `buffer`.
+} rtttl_context_t;
+
+/****************************************************************************
+ * Description:
+ *   Initialize an RtttlContext with default values.
+ * Parameters:
+ *   c:      The context to initialize
+ ****************************************************************************/
+void initContext(rtttl_context_t & c);
 
 /****************************************************************************
  * Custom functions
@@ -83,14 +127,6 @@ void setDelayFunction(DelayFuncPtr iFunc);
  *   iFunc: Pointer to a millis() replacement function.
  ****************************************************************************/
 void setMillisFunction(MillisFuncPtr iFunc);
-
-
-
-/****************************************************************************
- * Description:
- *   Defines a function pointer to read a single char from a buffer
- ****************************************************************************/
-typedef char (*ReadCharFuncPtr)(const char *);
 
 /****************************************************************************
  * Description:
@@ -199,34 +235,37 @@ namespace nonblocking
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song.
  * Parameters:
+ *   c:             An RTTTL context used to keep track of the melody's state.
  *   iPin:          The pin which is connected to the piezo buffer.
  *   iBuffer:       The string buffer of the RTTTL song.
  *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
 
 /****************************************************************************
  * Description:
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song stored in RAM.
  * Parameters:
+ *   c:         An RTTTL context used to keep track of the melody's state.
  *   iPin:      The pin which is connected to the piezo buffer.
  *   iBuffer:   The string buffer of the RTTTL song.
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer);
 
 /****************************************************************************
  * Description:
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song stored in Program Memory (PROGMEM).
  * Parameters:
+ *   c:       An RTTTL context used to keep track of the melody's state.
  *   iPin:    The pin which is connected to the piezo buffer.
  *   iBuffer: The string buffer of the RTTTL melody.
  ****************************************************************************/
-void begin(byte iPin, const __FlashStringHelper* str);
-void beginProgMem(byte iPin, const char * iBuffer);
-void begin_P(byte iPin, const char * iBuffer);
-void begin_P(byte iPin, const __FlashStringHelper* str);
+void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
+void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer);
+void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer);
+void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
 
 /****************************************************************************
  * Description:
@@ -234,25 +273,48 @@ void begin_P(byte iPin, const __FlashStringHelper* str);
  *   This function must constantly be called within the loop() function.
  *   Warning: inserting too long delays within the loop function may
  *   disrupt the NON-BLOCKING RTTTL library from playing properly.
+ * Parameters:
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-void play();
+void play(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Stops playing the current song.
+ * Parameters:
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-void stop();
+void stop(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Return true when the library is playing the given RTTTL melody.
+ * Parameters:
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
-bool isPlaying();
+bool isPlaying(rtttl_context_t & c);
 
 /****************************************************************************
  * Description:
  *   Return true when the library is done playing the given RTTTL song.
+ * Parameters:
+ *   c:       An RTTTL context used to keep track of the melody's state.
  ****************************************************************************/
+bool done(rtttl_context_t & c);
+
+
+/****************************************************************************
+ * Legacy functions
+ ****************************************************************************/
+void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void begin(byte iPin, const char * iBuffer);
+void begin(byte iPin, const __FlashStringHelper* str);
+void beginProgMem(byte iPin, const char * iBuffer);
+void begin_P(byte iPin, const char * iBuffer);
+void begin_P(byte iPin, const __FlashStringHelper* str);
+void play();
+void stop();
+bool isPlaying();
 bool done();
 
 }; //nonblocking namespace
@@ -324,7 +386,6 @@ void toneSetup(uint8_t pin);
 }; //esp32 namespace
 
 #endif // ESP32
-
 
 }; //anyrtttl namespace
 
