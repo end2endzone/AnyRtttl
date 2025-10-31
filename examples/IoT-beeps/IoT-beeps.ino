@@ -1,6 +1,18 @@
 #include <anyrtttl.h>
 #include <pitches.h>
 
+/*
+This example is a test project designed to evaluate and demonstrate a variety of feedback melodies for IoT and embedded devices.
+The goal is to let you explore how short RTTTL melodies can effectively communicate different device states.
+For example:
+  * startup
+  * ready
+  * processing
+  * error
+  * notifications
+  * shutdown
+*/
+
 //project's constants
 #if defined(ESP8266)
 #define BUZZER_PIN 14 // Using GPIO14 (pin labeled D5)
