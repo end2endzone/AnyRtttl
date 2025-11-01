@@ -31,13 +31,13 @@ rtttl_context_t gGlobalContext = {0};
 
 char peekChar(rtttl_context_t & c)
 {
-  char character = c.decode(c.next);
+  char character = c.peekChar(c.next);
   return character;
 }
 
 char readChar(rtttl_context_t & c)
 {
-  char character = c.decode(c.next);
+  char character = c.peekChar(c.next);
   c.next++;
   return character;
 }
@@ -97,12 +97,12 @@ void setMillisFunction(MillisFuncPtr iFunc) {
   _millis = iFunc;
 }
 
-char decodeCharacterFromRam(const char * iBuffer) {
+char readCharMem(const char * iBuffer) {
   char output = *iBuffer;
   return output;
 }
 
-char decodeCharacterFromProgramMem(const char * iBuffer) {
+char readCharPgm(const char * iBuffer) {
   char output = pgm_read_byte_near(iBuffer);
   return output;
 }
@@ -115,7 +115,7 @@ char decodeCharacterFromProgramMem(const char * iBuffer) {
 namespace blocking
 {
 
-void play(rtttl_context_t & c, byte iPin, const char* iBuffer, DecodeCharFunc iDecodeFunc) {
+void play(rtttl_context_t & c, byte iPin, const char* iBuffer, PeekCharFuncPtr iPeekFunc) {
   // Absolutely no error checking in here
 
   // init context
@@ -127,7 +127,7 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, DecodeCharFunc iD
   c.bpm = 63;
   c.buffer = iBuffer;
   c.next = iBuffer;
-  c.decode = iDecodeFunc;
+  c.peekChar = iPeekFunc;
   c.playing = true;
   
   int number = 0;
@@ -267,11 +267,11 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, DecodeCharFunc iD
 }
 
 // Helper legacy api functions
-void play(byte iPin, const char * iBuffer)              { play(gGlobalContext, iPin, iBuffer, &decodeCharacterFromRam); }
-void play(byte iPin, const __FlashStringHelper* str)    { play(gGlobalContext, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
-void playProgMem(byte iPin, const char * iBuffer)       { play(gGlobalContext, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void play_P(byte iPin, const char * iBuffer)            { play(gGlobalContext, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void play_P(byte iPin, const __FlashStringHelper* str)  { play(gGlobalContext, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
+void play(byte iPin, const char * iBuffer)              { play(gGlobalContext, iPin, iBuffer, &readCharMem); }
+void play(byte iPin, const __FlashStringHelper* str)    { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void playProgMem(byte iPin, const char * iBuffer)       { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const char * iBuffer)            { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const __FlashStringHelper* str)  { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
@@ -466,7 +466,7 @@ namespace nonblocking
 void nextnote();
 void nextnote(rtttl_context_t & c);
 
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, DecodeCharFunc iDecodeFunc)
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, PeekCharFuncPtr iPeekFunc)
 {
   // init context
   initContext(c);
@@ -478,7 +478,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, DecodeCharFunc 
   c.bpm=63;
   c.buffer = iBuffer;
   c.next = iBuffer;
-  c.decode = iDecodeFunc;
+  c.peekChar = iPeekFunc;
   c.playing = true;
    
   int number = 0;
@@ -549,11 +549,11 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, DecodeCharFunc 
 }
 
 // helper functions
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &decodeCharacterFromRam); }
-void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
-void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &readCharMem); }
+void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &readCharPgm); }
+void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &readCharPgm); }
+void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &readCharPgm); }
+void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &readCharPgm); }
 
 void nextnote(rtttl_context_t & c)
 {
@@ -712,12 +712,12 @@ bool isPlaying(rtttl_context_t & c)
 /****************************************************************************
  * Legacy API functions
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, DecodeCharFunc iDecodeFunc)     { begin(gGlobalContext, iPin, iBuffer, iDecodeFunc); }
-void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &decodeCharacterFromRam); }
-void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
-void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void begin_P(byte iPin, const char * iBuffer)                               { begin(gGlobalContext, iPin, iBuffer, &decodeCharacterFromProgramMem); }
-void begin_P(byte iPin, const __FlashStringHelper* str)                     { begin(gGlobalContext, iPin, (const char *)str, &decodeCharacterFromProgramMem); }
+void begin(byte iPin, const char * iBuffer, PeekCharFuncPtr iPeekFunc)     { begin(gGlobalContext, iPin, iBuffer, iPeekFunc); }
+void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &readCharMem); }
+void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void begin_P(byte iPin, const char * iBuffer)                               { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void begin_P(byte iPin, const __FlashStringHelper* str)                     { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
 void nextnote()
 {
@@ -832,7 +832,7 @@ void initContext(rtttl_context_t & c) {
   c.pin = -1;
   c.buffer = NULL;
   c.next = NULL;
-  c.decode = &decodeCharacterFromRam;
+  c.peekChar = &readCharMem;
   c.default_dur = 4;
   c.default_oct = 6;
   c.bpm = 63;
