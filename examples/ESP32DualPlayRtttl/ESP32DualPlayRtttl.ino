@@ -4,7 +4,8 @@
 
 //#define LOCAL_DEBUGGING 1
 
-#define BUZZER_1_PIN  5 // Using GPIO5  (pin labeled  D5)
+// Define the BUZZER pins
+#define BUZZER_1_PIN 25 // Using GPIO25 (pin labeled D25)
 #define BUZZER_2_PIN 32 // Using GPIO32 (pin labeled D32)
 
 #ifdef LOCAL_DEBUGGING
