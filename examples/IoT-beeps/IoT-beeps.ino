@@ -13,13 +13,13 @@ For example:
   * shutdown
 */
 
-//project's constants
-#if defined(ESP8266)
-#define BUZZER_PIN 14 // Using GPIO14 (pin labeled D5)
-#elif defined(ESP32)
-#define BUZZER_PIN  5 // Using GPIO5  (pin labeled D5)
-#else
-#define BUZZER_PIN 8
+// Define the BUZZER_PIN for current board
+#if defined(ESP32)
+#define BUZZER_PIN 25 // Using GPIO25 (pin labeled D25)
+#elif defined(ESP8266)
+#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D2)
+#else // base arduino models
+#define BUZZER_PIN 9
 #endif
 
 // Generic RTTTL melodies
@@ -123,7 +123,7 @@ const char land[] PROGMEM = "land:d=16,o=5,b=170:c7,g6,e6,c6,a,4g";
 const char connect[] PROGMEM = "connect:d=16,o=5,b=160:f,a,c6,e6,4g6";
 const char disconnect[] PROGMEM = "disconnect:d=16,o=5,b=160:g6,e6,c6,a,4f";
 
-
+//project's constants
 const char * melodies[] = {
   // Generic RTTTL melodies
   two_short,
