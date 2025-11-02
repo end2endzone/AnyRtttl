@@ -23,14 +23,6 @@ namespace anyrtttl
  * Custom typedefs
  ****************************************************************************/
 
-typedef struct buffered_input_t {
-  void * self;    // the address of this instance
-  void * opaque;  // an opaque pointer for storing custom data. Usually for implementing peekByte() and readByte() functions.
-  char (*peekByte)(buffered_input_t * self);
-  char (*readByte)(buffered_input_t * self);
-  void (*free)(buffered_input_t * self);
-} input_buffer_t;
-
 /****************************************************************************
  * Description:
  *   Defines a function pointer to read the first byte from a buffer.
@@ -55,7 +47,6 @@ typedef struct rtttl_context_t {
   const char * buffer;      // address of the melody. Can be from RAM or PROGMEM address space.
   const char * next;        // address of the next byte to peek from buffer.
   PeekCharFuncPtr peekChar; // a custom function to read the first byte from `next` buffer.
-  buffered_input_t * input; // a buffered input structure to read from a buffered input.
   byte default_dur;         // default duration of notes in the melody. Use this value for notes that do not specify a duration.
   byte default_oct;         // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
   RTTTL_BPM bpm;            // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
@@ -78,10 +69,6 @@ typedef struct rtttl_context_t {
  *   c:      The context to initialize
  ****************************************************************************/
 void initContext(rtttl_context_t & c);
-
-void initStringBufferedInput(buffered_input_t * input, const char * value);
-void initProgmemBufferedInput(buffered_input_t * input, const char * addr);
-void initBinaryBufferedInput(buffered_input_t * input, const unsigned char * buffer, size_t size);
 
 /****************************************************************************
  * Description:
