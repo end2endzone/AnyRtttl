@@ -45,7 +45,7 @@ typedef uint16_t TONE_DURATION;
 typedef struct rtttl_context_t {
   byte pin;                 // the pin assigned to this context.
   const char * buffer;      // address of the melody. Can be from RAM or PROGMEM address space.
-  const char * next;        // address of the next byte to peek from buffer.
+  const char * next;        // address of the next byte to process within buffer.
   PeekCharFuncPtr peekChar; // a custom function to read the first byte from `next` buffer.
   byte default_dur;         // default duration of notes in the melody. Use this value for notes that do not specify a duration.
   byte default_oct;         // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
