@@ -144,6 +144,11 @@ jobs:
       shell: cmd
       run: python ci\generic\arduino_build_sketch.py Play16Bits
 
+    - name: Build Arduino sketch - PlaySerialRtttl
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: cmd
+      run: python ci\generic\arduino_build_sketch.py PlaySerialRtttl
+
     - name: Build Arduino sketch - Rtttl2Code
       working-directory: ${{env.GITHUB_WORKSPACE}}
       shell: cmd
