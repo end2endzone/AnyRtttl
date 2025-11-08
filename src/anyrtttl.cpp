@@ -274,7 +274,6 @@ void playProgMem(byte iPin, const char * iBuffer)                           { pl
 void play_P(byte iPin, const char * iBuffer)                                { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
 void play_P(byte iPin, const __FlashStringHelper* str)                      { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
-#if 0
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
 
@@ -451,7 +450,7 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
     }
   }
 }
-#endif // #if 0
+
 
 
 }; //blocking namespace
