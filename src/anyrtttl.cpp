@@ -29,13 +29,13 @@ static const byte NOTES_PER_OCTAVE = 12;
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
 
-char peekChar(rtttl_context_t & c)
+inline char peekChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   return character;
 }
 
-char readChar(rtttl_context_t & c)
+inline char readChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   c.next++;
@@ -60,6 +60,7 @@ int readInteger(rtttl_context_t & c)
   return value;
 }
 
+#ifdef ANY_RTTTL_DEBUG
 void serialPrint(rtttl_context_t & c)
 {
   // read first character
@@ -71,6 +72,7 @@ void serialPrint(rtttl_context_t & c)
     character = readChar(c);
   }
 }
+#endif
 
 /****************************************************************************
  * Custom functions
