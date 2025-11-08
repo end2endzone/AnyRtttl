@@ -267,11 +267,12 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iG
 }
 
 // Helper legacy api functions
-void play(byte iPin, const char * iBuffer)              { play(gGlobalContext, iPin, iBuffer, &readCharMem); }
-void play(byte iPin, const __FlashStringHelper* str)    { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
-void playProgMem(byte iPin, const char * iBuffer)       { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void play_P(byte iPin, const char * iBuffer)            { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void play_P(byte iPin, const __FlashStringHelper* str)  { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void play(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)  { play(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
+void play(byte iPin, const char * iBuffer)                                  { play(gGlobalContext, iPin, iBuffer, &readCharMem); }
+void play(byte iPin, const __FlashStringHelper* str)                        { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void playProgMem(byte iPin, const char * iBuffer)                           { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const char * iBuffer)                                { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const __FlashStringHelper* str)                      { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
