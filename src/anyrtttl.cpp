@@ -167,7 +167,7 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   #endif
   
   // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
 
   // now begin note loop
   for(int i=0; i<iNumNotes; i++) {
@@ -256,7 +256,7 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
   #endif
   
   // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
 
   // now begin note loop
   for(int i=0; i<iNumNotes; i++) {
@@ -407,7 +407,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 
   // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
+  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
 
   #ifdef ANY_RTTTL_INFO
   Serial.print("wn: "); Serial.println(c.wholenote, 10);
@@ -429,12 +429,12 @@ void nextnote(rtttl_context_t & c)
   _noTone(c.pin);
 
   // first, get note duration, if available
-    number = readInteger(c);
+  number = readInteger(c);
   
   if(number > 0)
     c.duration = c.wholenote / number;
   else
-    c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
+    c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted note after
 
   // now get the note
   c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
