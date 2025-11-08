@@ -7,7 +7,7 @@
 
 #include "Arduino.h"
 #include "bufferedinputs.h"
-#include <memory.h>
+#include <stdlib.h> // for malloc() and free()
 
 namespace anyrtttl
 {
