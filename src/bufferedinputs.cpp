@@ -36,6 +36,12 @@ char stringBufferReadByte(buffered_input_t * self)
   return c;
 }
 
+void stringBufferSeek(buffered_input_t * self, int count)
+{
+  string_buffer_helper_t * helper = (string_buffer_helper_t *)self->opaque;
+  helper->pos += count;
+}
+
 void stringBufferFree(buffered_input_t * self)
 {
   string_buffer_helper_t * helper = (string_buffer_helper_t *)self->opaque;
@@ -56,6 +62,7 @@ void initStringBufferedInput(buffered_input_t * input, const char * value)
 
   input->peekByte = &stringBufferPeekByte;
   input->readByte = &stringBufferReadByte;
+  input->seek = &stringBufferSeek;
   input->free = &stringBufferFree;
 }
 
@@ -83,6 +90,12 @@ char progmemBufferReadByte(buffered_input_t * self)
   return c;
 }
 
+void progmemBufferSeek(buffered_input_t * self, int count)
+{
+  progmem_buffer_helper_t * helper = (progmem_buffer_helper_t *)self->opaque;
+  helper->pos += count;
+}
+
 void progmemBufferFree(buffered_input_t * self)
 {
   progmem_buffer_helper_t * helper = (progmem_buffer_helper_t *)self->opaque;
@@ -103,6 +116,7 @@ void initProgmemBufferedInput(buffered_input_t * input, const char * addr)
 
   input->peekByte = &progmemBufferPeekByte;
   input->readByte = &progmemBufferReadByte;
+  input->seek = &progmemBufferSeek;
   input->free = &progmemBufferFree;
 }
 
@@ -133,6 +147,12 @@ char binaryBufferReadByte(buffered_input_t * self)
   return c;
 }
 
+void binaryBufferSeek(buffered_input_t * self, int count)
+{
+  binary_buffer_helper_t * helper = (binary_buffer_helper_t *)self->opaque;
+  helper->pos += count;
+}
+
 void binaryBufferFree(buffered_input_t * self)
 {
   binary_buffer_helper_t * helper = (binary_buffer_helper_t *)self->opaque;
@@ -154,6 +174,7 @@ void initBinaryBufferedInput(buffered_input_t * input, const unsigned char * buf
 
   input->peekByte = &binaryBufferPeekByte;
   input->readByte = &binaryBufferReadByte;
+  input->seek = &binaryBufferSeek;
   input->free = &binaryBufferFree;
 }
 

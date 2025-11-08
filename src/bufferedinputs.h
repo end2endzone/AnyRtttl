@@ -22,6 +22,7 @@ typedef struct buffered_input_t {
   void * opaque;  // an opaque pointer for storing custom data. Usually for implementing peekByte() and readByte() functions.
   char (*peekByte)(buffered_input_t * self);
   char (*readByte)(buffered_input_t * self);
+  void (*seek)(buffered_input_t * self, int count);
   void (*free)(buffered_input_t * self);
 } input_buffer_t;
 
