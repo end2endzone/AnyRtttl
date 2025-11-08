@@ -116,154 +116,17 @@ namespace blocking
 {
 
 void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iGetCharFuncPtr) {
-  // Absolutely no error checking in here
+  // Implement blocking code using the non-blocking apis.
 
-  // init context
-  initContext(c);
+  // Init the context for playing this melody
+  anyrtttl::nonblocking::begin(c, iPin, iBuffer, iGetCharFuncPtr);
   
-  c.pin = iPin;
-  c.default_dur = 4;
-  c.default_oct = 6;
-  c.bpm = 63;
-  c.buffer = iBuffer;
-  c.next = iBuffer;
-  c.getCharPtr = iGetCharFuncPtr;
-  c.playing = true;
-  
-  int number = 0;
-
-  #ifdef ANY_RTTTL_DEBUG
-  Serial.print("playing: ");
-  serialPrint(c);
-  Serial.println();
-  #endif
-
-  // format: d=N,o=N,b=NNN:
-  // find the start (skip name, etc)
-
-  while(peekChar(c) != ':') c.next++; // ignore name
-  c.next++;                           // skip ':'
-
-  // get default duration
-  if(peekChar(c) == 'd')
+  // Loop until the melody has played
+  while( !anyrtttl::nonblocking::done(c) ) 
   {
-    c.next += 2;                      // skip "d="
-    number = readInteger(c);
-    if(number > 0)
-      c.default_dur = number;
-    c.next++;                         // skip comma
+    anyrtttl::nonblocking::play(c);
+    delay(1); // prevent watchdog to reset the board.
   }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(c.default_dur, 10);
-  #endif
-
-  // get default octave
-  if(peekChar(c) == 'o')
-  {
-    c.next += 2;                      // skip "o="
-    number = readInteger(c);
-    if(number >= 3 && number <= 7)
-      c.default_oct = number;
-    c.next++;                         // skip comma
-  }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(c.default_oct, 10);
-  #endif
-
-  // get BPM
-  if(peekChar(c) == 'b')
-  {
-    c.next += 2;                      // skip "b="
-    number = readInteger(c);
-    c.bpm = number;
-    c.next++;                         // skip colon
-  }
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("bpm: "); Serial.println(c.bpm, 10);
-  #endif
-
-  // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole noteOffset (in milliseconds)
-
-  #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(c.wholenote, 10);
-  #endif
-
-  // now begin note loop
-  while(peekChar(c) != '\0')
-  {
-    // first, get note duration, if available
-    number = readInteger(c);
-    
-    if(number > 0)
-      c.duration = c.wholenote / number;
-    else
-      c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
-
-    // now get the note
-    c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
-    c.next++;                         // skip note letter
-
-    // now, get optional '#' sharp
-    if(peekChar(c) == '#')
-    {
-      c.noteOffset++;
-      c.next++;                       // skip '#'
-    }
-
-    // now, get optional '.' dotted note
-    if(peekChar(c) == '.')
-    {
-      c.duration += c.duration/2;
-      c.next++;                       // skip '.'
-    }
-  
-    // now, get scale
-    if(isdigit(peekChar(c)))
-    {
-      c.scale = peekChar(c) - '0';
-      c.next++;                       // skip scale
-    }
-    else
-    {
-      c.scale = c.default_oct;
-    }
-
-    if(peekChar(c) == ',')
-      c.next++;                       // skip comma for next note (or we may be at the end)
-
-    // now play the note
-    if(c.noteOffset)
-    {
-      uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
-
-      #ifdef ANY_RTTTL_INFO
-      Serial.print("Playing: ");
-      Serial.print(c.scale, 10); Serial.print(' ');
-      Serial.print(c.noteOffset, 10); Serial.print(" (");
-      Serial.print(frequency, 10);
-      Serial.print(") ");
-      Serial.println(c.duration, 10);
-      #endif
-
-      _tone(c.pin, frequency, c.duration);
-      _delay(c.duration+1);
-      _noTone(c.pin);
-    }
-    else
-    {
-      #ifdef ANY_RTTTL_INFO
-      Serial.print("Pausing: ");
-      Serial.println(duration, 10);
-      #endif
-      _delay(c.duration);
-    }
-  }
-
-  c.playing = false;
 }
 
 // Helper legacy api functions
