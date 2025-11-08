@@ -197,7 +197,7 @@ void play_P(byte iPin, const __FlashStringHelper* str);
  *   Each successive notes are encoded as 16 bits per note as defined by
  *   RTTTL_NOTE union.
  ****************************************************************************/
-void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes);
+// void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes);
 
 /****************************************************************************
  * Description:
@@ -220,7 +220,7 @@ typedef uint16_t (*BitReadFuncPtr)(uint8_t);
  *   Each successive notes are encoded as 10 bits per note as defined by
  *   RTTTL_NOTE union.
  ****************************************************************************/
-void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr);
+// void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr);
 
 }; //blocking namespace
 
