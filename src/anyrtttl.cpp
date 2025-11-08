@@ -29,24 +29,46 @@ static const byte NOTES_PER_OCTAVE = 12;
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
 
-const char * readNumber(const char * iBuffer, int & oValue, ReadCharFuncPtr iReadCharFunc)
+char peekChar(rtttl_context_t & c)
 {
-  oValue = 0;
-  while(isdigit(iReadCharFunc(iBuffer)))
-  {
-    oValue = (oValue * 10) + (iReadCharFunc(iBuffer) - '0');
-    iBuffer++;
-  }
-  return iBuffer;
+  char character = c.getCharPtr(c.next);
+  return character;
 }
 
-void serialPrint(const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
+char readChar(rtttl_context_t & c)
 {
-  char c = iReadCharFunc(iBuffer);
-  while(c) {
-    Serial.print(c);
-    iBuffer++;
-    c = iReadCharFunc(iBuffer);
+  char character = c.getCharPtr(c.next);
+  c.next++;
+  return character;
+}
+
+int readInteger(rtttl_context_t & c)
+{
+  int value = 0;
+
+  // read first character
+  char character = peekChar(c); // peek only at the next character
+  while(isdigit(character))
+  {
+    character = readChar(c); // actually move the read offset
+    value = (value * 10) + (character - '0');
+
+    // read next character
+    character = peekChar(c); // peek only at the next character
+  }
+
+  return value;
+}
+
+void serialPrint(rtttl_context_t & c)
+{
+  // read first character
+  char character = readChar(c);
+  while(character) {
+    Serial.print(character);
+
+    // read next character
+    character = readChar(c);
   }
 }
 
@@ -75,12 +97,14 @@ void setMillisFunction(MillisFuncPtr iFunc) {
   _millis = iFunc;
 }
 
-char readChar(const char * iBuffer) {
-  return *iBuffer;
+char readCharMem(const char * iBuffer) {
+  char output = *iBuffer;
+  return output;
 }
 
-char readChar_P(const char * iBuffer) {
-  return pgm_read_byte_near(iBuffer);
+char readCharPgm(const char * iBuffer) {
+  char output = pgm_read_byte_near(iBuffer);
+  return output;
 }
 
 
@@ -91,7 +115,7 @@ char readChar_P(const char * iBuffer) {
 namespace blocking
 {
 
-void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc) {
+void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iGetCharFuncPtr) {
   // Absolutely no error checking in here
 
   // init context
@@ -102,28 +126,32 @@ void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr 
   c.default_oct = 6;
   c.bpm = 63;
   c.buffer = iBuffer;
-  c.readCharFunc = iReadCharFunc;
+  c.next = iBuffer;
+  c.getCharPtr = iGetCharFuncPtr;
+  c.playing = true;
   
+  int number = 0;
+
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("playing: ");
-  serialPrint(c.buffer, c.readCharFunc);
+  serialPrint(c);
   Serial.println();
   #endif
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
-  while(c.readCharFunc(c.buffer) != ':') c.buffer++; // ignore name
-  c.buffer++;                        // skip ':'
+  while(peekChar(c) != ':') c.next++; // ignore name
+  c.next++;                           // skip ':'
 
   // get default duration
-  if(c.readCharFunc(c.buffer) == 'd')
+  if(peekChar(c) == 'd')
   {
-    c.buffer++; c.buffer++;           // skip "d="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    if(c.tmpNumber > 0)
-      c.default_dur = c.tmpNumber;
-    c.buffer++;                      // skip comma
+    c.next += 2;                      // skip "d="
+    number = readInteger(c);
+    if(number > 0)
+      c.default_dur = number;
+    c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -131,13 +159,13 @@ void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr 
   #endif
 
   // get default octave
-  if(c.readCharFunc(c.buffer) == 'o')
+  if(peekChar(c) == 'o')
   {
-    c.buffer++; c.buffer++;           // skip "o="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    if(c.tmpNumber >= 3 && c.tmpNumber <= 7)
-      c.default_oct = c.tmpNumber;
-    c.buffer++;                      // skip comma
+    c.next += 2;                      // skip "o="
+    number = readInteger(c);
+    if(number >= 3 && number <= 7)
+      c.default_oct = number;
+    c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -145,12 +173,12 @@ void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr 
   #endif
 
   // get BPM
-  if(c.readCharFunc(c.buffer) == 'b')
+  if(peekChar(c) == 'b')
   {
-    c.buffer++; c.buffer++;         // skip "b="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    c.bpm = c.tmpNumber;
-    c.buffer++;                    // skip colon
+    c.next += 2;                      // skip "b="
+    number = readInteger(c);
+    c.bpm = number;
+    c.next++;                         // skip colon
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -165,47 +193,47 @@ void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr 
   #endif
 
   // now begin note loop
-  while(c.readCharFunc(c.buffer))
+  while(peekChar(c) != '\0')
   {
     // first, get note duration, if available
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    number = readInteger(c);
     
-    if(c.tmpNumber)
-      c.duration = c.wholenote / c.tmpNumber;
+    if(number > 0)
+      c.duration = c.wholenote / number;
     else
       c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
 
     // now get the note
-    c.noteOffset = getNoteOffsetFromLetter(c.readCharFunc(c.buffer));
-    c.buffer++;
+    c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
+    c.next++;                         // skip note letter
 
     // now, get optional '#' sharp
-    if(c.readCharFunc(c.buffer) == '#')
+    if(peekChar(c) == '#')
     {
       c.noteOffset++;
-      c.buffer++;
+      c.next++;                       // skip '#'
     }
 
     // now, get optional '.' dotted note
-    if(c.readCharFunc(c.buffer) == '.')
+    if(peekChar(c) == '.')
     {
       c.duration += c.duration/2;
-      c.buffer++;
+      c.next++;                       // skip '.'
     }
   
     // now, get scale
-    if(isdigit(c.readCharFunc(c.buffer)))
+    if(isdigit(peekChar(c)))
     {
-      c.scale = c.readCharFunc(c.buffer) - '0';
-      c.buffer++;
+      c.scale = peekChar(c) - '0';
+      c.next++;                       // skip scale
     }
     else
     {
       c.scale = c.default_oct;
     }
 
-    if(c.readCharFunc(c.buffer) == ',')
-      c.buffer++;       // skip comma for next note (or we may be at the end)
+    if(peekChar(c) == ',')
+      c.next++;                       // skip comma for next note (or we may be at the end)
 
     // now play the note
     if(c.noteOffset)
@@ -234,14 +262,17 @@ void play(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr 
       _delay(c.duration);
     }
   }
+
+  c.playing = false;
 }
 
 // Helper legacy api functions
-void play(byte iPin, const char * iBuffer)              { play(gGlobalContext, iPin, iBuffer, &readChar); }
-void play(byte iPin, const __FlashStringHelper* str)    { play(gGlobalContext, iPin, (const char *)str, &readChar_P); }
-void playProgMem(byte iPin, const char * iBuffer)       { play(gGlobalContext, iPin, iBuffer, &readChar_P); }
-void play_P(byte iPin, const char * iBuffer)            { play(gGlobalContext, iPin, iBuffer, &readChar_P); }
-void play_P(byte iPin, const __FlashStringHelper* str)  { play(gGlobalContext, iPin, (const char *)str, &readChar_P); }
+void play(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)  { play(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
+void play(byte iPin, const char * iBuffer)                                  { play(gGlobalContext, iPin, iBuffer, &readCharMem); }
+void play(byte iPin, const __FlashStringHelper* str)                        { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void playProgMem(byte iPin, const char * iBuffer)                           { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const char * iBuffer)                                { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void play_P(byte iPin, const __FlashStringHelper* str)                      { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
@@ -436,25 +467,26 @@ namespace nonblocking
 void nextnote();
 void nextnote(rtttl_context_t & c);
 
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc)
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)
 {
   // init context
   initContext(c);
 
   //init values
   c.pin = iPin;
-  c.buffer = iBuffer;
-  c.bufferIndex = 0;
   c.default_dur = 4;
   c.default_oct = 6;
   c.bpm=63;
+  c.buffer = iBuffer;
+  c.next = iBuffer;
+  c.getCharPtr = iGetCharFuncPtr;
   c.playing = true;
-  c.delayToNextNote = 0;
-  c.readCharFunc = iReadCharFunc;
-  
+   
+  int number = 0;
+ 
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("playing: ");
-  serialPrint(c.buffer, c.readCharFunc);
+  serialPrint(c);
   Serial.println();
   #endif
 
@@ -465,17 +497,17 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr
   // find the start (skip name, etc)
 
   //read buffer until first note
-  while(c.readCharFunc(c.buffer) != ':') c.buffer++;     // ignore name
-  c.buffer++;                           // skip ':'
+  while(peekChar(c) != ':') c.next++; // ignore name
+  c.next++;                           // skip ':'
 
   // get default duration
-  if(c.readCharFunc(c.buffer) == 'd')
+  if(peekChar(c) == 'd')
   {
-    c.buffer++; c.buffer++;               // skip "d="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    if(c.tmpNumber > 0)
-      c.default_dur = c.tmpNumber;
-    c.buffer++;                         // skip comma
+    c.next += 2;                      // skip "d="
+    number = readInteger(c);
+    if(number > 0)
+      c.default_dur = number;
+    c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -483,13 +515,13 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr
   #endif
   
   // get default octave
-  if(c.readCharFunc(c.buffer) == 'o')
+  if(peekChar(c) == 'o')
   {
-    c.buffer++; c.buffer++;               // skip "o="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    if(c.tmpNumber >= 3 && c.tmpNumber <= 7)
-      c.default_oct = c.tmpNumber;
-    c.buffer++;                         // skip comma
+    c.next += 2;                      // skip "o="
+    number = readInteger(c);
+    if(number >= 3 && number <= 7)
+      c.default_oct = number;
+    c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -497,12 +529,12 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr
   #endif
   
   // get BPM
-  if(c.readCharFunc(c.buffer) == 'b')
+  if(peekChar(c) == 'b')
   {
-    c.buffer++; c.buffer++;              // skip "b="
-    c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
-    c.bpm = c.tmpNumber;
-    c.buffer++;                   // skip colon
+    c.next += 2;                      // skip "b="
+    number = readInteger(c);
+    c.bpm = number;
+    c.next++;                         // skip colon
   }
 
   #ifdef ANY_RTTTL_INFO
@@ -518,56 +550,58 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr
 }
 
 // helper functions
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &readChar); }
-void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &readChar_P); }
-void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &readChar_P); }
-void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &readChar_P); }
-void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &readChar_P); }
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &readCharMem); }
+void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &readCharPgm); }
+void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &readCharPgm); }
+void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &readCharPgm); }
+void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &readCharPgm); }
 
 void nextnote(rtttl_context_t & c)
 {
+  int number = 0;
+
   //stop current note
   _noTone(c.pin);
 
   // first, get note duration, if available
-  c.buffer = readNumber(c.buffer, c.tmpNumber, c.readCharFunc);
+    number = readInteger(c);
   
-  if(c.tmpNumber)
-    c.duration = c.wholenote / c.tmpNumber;
+  if(number > 0)
+    c.duration = c.wholenote / number;
   else
     c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted noteOffset after
 
   // now get the note
-  c.noteOffset = getNoteOffsetFromLetter(c.readCharFunc(c.buffer));
-  c.buffer++;
+  c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
+  c.next++;                           // skip note letter
 
   // now, get optional '#' sharp
-  if(c.readCharFunc(c.buffer) == '#')
+  if(peekChar(c) == '#')
   {
     c.noteOffset++;
-    c.buffer++;
+    c.next++;                         // skip '#'
   }
 
   // now, get optional '.' dotted note
-  if(c.readCharFunc(c.buffer) == '.')
+  if(peekChar(c) == '.')
   {
     c.duration += c.duration/2;
-    c.buffer++;
+    c.next++;                         // skip '.'
   }
 
   // now, get scale
-  if(isdigit(c.readCharFunc(c.buffer)))
+  if(isdigit(peekChar(c)))
   {
-    c.scale = c.readCharFunc(c.buffer) - '0';
-    c.buffer++;
+    c.scale = peekChar(c) - '0';
+    c.next++;                         // skip scale
   }
   else
   {
     c.scale = c.default_oct;
   }
 
-  if(c.readCharFunc(c.buffer) == ',')
-    c.buffer++;       // skip comma for next note (or we may be at the end)
+  if(peekChar(c) == ',')
+    c.next++;                         // skip comma for next note (or we may be at the end)
 
   // now play the note
   if(c.noteOffset)
@@ -584,7 +618,7 @@ void nextnote(rtttl_context_t & c)
     uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
     _tone(c.pin, frequency, c.duration);
     
-    c.delayToNextNote = _millis() + (c.duration+1);
+    c.nextNoteMs = _millis() + (c.duration+1);
   }
   else
   {
@@ -593,7 +627,7 @@ void nextnote(rtttl_context_t & c)
     Serial.println(duration, 10);
     #endif
     
-    c.delayToNextNote = _millis() + (c.duration);
+    c.nextNoteMs = _millis() + (c.duration);
   }
 }
 
@@ -611,7 +645,7 @@ void play(rtttl_context_t & c)
   
   //are we still playing a note ?
   unsigned long m = _millis();
-  if (m < c.delayToNextNote)
+  if (m < c.nextNoteMs)
   {
     #ifdef ANY_RTTTL_DEBUG
     Serial.println("still playing a note...");
@@ -622,7 +656,7 @@ void play(rtttl_context_t & c)
   }
 
   //ready to play the next note
-  if (c.readCharFunc(c.buffer) == '\0')
+  if (peekChar(c) == '\0')
   {
     //no more notes. Reached the end of the last note
 
@@ -654,9 +688,9 @@ void stop(rtttl_context_t & c)
   if (c.playing)
   {
     //increase song buffer until the end
-    while (c.readCharFunc(c.buffer) != '\0')
+    while (peekChar(c) != '\0')
     {
-      c.buffer++;
+      c.next++;
     }
   }
 
@@ -679,12 +713,12 @@ bool isPlaying(rtttl_context_t & c)
 /****************************************************************************
  * Legacy API functions
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc)  { begin(gGlobalContext, iPin, iBuffer, &readChar); }
-void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &readChar); }
-void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &readChar_P); }
-void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &readChar_P); }
-void begin_P(byte iPin, const char * iBuffer)                               { begin(gGlobalContext, iPin, iBuffer, &readChar_P); }
-void begin_P(byte iPin, const __FlashStringHelper* str)                     { begin(gGlobalContext, iPin, (const char *)str, &readChar_P); }
+void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr) { begin(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
+void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &readCharMem); }
+void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
+void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void begin_P(byte iPin, const char * iBuffer)                               { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
+void begin_P(byte iPin, const __FlashStringHelper* str)                     { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 
 void nextnote()
 {
@@ -796,20 +830,19 @@ namespace esp32
 #endif // ESP32
 
 void initContext(rtttl_context_t & c) {
+  c.pin = -1;
   c.buffer = NULL;
-  c.readCharFunc = &readChar;
-  c.bufferIndex = -32760;
+  c.next = NULL;
+  c.getCharPtr = &readCharMem;
   c.default_dur = 4;
-  c.default_oct = 5;
+  c.default_oct = 6;
   c.bpm = 63;
   c.wholenote = 0;
-  c.pin = -1;
-  c.delayToNextNote = 0; //milliseconds before playing the next note
-  c.playing = false;
-  c.duration = 0;
-  c.noteOffset = 0;
   c.scale = 0;
-  c.tmpNumber = 0;
+  c.duration = 0;
+  c.nextNoteMs = 0;
+  c.playing = false;
+  c.noteOffset = 0;
 }
 
 }; //anyrtttl namespace

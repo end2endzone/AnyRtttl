@@ -25,9 +25,13 @@ namespace anyrtttl
 
 /****************************************************************************
  * Description:
- *   Defines a function pointer to read a single char from a buffer
+ *   Defines a function pointer to get the first character from a buffer.
+ * Parameters:
+ *   iBuffer:   Address of a buffer to read.
+ * Returns:
+ *   Returns a single character of an RTTTL token.
  ****************************************************************************/
-typedef char (*ReadCharFuncPtr)(const char *);
+typedef char (*GetCharFuncPtr)(const char * iBuffer);
 
 /****************************************************************************
  * Description:
@@ -39,21 +43,24 @@ typedef uint16_t TONE_DURATION;
  * Structure definitions
  ****************************************************************************/
 typedef struct rtttl_context_t {
-  byte pin; // the pin assigned to this context
-  const char * buffer;  // buffer address of the melody. Can be from RAM or PROGMEM address space.
-  ReadCharFuncPtr readCharFunc; // a custom function pointer to read 1 byte from `buffer`.
-  int bufferIndex;  // index of the next byte to read from `buffer`.
-  byte default_dur;
-  byte default_oct;
-  RTTTL_BPM bpm;
-  RTTTL_OCTAVE_VALUE scale;
-  RTTTL_DURATION wholenote;
-  TONE_DURATION duration;
-  unsigned long delayToNextNote; //milliseconds before playing the next note
+  byte pin;                   // the pin assigned to this context.
+  const char * buffer;        // address of the melody. Can be from RAM or PROGMEM address space.
+  const char * next;          // address of the next byte to process within buffer.
+  GetCharFuncPtr getCharPtr;  // a custom function to get the first byte from `next` buffer.
+  byte default_dur;           // default duration of notes in the melody. Use this value for notes that do not specify a duration.
+  byte default_oct;           // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
+  RTTTL_BPM bpm;              // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
+  RTTTL_DURATION wholenote;   // time for whole note in milliseconds.
+  RTTTL_OCTAVE_VALUE scale;   // current note scale.
+  TONE_DURATION duration;     // current note duration.
+  unsigned long nextNoteMs;   // timestamp in milliseconds of end of note (start of next).
   bool playing;
   byte noteOffset;
-  int tmpNumber; // a temporary variable used for parsing digits or an integer from `buffer`.
 } rtttl_context_t;
+
+/****************************************************************************
+ * Custom functions
+ ****************************************************************************/
 
 /****************************************************************************
  * Description:
@@ -62,11 +69,6 @@ typedef struct rtttl_context_t {
  *   c:      The context to initialize
  ****************************************************************************/
 void initContext(rtttl_context_t & c);
-
-/****************************************************************************
- * Custom functions
- ****************************************************************************/
-
 
 /****************************************************************************
  * Description:
@@ -134,7 +136,7 @@ void setMillisFunction(MillisFuncPtr iFunc);
  * Parameters:
  *   iBuffer: A string buffer stored in RAM.
  ****************************************************************************/
-char readChar(const char * iBuffer);
+char readCharMem(const char * iBuffer);
 
 /****************************************************************************
  * Description:
@@ -142,7 +144,7 @@ char readChar(const char * iBuffer);
  * Parameters:
  *   iBuffer: A string buffer stored in PROGMEM.
  ****************************************************************************/
-char readChar_P(const char * iBuffer);
+char readCharPgm(const char * iBuffer);
 
 
 /****************************************************************************
@@ -159,7 +161,7 @@ namespace blocking
  *   iBuffer:       The string buffer of the RTTTL melody.
  *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void play(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void play(byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
 
 /****************************************************************************
  * Description:
@@ -240,7 +242,7 @@ namespace nonblocking
  *   iBuffer:       The string buffer of the RTTTL song.
  *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
 
 /****************************************************************************
  * Description:
@@ -306,7 +308,7 @@ bool done(rtttl_context_t & c);
 /****************************************************************************
  * Legacy functions
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, ReadCharFuncPtr iReadCharFunc);
+void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
 void begin(byte iPin, const char * iBuffer);
 void begin(byte iPin, const __FlashStringHelper* str);
 void beginProgMem(byte iPin, const char * iBuffer);
