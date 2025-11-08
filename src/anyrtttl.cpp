@@ -31,13 +31,13 @@ rtttl_context_t gGlobalContext = {0};
 
 char peekChar(rtttl_context_t & c)
 {
-  char character = c.peekChar(c.next);
+  char character = c.getCharPtr(c.next);
   return character;
 }
 
 char readChar(rtttl_context_t & c)
 {
-  char character = c.peekChar(c.next);
+  char character = c.getCharPtr(c.next);
   c.next++;
   return character;
 }
@@ -115,7 +115,7 @@ char readCharPgm(const char * iBuffer) {
 namespace blocking
 {
 
-void play(rtttl_context_t & c, byte iPin, const char* iBuffer, PeekCharFuncPtr iPeekFunc) {
+void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iGetCharFuncPtr) {
   // Absolutely no error checking in here
 
   // init context
@@ -127,7 +127,7 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, PeekCharFuncPtr i
   c.bpm = 63;
   c.buffer = iBuffer;
   c.next = iBuffer;
-  c.peekChar = iPeekFunc;
+  c.getCharPtr = iGetCharFuncPtr;
   c.playing = true;
   
   int number = 0;
@@ -466,7 +466,7 @@ namespace nonblocking
 void nextnote();
 void nextnote(rtttl_context_t & c);
 
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, PeekCharFuncPtr iPeekFunc)
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)
 {
   // init context
   initContext(c);
@@ -478,7 +478,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, PeekCharFuncPtr
   c.bpm=63;
   c.buffer = iBuffer;
   c.next = iBuffer;
-  c.peekChar = iPeekFunc;
+  c.getCharPtr = iGetCharFuncPtr;
   c.playing = true;
    
   int number = 0;
@@ -712,7 +712,7 @@ bool isPlaying(rtttl_context_t & c)
 /****************************************************************************
  * Legacy API functions
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, PeekCharFuncPtr iPeekFunc)     { begin(gGlobalContext, iPin, iBuffer, iPeekFunc); }
+void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr) { begin(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
 void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &readCharMem); }
 void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
 void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
@@ -832,7 +832,7 @@ void initContext(rtttl_context_t & c) {
   c.pin = -1;
   c.buffer = NULL;
   c.next = NULL;
-  c.peekChar = &readCharMem;
+  c.getCharPtr = &readCharMem;
   c.default_dur = 4;
   c.default_oct = 6;
   c.bpm = 63;
