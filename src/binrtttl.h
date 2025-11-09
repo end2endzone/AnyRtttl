@@ -46,7 +46,7 @@ union RTTTL_NOTE
   };
 };
 
-union RTTTL_DEFAULT_VALUE_SECTION
+union RTTTL_CONTROL_SECTION
 {
   unsigned short raw;
   //struct 

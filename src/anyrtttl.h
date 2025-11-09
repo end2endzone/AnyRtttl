@@ -199,7 +199,7 @@ inline void play_P(byte iPin, const __FlashStringHelper* str)                   
  *   iNumNotes: The number of notes within the given melody buffer.
  * Remarks:
  *   The first 16 bits of the buffer are reserved for the default section.
- *   See the definition of RTTTL_DEFAULT_VALUE_SECTION union for details.
+ *   See the definition of RTTTL_CONTROL_SECTION union for details.
  *   Each successive notes are encoded as 16 bits per note as defined by
  *   RTTTL_NOTE union.
  ****************************************************************************/
@@ -222,7 +222,7 @@ typedef uint16_t (*BitReadFuncPtr)(uint8_t);
  *   iFuncPtr:  Pointer to a function which is used by play10Bits() as a bit  The binary buffer of the RTTTL melody. See remarks for details.
  * Remarks:
  *   The first 16 bits of the buffer are reserved for the default section.
- *   See the definition of RTTTL_DEFAULT_VALUE_SECTION union for details.
+ *   See the definition of RTTTL_CONTROL_SECTION union for details.
  *   Each successive notes are encoded as 10 bits per note as defined by
  *   RTTTL_NOTE union.
  ****************************************************************************/

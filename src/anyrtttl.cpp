@@ -141,19 +141,19 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   c.pin = iPin;
   c.buffer = (const char*)iBuffer;
 
-  RTTTL_DEFAULT_VALUE_SECTION * defaultSection = (RTTTL_DEFAULT_VALUE_SECTION *)iBuffer;
+  RTTTL_CONTROL_SECTION * ctrlSection = (RTTTL_CONTROL_SECTION *)iBuffer;
   RTTTL_NOTE * notesBuffer = (RTTTL_NOTE *)iBuffer;
 
-  c.bpm = defaultSection->bpm;
+  c.bpm = ctrlSection->bpm;
 
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("numNotes=");
   Serial.println(iNumNotes);
   // format: d=N,o=N,b=NNN:
   Serial.print("d=");
-  Serial.print(getNoteDurationFromIndex(defaultSection->durationIdx));
+  Serial.print(getNoteDurationFromIndex(ctrlSection->durationIdx));
   Serial.print(",o=");
-  Serial.print(getNoteOctaveFromIndex(defaultSection->octaveIdx));
+  Serial.print(getNoteOctaveFromIndex(ctrlSection->octaveIdx));
   Serial.print(",b=");
   Serial.println(c.bpm);
   #endif
@@ -163,7 +163,7 @@ void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
 
   // now begin note loop
   for(int i=0; i<iNumNotes; i++) {
-    const RTTTL_NOTE & n = notesBuffer[i+1]; //offset by 16 bits for RTTTL_DEFAULT_VALUE_SECTION
+    const RTTTL_NOTE & n = notesBuffer[i+1]; //offset by 16 bits for RTTTL_CONTROL_SECTION
 
     // first, get note duration, if available
     c.duration = c.wholenote / getNoteDurationFromIndex(n.durationIdx);
@@ -230,19 +230,19 @@ void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr) {
   c.pin = iPin;
 
   //read default section
-  RTTTL_DEFAULT_VALUE_SECTION defaultSection;
-  defaultSection.raw = iFuncPtr(16);
+  RTTTL_CONTROL_SECTION ctrlSection;
+  ctrlSection.raw = iFuncPtr(16);
 
-  c.bpm = defaultSection.bpm;
+  c.bpm = ctrlSection.bpm;
 
   #ifdef ANY_RTTTL_DEBUG
   Serial.print("numNotes=");
   Serial.println(iNumNotes);
   // format: d=N,o=N,b=NNN:
   Serial.print("d=");
-  Serial.print(getNoteDurationFromIndex(defaultSection.durationIdx));
+  Serial.print(getNoteDurationFromIndex(ctrlSection.durationIdx));
   Serial.print(",o=");
-  Serial.print(getNoteOctaveFromIndex(defaultSection.octaveIdx));
+  Serial.print(getNoteOctaveFromIndex(ctrlSection.octaveIdx));
   Serial.print(",b=");
   Serial.println(c.bpm);
   #endif
