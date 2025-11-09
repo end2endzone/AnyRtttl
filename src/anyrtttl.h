@@ -20,6 +20,15 @@
 namespace anyrtttl
 {
 /****************************************************************************
+ * Constants
+ ****************************************************************************/
+#define RTTTL_DEFAULT_DURATION  4 // default duration for melodies that do not specify a melody duration in the control section.
+#define RTTTL_DEFAULT_OCTAVE    6 // default   octave for melodies that do not specify a melody   octave in the control section.
+#define RTTTL_DEFAULT_BPM      63 // default      bpm for melodies that do not specify a melody      bpm in the control section.
+
+
+
+/****************************************************************************
  * Custom typedefs
  ****************************************************************************/
 

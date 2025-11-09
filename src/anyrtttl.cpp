@@ -339,14 +339,14 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
 
   //init values
   c.pin = iPin;
-  c.default_dur = 4;
-  c.default_oct = 6;
-  c.bpm=63;
+  c.default_dur = RTTTL_DEFAULT_DURATION;
+  c.default_oct = RTTTL_DEFAULT_OCTAVE;
+  c.bpm=RTTTL_DEFAULT_BPM;
   c.buffer = iBuffer;
   c.next = iBuffer;
   c.getCharPtr = iGetCharFuncPtr;
   c.playing = true;
-   
+
   int number = 0;
  
   #ifdef ANY_RTTTL_DEBUG
@@ -699,9 +699,9 @@ void initContext(rtttl_context_t & c) {
   c.buffer = NULL;
   c.next = NULL;
   c.getCharPtr = &readCharMem;
-  c.default_dur = 4;
-  c.default_oct = 6;
-  c.bpm = 63;
+  c.default_dur = RTTTL_DEFAULT_DURATION;
+  c.default_oct = RTTTL_DEFAULT_OCTAVE;
+  c.bpm = RTTTL_DEFAULT_BPM;
   c.wholenote = 0;
   c.scale = 0;
   c.duration = 0;
