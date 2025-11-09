@@ -303,8 +303,8 @@ inline void begin_P(byte iPin, const char * iBuffer)                            
 inline void begin_P(byte iPin, const __FlashStringHelper* str)                      { begin(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
 inline void play()                                                                  { play(anyrtttl::gGlobalContext); }
 inline void stop()                                                                  { stop(anyrtttl::gGlobalContext); }
-inline bool isPlaying()                                                             { isPlaying(anyrtttl::gGlobalContext); }
-inline bool done()                                                                  { done(anyrtttl::gGlobalContext); }
+inline bool done()                                                                  { return done(anyrtttl::gGlobalContext); }
+inline bool isPlaying()                                                             { return isPlaying(anyrtttl::gGlobalContext); }
 
 }; //nonblocking namespace
 
