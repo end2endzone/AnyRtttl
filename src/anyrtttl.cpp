@@ -131,14 +131,6 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iG
   }
 }
 
-// Helper legacy api functions
-void play(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)  { play(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
-void play(byte iPin, const char * iBuffer)                                  { play(gGlobalContext, iPin, iBuffer, &readCharMem); }
-void play(byte iPin, const __FlashStringHelper* str)                        { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
-void playProgMem(byte iPin, const char * iBuffer)                           { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void play_P(byte iPin, const char * iBuffer)                                { play(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void play_P(byte iPin, const __FlashStringHelper* str)                      { play(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
-
 void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes) {
   // Absolutely no error checking in here
 
@@ -414,13 +406,6 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 }
 
-// helper functions
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &readCharMem); }
-void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &readCharPgm); }
-void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &readCharPgm); }
-void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &readCharPgm); }
-void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &readCharPgm); }
-
 void nextnote(rtttl_context_t & c)
 {
   int number = 0;
@@ -573,41 +558,6 @@ bool done(rtttl_context_t & c)
 bool isPlaying(rtttl_context_t & c)
 {
   return c.playing;
-}
-
-/****************************************************************************
- * Legacy API functions
- ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr) { begin(gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
-void begin(byte iPin, const char * iBuffer)                                 { begin(gGlobalContext, iPin, iBuffer, &readCharMem); }
-void begin(byte iPin, const __FlashStringHelper* str)                       { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
-void beginProgMem(byte iPin, const char * iBuffer)                          { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void begin_P(byte iPin, const char * iBuffer)                               { begin(gGlobalContext, iPin, iBuffer, &readCharPgm); }
-void begin_P(byte iPin, const __FlashStringHelper* str)                     { begin(gGlobalContext, iPin, (const char *)str, &readCharPgm); }
-
-void nextnote()
-{
-  nextnote(gGlobalContext);
-}
-
-void play()
-{
-  play(gGlobalContext);
-}
-
-void stop()
-{
-  stop(gGlobalContext);
-}
-
-bool done()
-{
-  return done(gGlobalContext);
-}
-
-bool isPlaying()
-{
-  return isPlaying(gGlobalContext);
 }
 
 }; //nonblocking namespace

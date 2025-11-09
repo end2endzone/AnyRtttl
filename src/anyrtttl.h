@@ -68,6 +68,12 @@ typedef struct rtttl_context_t {
 } rtttl_context_t;
 
 /****************************************************************************
+ * Description:
+ *   Define a global context that is used to support legacy function apis.
+ ****************************************************************************/
+extern rtttl_context_t gGlobalContext;
+
+/****************************************************************************
  * Custom functions
  ****************************************************************************/
 
@@ -166,34 +172,25 @@ namespace blocking
  * Description:
  *   Plays a native RTTTL melody.
  * Parameters:
- *   iPin:          The pin which is connected to the piezo buffer.
- *   iBuffer:       The string buffer of the RTTTL melody.
- *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
+ *   c:               An RTTTL context to keep track of the melody's state.
+ *   iPin:            The pin which is connected to the piezo buffer.
+ *   iBuffer:         The string buffer of the RTTTL melody.
+ *   iGetCharFuncPtr: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void play(byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
+void play(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr);
 
 /****************************************************************************
- * Description:
- *   Plays a native RTTTL melody which is stored in RAM.
- * Parameters:
- *   iPin:    The pin which is connected to the piezo buffer.
- *   iBuffer: The string buffer of the RTTTL melody.
+ * Legacy API functions
  ****************************************************************************/
-void play(byte iPin, const char * iBuffer);
+inline void play(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr) { play(anyrtttl::gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
+inline void play(byte iPin, const char * iBuffer)                                 { play(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharMem); }
+inline void play(byte iPin, const __FlashStringHelper* str)                       { play(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
+inline void playProgMem(byte iPin, const char * iBuffer)                          { play(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void play_P(byte iPin, const char * iBuffer)                               { play(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void play_P(byte iPin, const __FlashStringHelper* str)                     { play(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
 
-/****************************************************************************
- * Description:
- *   Plays a native RTTTL melody which is stored in Program Memory (PROGMEM).
- * Parameters:
- *   iPin:    The pin which is connected to the piezo buffer.
- *   iBuffer: The string buffer of the RTTTL melody.
- ****************************************************************************/
-void play(byte iPin, const __FlashStringHelper* str);
-void playProgMem(byte iPin, const char * iBuffer);
-void play_P(byte iPin, const char * iBuffer);
-void play_P(byte iPin, const __FlashStringHelper* str);
 
-/****************************************************************************
+/****************************************************************************v
  * Description:
  *   Plays a RTTTL melody which is encoded as 16 bits per notes.
  * Parameters:
@@ -246,37 +243,12 @@ namespace nonblocking
  *   Setups the AnyRtttl library for non-blocking mode and ready to
  *   decode a new RTTTL song.
  * Parameters:
- *   c:             An RTTTL context used to keep track of the melody's state.
- *   iPin:          The pin which is connected to the piezo buffer.
- *   iBuffer:       The string buffer of the RTTTL song.
- *   iReadCharFunc: A function pointer to read 1 byte (char) from the given buffer.
+ *   c:               An RTTTL context to keep track of the melody's state.
+ *   iPin:            The pin which is connected to the piezo buffer.
+ *   iBuffer:         The string buffer of the RTTTL song.
+ *   iGetCharFuncPtr: A function pointer to read 1 byte (char) from the given buffer.
  ****************************************************************************/
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
-
-/****************************************************************************
- * Description:
- *   Setups the AnyRtttl library for non-blocking mode and ready to
- *   decode a new RTTTL song stored in RAM.
- * Parameters:
- *   c:         An RTTTL context used to keep track of the melody's state.
- *   iPin:      The pin which is connected to the piezo buffer.
- *   iBuffer:   The string buffer of the RTTTL song.
- ****************************************************************************/
-void begin(rtttl_context_t & c, byte iPin, const char * iBuffer);
-
-/****************************************************************************
- * Description:
- *   Setups the AnyRtttl library for non-blocking mode and ready to
- *   decode a new RTTTL song stored in Program Memory (PROGMEM).
- * Parameters:
- *   c:       An RTTTL context used to keep track of the melody's state.
- *   iPin:    The pin which is connected to the piezo buffer.
- *   iBuffer: The string buffer of the RTTTL melody.
- ****************************************************************************/
-void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
-void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer);
-void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer);
-void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
+void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr);
 
 /****************************************************************************
  * Description:
@@ -285,7 +257,7 @@ void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str);
  *   Warning: inserting too long delays within the loop function may
  *   disrupt the NON-BLOCKING RTTTL library from playing properly.
  * Parameters:
- *   c:       An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context to keep track of the melody's state.
  ****************************************************************************/
 void play(rtttl_context_t & c);
 
@@ -293,7 +265,7 @@ void play(rtttl_context_t & c);
  * Description:
  *   Stops playing the current song.
  * Parameters:
- *   c:       An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context to keep track of the melody's state.
  ****************************************************************************/
 void stop(rtttl_context_t & c);
 
@@ -301,7 +273,7 @@ void stop(rtttl_context_t & c);
  * Description:
  *   Return true when the library is playing the given RTTTL melody.
  * Parameters:
- *   c:       An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context to keep track of the melody's state.
  ****************************************************************************/
 bool isPlaying(rtttl_context_t & c);
 
@@ -309,24 +281,30 @@ bool isPlaying(rtttl_context_t & c);
  * Description:
  *   Return true when the library is done playing the given RTTTL song.
  * Parameters:
- *   c:       An RTTTL context used to keep track of the melody's state.
+ *   c:       An RTTTL context to keep track of the melody's state.
  ****************************************************************************/
 bool done(rtttl_context_t & c);
 
+// helper functions
+inline void begin(rtttl_context_t & c, byte iPin, const char * iBuffer)             { begin(c, iPin, iBuffer, &anyrtttl::readCharMem); }
+inline void begin(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str)   { begin(c, iPin, (const char *)str, &anyrtttl::readCharPgm); }
+inline void beginProgMem(rtttl_context_t & c, byte iPin, const char * iBuffer)      { begin(c, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void begin_P(rtttl_context_t & c, byte iPin, const char * iBuffer)           { begin(c, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void begin_P(rtttl_context_t & c, byte iPin, const __FlashStringHelper* str) { begin(c, iPin, (const char *)str, &anyrtttl::readCharPgm); }
 
 /****************************************************************************
- * Legacy functions
+ * Legacy API functions
  ****************************************************************************/
-void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iReadCharFunc);
-void begin(byte iPin, const char * iBuffer);
-void begin(byte iPin, const __FlashStringHelper* str);
-void beginProgMem(byte iPin, const char * iBuffer);
-void begin_P(byte iPin, const char * iBuffer);
-void begin_P(byte iPin, const __FlashStringHelper* str);
-void play();
-void stop();
-bool isPlaying();
-bool done();
+inline void begin(byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)  { begin(anyrtttl::gGlobalContext, iPin, iBuffer, iGetCharFuncPtr); }
+inline void begin(byte iPin, const char * iBuffer)                                  { begin(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharMem); }
+inline void begin(byte iPin, const __FlashStringHelper* str)                        { begin(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
+inline void beginProgMem(byte iPin, const char * iBuffer)                           { begin(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void begin_P(byte iPin, const char * iBuffer)                                { begin(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharPgm); }
+inline void begin_P(byte iPin, const __FlashStringHelper* str)                      { begin(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
+inline void play()                                                                  { play(anyrtttl::gGlobalContext); }
+inline void stop()                                                                  { stop(anyrtttl::gGlobalContext); }
+inline bool isPlaying()                                                             { isPlaying(anyrtttl::gGlobalContext); }
+inline bool done()                                                                  { done(anyrtttl::gGlobalContext); }
 
 }; //nonblocking namespace
 
