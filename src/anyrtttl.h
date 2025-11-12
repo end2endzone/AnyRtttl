@@ -189,45 +189,6 @@ inline void playProgMem(byte iPin, const char * iBuffer)                        
 inline void play_P(byte iPin, const char * iBuffer)                               { play(anyrtttl::gGlobalContext, iPin, iBuffer, &anyrtttl::readCharPgm); }
 inline void play_P(byte iPin, const __FlashStringHelper* str)                     { play(anyrtttl::gGlobalContext, iPin, (const char *)str, &anyrtttl::readCharPgm); }
 
-
-/****************************************************************************v
- * Description:
- *   Plays a RTTTL melody which is encoded as 16 bits per notes.
- * Parameters:
- *   iPin:      The pin which is connected to the piezo buffer.
- *   iBuffer:   The binary buffer of the RTTTL melody. See remarks for details.
- *   iNumNotes: The number of notes within the given melody buffer.
- * Remarks:
- *   The first 16 bits of the buffer are reserved for the default section.
- *   See the definition of RTTTL_CONTROL_SECTION union for details.
- *   Each successive notes are encoded as 16 bits per note as defined by
- *   RTTTL_NOTE union.
- ****************************************************************************/
-void play16Bits(int iPin, const unsigned char * iBuffer, int iNumNotes);
-
-/****************************************************************************
- * Description:
- *   Defines a function pointer which is used by the play10Bits() function as 
- *   a bit provider function. The signature of a compatible function must be
- *   the following: uint16_t foo(uint8_t iNumBits);
- ****************************************************************************/
-typedef uint16_t (*BitReadFuncPtr)(uint8_t);
-
-/****************************************************************************
- * Description:
- *   Plays a RTTTL melody which is encoded as 10 bits per notes.
- * Parameters:
- *   iPin:      The pin which is connected to the piezo buffer.
- *   iNumNotes: The number of notes within the given melody.
- *   iFuncPtr:  Pointer to a function which is used by play10Bits() as a bit  The binary buffer of the RTTTL melody. See remarks for details.
- * Remarks:
- *   The first 16 bits of the buffer are reserved for the default section.
- *   See the definition of RTTTL_CONTROL_SECTION union for details.
- *   Each successive notes are encoded as 10 bits per note as defined by
- *   RTTTL_NOTE union.
- ****************************************************************************/
-void play10Bits(int iPin, int iNumNotes, BitReadFuncPtr iFuncPtr);
-
 }; //blocking namespace
 
 
