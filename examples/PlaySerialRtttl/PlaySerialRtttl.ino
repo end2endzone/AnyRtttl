@@ -15,7 +15,7 @@ Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6
 mario:d=4,o=5,b=140:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6
 */
 
-#define SKETCH_NON_BLOCKING_MODE
+#define SKETCH_NON_BLOCKING_MODE 1
 
 // Define the BUZZER_PIN for current board
 #if defined(ESP32)
@@ -45,13 +45,13 @@ char readSerialChar() {
   return c;
 }
 
-// Function serial2AnyRtttlGetCharAdaptorFunc() read the first character from a fictionnal "serial buffer".
+// Function anyrtttlGetCharAdaptorFunc() read the first character from a "fictionnal melody buffer".
 // For this sketch, iBuffer is an invalid buffer address.
 // The function checks iBuffer and compares it with the previous address
 // to know how many characters to actually read from the serial port.
 // The function is blocking until the required number of characters is read from the serial port.
 // The last character read is returned by the function.
-char serial2AnyRtttlGetCharAdaptorFunc(const char * iBuffer) {
+char anyrtttlGetCharAdaptorFunc(const char * iBuffer) {
   // Define how man characters to read
   size_t count = (size_t)(iBuffer - previous_read_address);
 
@@ -107,7 +107,7 @@ void setup() {
 void preparePlayingNextMelody() {
   // Sketch variables initialisation for next melody
   previous_read_address = (const char*)0x0000;
-  fake_melody_address = (const char*)0x0001; // Initialized to 1 charaacter after `previous_read_address` to force reading 1 character on the first call to serial2AnyRtttlGetCharAdaptorFunc().
+  fake_melody_address = (const char*)0x0001; // Initialized to 1 charaacter after `previous_read_address` to force reading 1 character on the first call to anyrtttlGetCharAdaptorFunc().
   previous_read_character = '\0';
 }
 
@@ -124,7 +124,7 @@ void loop() {
       preparePlayingNextMelody();
       
       // Start playing a new one
-      anyrtttl::nonblocking::begin(BUZZER_PIN, fake_melody_address, &serial2AnyRtttlGetCharAdaptorFunc);
+      anyrtttl::nonblocking::begin(BUZZER_PIN, fake_melody_address, &anyrtttlGetCharAdaptorFunc);
     }
     else {
       // continue playing
@@ -137,7 +137,7 @@ void loop() {
     preparePlayingNextMelody();
 
     // Start playing
-    anyrtttl::blocking::play(BUZZER_PIN, fake_melody_address, &serial2AnyRtttlGetCharAdaptorFunc);
+    anyrtttl::blocking::play(BUZZER_PIN, fake_melody_address, &anyrtttlGetCharAdaptorFunc);
 
     delay(1000);
   #endif // SKETCH_NON_BLOCKING_MODE
