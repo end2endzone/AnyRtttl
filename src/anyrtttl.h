@@ -11,7 +11,7 @@
 #define ANY_RTTTL_VERSION 2.4
 
 #include "Arduino.h"
-#include "binrtttl.h"
+#include "rtttl_utils.h"
 #include "pitches.h"
 
 //#define ANY_RTTTL_DEBUG
@@ -19,31 +19,6 @@
 
 namespace anyrtttl
 {
-/****************************************************************************
- * Custom typedefs
- ****************************************************************************/
-typedef unsigned char DURATION_INDEX;
-typedef unsigned char NOTE_LETTER_INDEX;
-typedef unsigned char OCTAVE_INDEX;
-typedef unsigned char BPM_INDEX;
-
-typedef unsigned short RTTTL_DURATION;
-typedef          char  RTTTL_NOTE_LETTER;
-typedef unsigned char  RTTTL_OCTAVE_VALUE;
-typedef unsigned short RTTTL_BPM;
-
-/****************************************************************************
- * Constants
- ****************************************************************************/
-#define RTTTL_DEFAULT_DURATION  4 // default duration for melodies that do not specify a melody duration in the control section.
-#define RTTTL_DEFAULT_OCTAVE    6 // default   octave for melodies that do not specify a melody   octave in the control section.
-#define RTTTL_DEFAULT_BPM      63 // default      bpm for melodies that do not specify a melody      bpm in the control section.
-
-static DURATION_INDEX       INVALID_DURATION_INDEX        = (DURATION_INDEX)-1;
-static NOTE_LETTER_INDEX    INVALID_NOTE_LETTER_INDEX     = (NOTE_LETTER_INDEX)-1;
-static OCTAVE_INDEX         INVALID_OCTAVE_INDEX          = (OCTAVE_INDEX)-1;
-static BPM_INDEX            INVALID_BPM_INDEX             = (BPM_INDEX)-1;
-
 /****************************************************************************
  * Description:
  *   Defines a function pointer to get the first character from a buffer.
@@ -172,6 +147,7 @@ char readCharMem(const char * iBuffer);
  *   iBuffer: A string buffer stored in PROGMEM.
  ****************************************************************************/
 char readCharPgm(const char * iBuffer);
+
 
 
 /****************************************************************************
