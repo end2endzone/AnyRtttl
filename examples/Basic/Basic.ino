@@ -26,5 +26,6 @@ void loop() {
 
   while(true)
   {
+    delay(1); // prevent watchdog from reseting the board
   }
 }
