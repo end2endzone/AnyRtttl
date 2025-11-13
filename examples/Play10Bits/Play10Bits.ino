@@ -50,87 +50,8 @@ BitReader bitreader;                  // Support for read 10 bit chunks.
 BitAddress bitreader;                 // Support for read 10 bit chunks. 
 #endif
 
-static inline char digitToChar(int d) {
-    return '0' + d;
-}
-
-char * mini_itoa(int n, char *buf) {
-    int div = 10000;
-    while (div > 1 && n / div == 0)
-        div /= 10;
-
-    do {
-        *buf = digitToChar(n / div);
-        buf++;
-        n %= div;
-        div /= 10;
-    } while (div);
-
-    return buf;
-}
-
-void toString(const anyrtttl::RTTTL_CONTROL_SECTION & tetris10_ctrl_section, const anyrtttl::RTTTL_NOTE & note, char * buffer) {
-  if (note.durationIdx != tetris10_ctrl_section.durationIdx)
-    buffer = mini_itoa(anyrtttl::gNoteDurations[note.durationIdx], buffer);
-
-  buffer[0] = anyrtttl::gNoteLetters[note.noteIdx];
-  buffer++;
-
-  if (note.pound) {
-    buffer[0] = '#';
-    buffer++;
-  }
-
-  if (note.dotted) {
-    buffer[0] = '.';
-    buffer++;
-  }
-
-  if (note.octaveIdx != tetris10_ctrl_section.octaveIdx)
-    buffer = mini_itoa(anyrtttl::gNoteOctaves[note.octaveIdx], buffer);
-
-  buffer[0] = ',';  // separator
-  buffer++;
-
-  buffer[0] = '\0';
-}
-
-void toString(const anyrtttl::RTTTL_CONTROL_SECTION & tetris10_ctrl_section, char * buffer) {
-  // duration
-  buffer[0] = 'd';
-  buffer[1] = '=';
-  buffer += 2;
-
-  buffer = mini_itoa(anyrtttl::gNoteDurations[tetris10_ctrl_section.durationIdx], buffer);
-
-  buffer[0] = ',';
-  buffer++;
-
-  // octave
-  buffer[0] = 'o';
-  buffer[1] = '=';
-  buffer += 2;
-
-  buffer = mini_itoa(anyrtttl::gNoteOctaves[tetris10_ctrl_section.octaveIdx], buffer);
-
-  buffer[0] = ',';
-  buffer++;
-
-  // bmp
-  buffer[0] = 'b';
-  buffer[1] = '=';
-  buffer += 2;
-
-  buffer = mini_itoa(tetris10_ctrl_section.bpm, buffer);
-
-  buffer[0] = ':';  // separator
-  buffer++;
-
-  buffer[0] = '\0';
-}
-
 inline void decodeControlSection() {
-  toString(*tetris10_ctrl_section, decoding_buffer);
+  anyrtttl::toString(*tetris10_ctrl_section, decoding_buffer);
   decoding_buffer_index = 0;
 }
 
@@ -141,7 +62,7 @@ inline void decodeNewNote() {
   bitreader.read(10, &note.raw);
 
   // convert note to string
-  toString(*tetris10_ctrl_section, note, decoding_buffer);
+  anyrtttl::toString(*tetris10_ctrl_section, note, decoding_buffer);
   decoding_buffer_index = 0;
 
   // Move to next note for next decode

@@ -9,6 +9,7 @@
 #define BINRTTTL_H
 
 #include "Arduino.h"
+#include "rtttl_utils.h"
 
 #define RTTTL_SONG_NAME_SIZE 11
 #define RTTTL_NOTE_SIZE_BITS 10
@@ -57,6 +58,86 @@ union RTTTL_CONTROL_SECTION
   };
 };
 #pragma pack(pop) //back to whatever the previous packing mode was
+
+
+inline char digitToChar(int d) {
+    return '0' + d;
+}
+
+char * itoa(int n, char *buf) {
+    int div = 10000;
+    while (div > 1 && n / div == 0)
+        div /= 10;
+
+    do {
+        *buf = digitToChar(n / div);
+        buf++;
+        n %= div;
+        div /= 10;
+    } while (div);
+
+    return buf;
+}
+
+void toString(const RTTTL_CONTROL_SECTION & ctrl_section, const RTTTL_NOTE & note, char * buffer) {
+  if (note.durationIdx != ctrl_section.durationIdx)
+    buffer = itoa(gNoteDurations[note.durationIdx], buffer);
+
+  buffer[0] = gNoteLetters[note.noteIdx];
+  buffer++;
+
+  if (note.pound) {
+    buffer[0] = '#';
+    buffer++;
+  }
+
+  if (note.dotted) {
+    buffer[0] = '.';
+    buffer++;
+  }
+
+  if (note.octaveIdx != ctrl_section.octaveIdx)
+    buffer = itoa(gNoteOctaves[note.octaveIdx], buffer);
+
+  buffer[0] = ',';  // separator
+  buffer++;
+
+  buffer[0] = '\0';
+}
+
+void toString(const RTTTL_CONTROL_SECTION & ctrl_section, char * buffer) {
+  // duration
+  buffer[0] = 'd';
+  buffer[1] = '=';
+  buffer += 2;
+
+  buffer = itoa(gNoteDurations[ctrl_section.durationIdx], buffer);
+
+  buffer[0] = ',';
+  buffer++;
+
+  // octave
+  buffer[0] = 'o';
+  buffer[1] = '=';
+  buffer += 2;
+
+  buffer = itoa(gNoteOctaves[ctrl_section.octaveIdx], buffer);
+
+  buffer[0] = ',';
+  buffer++;
+
+  // bmp
+  buffer[0] = 'b';
+  buffer[1] = '=';
+  buffer += 2;
+
+  buffer = itoa(ctrl_section.bpm, buffer);
+
+  buffer[0] = ':';  // separator
+  buffer++;
+
+  buffer[0] = '\0';
+}
 
 }; //anyrtttl namespace
 
