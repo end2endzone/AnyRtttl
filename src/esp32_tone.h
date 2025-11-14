@@ -27,7 +27,8 @@ typedef uint8_t (*ChannelMapFuncPtr)(uint8_t);
 
 /****************************************************************************
  * Description:
- *   Defines the getChannelForPin() function used by esp32 tone functions.
+ *   Set a custom function to resolve a channel number for a given pin number.
+ *   Required by esp32 tone functions when using ESP32 core version 2.x.
  * Parameters:
  *   iFunc: Pointer to a ChannelMapFuncPtr() type of function.
  ****************************************************************************/
@@ -35,7 +36,8 @@ void setChannelMapFunction(ChannelMapFuncPtr iFunc);
 
 /****************************************************************************
  * Description:
- *   Return the channel number registered for a given pin.
+ *   A function that return channel number 0 for any given pin.
+ *   Compatible with setChannelMapFunction() function.
  ****************************************************************************/
 uint8_t getChannelMapZero(uint8_t pin);
 
