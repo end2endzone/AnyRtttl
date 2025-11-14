@@ -23,11 +23,11 @@ union RTTTL_NOTE
   unsigned short raw;
   struct
   {
-    DURATION_INDEX durationIdx    : 3; //ranges from 0 to 7. Matches index of getNoteDurationFromIndex()
-    NOTE_LETTER_INDEX noteIdx     : 3; //ranges from 0 to 7. Matches index of getNoteLetterFromIndex()
+    duration_index_t durationIdx  : 3; //ranges from 0 to 7. Matches index of getDurationValueFromIndex()
+    note_index_t noteIdx          : 3; //ranges from 0 to 7. Matches index of getNoteValueFromIndex()
     bool pound                    : 1; //ranges from 0 to 1. True if the note is pound
     bool dotted                   : 1; //ranges from 0 to 1. True if the duration is dotted
-    OCTAVE_INDEX octaveIdx        : 2; //ranges from 0 to 3. Matches index of getNoteOctaveFromIndex()
+    octave_index_t octaveIdx      : 2; //ranges from 0 to 3. Matches index of getOctaveValueFromIndex()
     unsigned char padding         : 6;
   };
 };
@@ -37,23 +37,23 @@ union RTTTL_CONTROL_SECTION
   unsigned short raw;
   //struct 
   //{
-  //  DURATION_INDEX durationIdx :  3; //ranges from 0 to 7.  Matches index of getNoteDurationFromIndex()
-  //  OCTAVE_INDEX octaveIdx     :  2; //ranges from 0 to 3.  Matches index of getNoteOctaveFromIndex()
-  //  RTTTL_BPM bpm              : 10; //ranges from 0 to 900.
-  //  bool               padding :  1;
+  //  duration_index_t durationIdx :  3; //ranges from 0 to 7.  Matches index of getDurationValueFromIndex()
+  //  octave_index_t octaveIdx     :  2; //ranges from 0 to 3.  Matches index of getOctaveValueFromIndex()
+  //  bpm_value_t bpm              : 10; //ranges from 0 to 900.
+  //  bool                 padding :  1;
   //};
   struct //aligned on 8 bits types
   {
-    DURATION_INDEX durationIdx :  3; //ranges from 0 to 7.  Matches index of getNoteDurationFromIndex()
-    OCTAVE_INDEX     octaveIdx :  2; //ranges from 0 to 3.  Matches index of getNoteOctaveFromIndex()
-    unsigned char              :  3; //padding for bpm
-    unsigned char              :  7; //padding for bpm
-    unsigned char              :  1; //padding
+    duration_index_t durationIdx :  3; //ranges from 0 to 7.  Matches index of getDurationValueFromIndex()
+    octave_index_t     octaveIdx :  2; //ranges from 0 to 3.  Matches index of getOctaveValueFromIndex()
+    unsigned char                :  3; //padding for bpm
+    unsigned char                :  7; //padding for bpm
+    unsigned char                :  1; //padding
   };
   struct //aligned on 16 bits types
   {
     unsigned short        :  5; //padding for durationIdx and octaveIdx
-    RTTTL_BPM         bpm : 10; //ranges from 1 to 900.
+    bpm_value_t       bpm : 10; //ranges from 1 to 900.
     unsigned short        :  1; //padding
   };
 };
@@ -83,7 +83,7 @@ void toString(const RTTTL_CONTROL_SECTION & ctrl_section, const RTTTL_NOTE & not
   if (note.durationIdx != ctrl_section.durationIdx)
     buffer = itoa(gNoteDurations[note.durationIdx], buffer);
 
-  buffer[0] = gNoteLetters[note.noteIdx];
+  buffer[0] = gNoteValues[note.noteIdx];
   buffer++;
 
   if (note.pound) {

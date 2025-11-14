@@ -154,9 +154,9 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
 
   //init values
   c.pin = iPin;
-  c.default_dur = RTTTL_DEFAULT_DURATION;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE;
-  c.bpm=RTTTL_DEFAULT_BPM;
+  c.default_dur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.default_oct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.bpm=RTTTL_DEFAULT_BPM_VALUE;
   c.buffer = iBuffer;
   c.next = iBuffer;
   c.getCharPtr = iGetCharFuncPtr;
@@ -245,7 +245,7 @@ void nextnote(rtttl_context_t & c)
     c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted note after
 
   // now get the note
-  c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
+  c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
   c.next++;                           // skip note letter
 
   // now, get optional '#' sharp
@@ -390,9 +390,9 @@ void initContext(rtttl_context_t & c) {
   c.buffer = NULL;
   c.next = NULL;
   c.getCharPtr = &readCharMem;
-  c.default_dur = RTTTL_DEFAULT_DURATION;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE;
-  c.bpm = RTTTL_DEFAULT_BPM;
+  c.default_dur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.default_oct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.bpm = RTTTL_DEFAULT_BPM_VALUE;
   c.wholenote = 0;
   c.scale = 0;
   c.duration = 0;
