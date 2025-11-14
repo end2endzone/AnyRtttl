@@ -69,9 +69,9 @@ void setup() {
   Serial.println("ready");
 
   // setup AnyRtttl for ESP32
-  anyrtttl::esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
-  anyrtttl::setToneFunction(&anyrtttl::esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
-  anyrtttl::setNoToneFunction(&anyrtttl::esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
+  esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
+  anyrtttl::setToneFunction(&esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
+  anyrtttl::setNoToneFunction(&esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
 
   // Define a unique channel for each buzzer pin.
   uint8_t channel_for_buzzer1 = getChannelForPin(BUZZER_1_PIN);
@@ -80,7 +80,7 @@ void setup() {
   // Setup the pins for PWM tones.
   // To be able to play multiple rtttl melodies simultaneously,
   // we need to bind a unique timer for each buzzer.
-  // In other words, we cannot use `anyrtttl::esp32::toneSetup(BUZZER_PIN)`.
+  // In other words, we cannot use `esp32::toneSetup(BUZZER_PIN)`.
   // To force a unique timer for each buzzer we register each pins to use a different timer frequency.
   ledcAttachChannel(BUZZER_1_PIN, 1000, 10, channel_for_buzzer1); // Attach the pin to the LEDC channel
   ledcAttachChannel(BUZZER_2_PIN, 2000, 10, channel_for_buzzer2); // Attach the pin to the LEDC channel
