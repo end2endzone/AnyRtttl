@@ -3,6 +3,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Github Releases](https://img.shields.io/github/release/end2endzone/AnyRtttl.svg)](https://github.com/end2endzone/AnyRtttl/releases)
+[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=end2endzone.AnyRtttl)](https://github.com/end2endzone/AnyRtttl)
+
+[![Button Install](https://img.shields.io/badge/Install-brightgreen?logoColor=white&logo=GitBook)](https://www.ardu-badge.com/AnyRtttl)
+[![Button Changelog](https://img.shields.io/badge/Changelog-blue?logoColor=white&logo=googleforms)](CHANGES)
 
 
 
@@ -16,10 +20,10 @@ Library features:
 * Blocking & Non-Blocking modes available.
 * Support custom `tone()`, `noTone()`, `delay()` and `millis()` functions.
 * Compatible with external Tone libraries.
-* Supports RTTTL melodies stored in Program Memory (`PROGMEM`).
-* Compatible with any custom RTTTL format that can be decoded as legacy RTTTL.
-* Supports highly compressed RTTTL binary format.
-* Play two monolithic melodies on two different pins using 2 piezo buzzer with the help of an external Tone library.
+* Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
+* Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
+* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
 
 
 
