@@ -31,12 +31,6 @@ namespace anyrtttl
 typedef char (*GetCharFuncPtr)(const char * iBuffer);
 
 /****************************************************************************
- * Description:
- *   Defines a custom type for storing a note duration.
- ****************************************************************************/
-typedef uint16_t TONE_DURATION;
-
-/****************************************************************************
  * Structure definitions
  ****************************************************************************/
 typedef struct rtttl_context_t {
@@ -49,7 +43,7 @@ typedef struct rtttl_context_t {
   bpm_value_t bpm;            // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
   duration_value_t wholenote; // time for whole note in milliseconds.
   octave_value_t scale;       // current note scale.
-  TONE_DURATION duration;     // current note duration.
+  duration_value_t duration;  // current note duration.
   unsigned long nextNoteMs;   // timestamp in milliseconds of end of note (start of next).
   bool playing;
   byte noteOffset;
