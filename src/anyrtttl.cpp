@@ -21,13 +21,14 @@ NOTE_C6, NOTE_CS6, NOTE_D6, NOTE_DS6, NOTE_E6, NOTE_F6, NOTE_FS6, NOTE_G6, NOTE_
 NOTE_C7, NOTE_CS7, NOTE_D7, NOTE_DS7, NOTE_E7, NOTE_F7, NOTE_FS7, NOTE_G7, NOTE_GS7, NOTE_A7, NOTE_AS7, NOTE_B7
 };
 
-#define isdigit(n) (n >= '0' && n <= '9')
 static const byte NOTES_PER_OCTAVE = 12;
 
 // Define a global context for supporting legacy api functions.
 // Legacy api functions did not required an rtttl_context_t as first parameter to play a melody.
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
+
+#define isDigitInlined(n) (n >= '0' && n <= '9')
 
 inline char peekChar(rtttl_context_t & c)
 {
@@ -48,7 +49,7 @@ int readInteger(rtttl_context_t & c)
 
   // read first character
   char character = peekChar(c); // peek only at the next character
-  while(isdigit(character))
+  while(isDigitInlined(character))
   {
     character = readChar(c); // actually move the read offset
     value = (value * 10) + (character - '0');
@@ -144,8 +145,8 @@ namespace nonblocking
 
 
 //pre-declaration
-void nextnote();
-void nextnote(rtttl_context_t & c);
+void nextNote();
+void nextNote(rtttl_context_t & c);
 
 void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)
 {
@@ -154,8 +155,8 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
 
   //init values
   c.pin = iPin;
-  c.default_dur = RTTTL_DEFAULT_DURATION_VALUE;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.melodyDefaultDur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.melodyDefaultOct = RTTTL_DEFAULT_OCTAVE_VALUE;
   c.bpm=RTTTL_DEFAULT_BPM_VALUE;
   c.buffer = iBuffer;
   c.next = iBuffer;
@@ -186,12 +187,12 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
     c.next += 2;                      // skip "d="
     number = readInteger(c);
     if(number > 0)
-      c.default_dur = number;
+      c.melodyDefaultDur = number;
     c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(c.default_dur, 10);
+  Serial.print("ddur: "); Serial.println(c.melodyDefaultDur, 10);
   #endif
   
   // get default octave
@@ -200,12 +201,12 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
     c.next += 2;                      // skip "o="
     number = readInteger(c);
     if(number >= 3 && number <= 7)
-      c.default_oct = number;
+      c.melodyDefaultOct = number;
     c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(c.default_oct, 10);
+  Serial.print("doct: "); Serial.println(c.melodyDefaultOct, 10);
   #endif
   
   // get BPM
@@ -222,14 +223,14 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 
   // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
+  c.wholeNote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(c.wholenote, 10);
+  Serial.print("wn: "); Serial.println(c.wholeNote, 10);
   #endif
 }
 
-void nextnote(rtttl_context_t & c)
+void nextNote(rtttl_context_t & c)
 {
   int number = 0;
 
@@ -240,9 +241,9 @@ void nextnote(rtttl_context_t & c)
   number = readInteger(c);
   
   if(number > 0)
-    c.duration = c.wholenote / number;
+    c.duration = c.wholeNote / number;
   else
-    c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted note after
+    c.duration = c.wholeNote / c.melodyDefaultDur;  // we will need to check if we are a dotted note after
 
   // now get the note
   c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
@@ -270,7 +271,7 @@ void nextnote(rtttl_context_t & c)
   }
   else
   {
-    c.scale = c.default_oct;
+    c.scale = c.melodyDefaultOct;
   }
 
   if(peekChar(c) == ',')
@@ -352,7 +353,7 @@ void play(rtttl_context_t & c)
     Serial.println("next note...");
     #endif
     
-    nextnote(c);
+    nextNote(c);
   }
 }
 
@@ -390,10 +391,10 @@ void initContext(rtttl_context_t & c) {
   c.buffer = NULL;
   c.next = NULL;
   c.getCharPtr = &readCharMem;
-  c.default_dur = RTTTL_DEFAULT_DURATION_VALUE;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.melodyDefaultDur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.melodyDefaultOct = RTTTL_DEFAULT_OCTAVE_VALUE;
   c.bpm = RTTTL_DEFAULT_BPM_VALUE;
-  c.wholenote = 0;
+  c.wholeNote = 0;
   c.scale = 0;
   c.duration = 0;
   c.nextNoteMs = 0;

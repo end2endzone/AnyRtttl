@@ -38,10 +38,10 @@ typedef struct rtttl_context_t {
   const char * buffer;        // address of the melody. Can be from RAM or PROGMEM address space.
   const char * next;          // address of the next byte to process within buffer.
   GetCharFuncPtr getCharPtr;  // a custom function to get the first byte from `next` buffer.
-  byte default_dur;           // default duration of notes in the melody. Use this value for notes that do not specify a duration.
-  byte default_oct;           // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
+  byte melodyDefaultDur;      // default duration of notes in the melody. Use this value for notes that do not specify a duration.
+  byte melodyDefaultOct;      // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
   bpm_value_t bpm;            // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
-  duration_value_t wholenote; // time for whole note in milliseconds.
+  duration_value_t wholeNote; // time for whole note in milliseconds.
   octave_value_t scale;       // current note scale.
   duration_value_t duration;  // current note duration.
   unsigned long nextNoteMs;   // timestamp in milliseconds of end of note (start of next).
