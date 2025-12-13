@@ -14,20 +14,21 @@
 namespace anyrtttl
 {
 
-const uint16_t notes[] = { NOTE_SILENT,
+static const uint16_t gNotes[] = { NOTE_SILENT,
 NOTE_C4, NOTE_CS4, NOTE_D4, NOTE_DS4, NOTE_E4, NOTE_F4, NOTE_FS4, NOTE_G4, NOTE_GS4, NOTE_A4, NOTE_AS4, NOTE_B4,
 NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_DS5, NOTE_E5, NOTE_F5, NOTE_FS5, NOTE_G5, NOTE_GS5, NOTE_A5, NOTE_AS5, NOTE_B5,
 NOTE_C6, NOTE_CS6, NOTE_D6, NOTE_DS6, NOTE_E6, NOTE_F6, NOTE_FS6, NOTE_G6, NOTE_GS6, NOTE_A6, NOTE_AS6, NOTE_B6,
 NOTE_C7, NOTE_CS7, NOTE_D7, NOTE_DS7, NOTE_E7, NOTE_F7, NOTE_FS7, NOTE_G7, NOTE_GS7, NOTE_A7, NOTE_AS7, NOTE_B7
 };
 
-#define isdigit(n) (n >= '0' && n <= '9')
 static const byte NOTES_PER_OCTAVE = 12;
 
 // Define a global context for supporting legacy api functions.
 // Legacy api functions did not required an rtttl_context_t as first parameter to play a melody.
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
+
+#define isDigitInlined(n) (n >= '0' && n <= '9')
 
 inline char peekChar(rtttl_context_t & c)
 {
@@ -48,7 +49,7 @@ int readInteger(rtttl_context_t & c)
 
   // read first character
   char character = peekChar(c); // peek only at the next character
-  while(isdigit(character))
+  while(isDigitInlined(character))
   {
     character = readChar(c); // actually move the read offset
     value = (value * 10) + (character - '0');
@@ -144,8 +145,8 @@ namespace nonblocking
 
 
 //pre-declaration
-void nextnote();
-void nextnote(rtttl_context_t & c);
+void nextNote();
+void nextNote(rtttl_context_t & c);
 
 void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)
 {
@@ -154,9 +155,9 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
 
   //init values
   c.pin = iPin;
-  c.default_dur = RTTTL_DEFAULT_DURATION;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE;
-  c.bpm=RTTTL_DEFAULT_BPM;
+  c.melodyDefaultDur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.melodyDefaultOct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.bpm=RTTTL_DEFAULT_BPM_VALUE;
   c.buffer = iBuffer;
   c.next = iBuffer;
   c.getCharPtr = iGetCharFuncPtr;
@@ -186,12 +187,12 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
     c.next += 2;                      // skip "d="
     number = readInteger(c);
     if(number > 0)
-      c.default_dur = number;
+      c.melodyDefaultDur = number;
     c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("ddur: "); Serial.println(c.default_dur, 10);
+  Serial.print("ddur: "); Serial.println(c.melodyDefaultDur, 10);
   #endif
   
   // get default octave
@@ -200,12 +201,12 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
     c.next += 2;                      // skip "o="
     number = readInteger(c);
     if(number >= 3 && number <= 7)
-      c.default_oct = number;
+      c.melodyDefaultOct = number;
     c.next++;                         // skip comma
   }
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("doct: "); Serial.println(c.default_oct, 10);
+  Serial.print("doct: "); Serial.println(c.melodyDefaultOct, 10);
   #endif
   
   // get BPM
@@ -222,14 +223,14 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 
   // BPM usually expresses the number of quarter notes per minute
-  c.wholenote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
+  c.wholeNote = (60 * 1000L / c.bpm) * 4;  // this is the time for whole note (in milliseconds)
 
   #ifdef ANY_RTTTL_INFO
-  Serial.print("wn: "); Serial.println(c.wholenote, 10);
+  Serial.print("wn: "); Serial.println(c.wholeNote, 10);
   #endif
 }
 
-void nextnote(rtttl_context_t & c)
+void nextNote(rtttl_context_t & c)
 {
   int number = 0;
 
@@ -240,12 +241,12 @@ void nextnote(rtttl_context_t & c)
   number = readInteger(c);
   
   if(number > 0)
-    c.duration = c.wholenote / number;
+    c.duration = c.wholeNote / number;
   else
-    c.duration = c.wholenote / c.default_dur;  // we will need to check if we are a dotted note after
+    c.duration = c.wholeNote / c.melodyDefaultDur;  // we will need to check if we are a dotted note after
 
   // now get the note
-  c.noteOffset = getNoteOffsetFromLetter(peekChar(c));
+  c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
   c.next++;                           // skip note letter
 
   // now, get optional '#' sharp
@@ -270,7 +271,7 @@ void nextnote(rtttl_context_t & c)
   }
   else
   {
-    c.scale = c.default_oct;
+    c.scale = c.melodyDefaultOct;
   }
 
   if(peekChar(c) == ',')
@@ -283,12 +284,12 @@ void nextnote(rtttl_context_t & c)
     Serial.print("Playing: ");
     Serial.print(c.scale, 10); Serial.print(' ');
     Serial.print(c.noteOffset, 10); Serial.print(" (");
-    Serial.print(notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset], 10);
+    Serial.print(gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset], 10);
     Serial.print(") ");
     Serial.println(c.duration, 10);
     #endif
     
-    uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
+    uint16_t frequency = gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
     _tone(c.pin, frequency, c.duration);
     
     c.nextNoteMs = _millis() + (c.duration+1);
@@ -352,7 +353,7 @@ void play(rtttl_context_t & c)
     Serial.println("next note...");
     #endif
     
-    nextnote(c);
+    nextNote(c);
   }
 }
 
@@ -385,97 +386,15 @@ bool isPlaying(rtttl_context_t & c)
 
 }; //nonblocking namespace
 
-
-/****************************************************************************
- * ESP32 support functions
- ****************************************************************************/
-#ifdef ESP32
-namespace esp32
-{
-  // A function that maps a given pin to a channel.
-  // Default to an implementation which always maps to channel 0.
-  // See function setChannelMapFunction() to change the default mapping function.
-  ChannelMapFuncPtr channelMapFunc = &getChannelMapZero;
-
-  void setChannelMapFunction(ChannelMapFuncPtr iFunc)
-  {
-    channelMapFunc = iFunc;
-  }
-
-  uint8_t getChannelMapZero(uint8_t pin) {
-    return 0;
-  }
-
-  #ifdef ESP_ARDUINO_VERSION
-    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-      // Code specific to ESP32 core 3.x
-      // Core 3.x manages channels automatically:
-      // in all esp32 functions, input parameter 'channel' has been changed to 'pin'.
-      // See official documentation for migrating from core 2.x to 3.x:
-      // https://docs.espressif.com/projects/arduino-esp32/en/latest/migration_guides/2.x_to_3.0.html
-
-      #define LEDC_RESOLUTION 10
-
-      void noTone(uint8_t pin) {
-        ledcWriteTone(pin, 0);
-      }
-
-      void tone(uint8_t pin, unsigned int frq, unsigned long duration) {
-        // don't care about the given duration
-        ledcWriteTone(pin, frq);
-      }
-
-      void toneSetup(uint8_t pin) {
-        ledcAttach(pin, 1000, LEDC_RESOLUTION);
-      }
-      
-    #elif ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 0)
-      // Code specific to ESP32 core 2.x
-      // Core 2.x uses channels instead of pins:
-      // in all esp32 functions, input parameter is a 'channel' instead of a given pin.
-      // AnyRtttl uses the function assigned to 'channelMapFunc' to get the channel number
-      // matching the user's pin.
-      // See official documentation for migrating from core 2.x to 3.x:
-      // https://docs.espressif.com/projects/arduino-esp32/en/latest/migration_guides/2.x_to_3.0.html
-
-      #define ESP32_INVALID_CHANNEL 0xFF
-
-      void noTone(uint8_t pin) {
-        uint8_t channel = channelMapFunc(pin);
-        ledcWriteTone(channel, 0); // Silence the buzzer without detaching
-      }
-
-      void tone(uint8_t pin, unsigned int frq, unsigned long duration) {
-        // don't care about the given duration
-        uint8_t channel = channelMapFunc(pin);
-        ledcWriteTone(channel, frq);
-      }
-
-      void toneSetup(uint8_t pin) {
-        uint8_t channel = channelMapFunc(pin);
-        ledcAttachPin(pin, channel); // Attach the pin to the LEDC channel
-      }
-
-    #else
-      #error ESP32 arduino version unsupported
-    #endif
-  #else
-    // ESP_ARDUINO_VERSION is undefined.
-    #error ESP32 arduino version unsupported.
-  #endif
-
-}; //esp32 namespace
-#endif // ESP32
-
 void initContext(rtttl_context_t & c) {
   c.pin = -1;
   c.buffer = NULL;
   c.next = NULL;
   c.getCharPtr = &readCharMem;
-  c.default_dur = RTTTL_DEFAULT_DURATION;
-  c.default_oct = RTTTL_DEFAULT_OCTAVE;
-  c.bpm = RTTTL_DEFAULT_BPM;
-  c.wholenote = 0;
+  c.melodyDefaultDur = RTTTL_DEFAULT_DURATION_VALUE;
+  c.melodyDefaultOct = RTTTL_DEFAULT_OCTAVE_VALUE;
+  c.bpm = RTTTL_DEFAULT_BPM_VALUE;
+  c.wholeNote = 0;
   c.scale = 0;
   c.duration = 0;
   c.nextNoteMs = 0;

@@ -10,25 +10,25 @@ Note that all fields definition are defined in LSB to MSB order.
 
 The first 16 bits stores the RTTTL default section (a.k.a header) which is defined as the following:
 
-| Field name              | Size (bits) | Range    | Description                                                 |
-|-------------------------|:-----------:|----------|-------------------------------------------------------------|
-| Default duration index  |      3      | [0, 7]   | Matches the index used for `getNoteDurationFromIndex()` API |
-| Default octave index    |      2      | [0, 3]   | Matches the index used for `getNoteOctaveFromIndex()` API.  |
-| Beats per minutes (BPM) |      10     | [1, 900] |                                                             |
-| Padding                 |      1      |          |                                                             |
+| Field name              | Size (bits) | Range    | Description                                                  |
+|-------------------------|:-----------:|----------|--------------------------------------------------------------|
+| Default duration index  |      3      | [0, 7]   | Matches the index used for `getDurationValueFromIndex()` API |
+| Default octave index    |      2      | [0, 3]   | Matches the index used for `getOctaveValueFromIndex()` API.  |
+| Beats per minutes (BPM) |      10     | [1, 900] |                                                              |
+| Padding                 |      1      |          |                                                              |
 
 ## Notes ##
 
 Next is each note's of the melody. Each note is encoded as 10 bits (or 16 bits) per note. Notes are defined as the following:
 
-| Field name         | Size (bits) | Range   | Description                                                  |
-|--------------------|:-----------:|---------|--------------------------------------------------------------|
-| Duration index     |      3      | [0, 7]  | Matches the index used for `getNoteDurationFromIndex()` API. |
-| Note letter index  |      3      | [0, 7]  | Matches the index used for `getNoteLetterFromIndex()` API.   |
-| Pound              |      1      | boolean | Defines if the note is pounded or not.                       |
-| Dotted             |      1      | boolean | Defines if the note is dotted or not.                        |
-| Octave index       |      2      | [0, 3]  | Matches the index used for `getNoteOctaveFromIndex()` API.   |
-| Padding (optional) |      6      |         | See description below.                                       |
+| Field name         | Size (bits) | Range   | Description                                                   |
+|--------------------|:-----------:|---------|---------------------------------------------------------------|
+| Duration index     |      3      | [0, 7]  | Matches the index used for `getDurationValueFromIndex()` API. |
+| Note letter index  |      3      | [0, 7]  | Matches the index used for `getNoteValueFromIndex()` API.     |
+| Pound              |      1      | boolean | Defines if the note is pounded or not.                        |
+| Dotted             |      1      | boolean | Defines if the note is dotted or not.                         |
+| Octave index       |      2      | [0, 3]  | Matches the index used for `getOctaveValueFromIndex()` API.   |
+| Padding (optional) |      6      |         | See description below.                                        |
 
 The last field of a note (defined as `Padding`) is an optional 6 bits field. The AnyRtttl library supports both 10 bits per note and 16 bits per note definitions. Use the appropriate API for playing both format.
 
@@ -256,12 +256,12 @@ void setup() {
 
 #ifdef ESP32
   // setup AnyRtttl for ESP32
-  anyrtttl::esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
-  anyrtttl::setToneFunction(&anyrtttl::esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
-  anyrtttl::setNoToneFunction(&anyrtttl::esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
+  esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
+  anyrtttl::setToneFunction(&esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
+  anyrtttl::setNoToneFunction(&esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
 
   // setup the pin for PWM tones.
-  anyrtttl::esp32::toneSetup(BUZZER_PIN);
+  esp32::toneSetup(BUZZER_PIN);
 #endif // ESP32
 
 #ifdef DEBUG_FUNCTION_READFROMDECODINGBUFFER
@@ -530,12 +530,12 @@ void setup() {
 
 #ifdef ESP32
   // setup AnyRtttl for ESP32
-  anyrtttl::esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
-  anyrtttl::setToneFunction(&anyrtttl::esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
-  anyrtttl::setNoToneFunction(&anyrtttl::esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
+  esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
+  anyrtttl::setToneFunction(&esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
+  anyrtttl::setNoToneFunction(&esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
 
   // setup the pin for PWM tones.
-  anyrtttl::esp32::toneSetup(BUZZER_PIN);
+  esp32::toneSetup(BUZZER_PIN);
 #endif // ESP32
 
 #ifdef DEBUG_FUNCTION_READFROMDECODINGBUFFER

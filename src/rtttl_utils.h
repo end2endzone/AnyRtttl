@@ -17,55 +17,55 @@ namespace anyrtttl
 /****************************************************************************
  * Custom typedefs
  ****************************************************************************/
-typedef unsigned char DURATION_INDEX;
-typedef unsigned char NOTE_LETTER_INDEX;
-typedef unsigned char OCTAVE_INDEX;
-typedef unsigned char BPM_INDEX;
+typedef unsigned char duration_index_t;
+typedef unsigned char note_index_t;
+typedef unsigned char octave_index_t;
+typedef unsigned char bpm_index_t;
 
-typedef unsigned short RTTTL_DURATION;
-typedef          char  RTTTL_NOTE_LETTER;
-typedef unsigned char  RTTTL_OCTAVE_VALUE;
-typedef unsigned short RTTTL_BPM;
+typedef unsigned short duration_value_t;  // a note duration value variable. See 'gNoteDurations' array. 
+typedef          char  note_value_t;      // a note letter value variable. See 'gNoteValues' array. 
+typedef unsigned char  octave_value_t;    // a note octave value variable. See 'gNoteDurations' array. 
+typedef unsigned short bpm_value_t;       // a melody bmp value. See 'gNoteBpms' array.
 
 /****************************************************************************
  * Constants
  ****************************************************************************/
-static constexpr RTTTL_DURATION RTTTL_DEFAULT_DURATION = 4;   // default duration for melodies that do not specify a melody duration in the control section.
-static constexpr RTTTL_OCTAVE_VALUE RTTTL_DEFAULT_OCTAVE = 6; // default   octave for melodies that do not specify a melody   octave in the control section.
-static constexpr RTTTL_BPM RTTTL_DEFAULT_BPM = 63;            // default      bpm for melodies that do not specify a melody      bpm in the control section.
+static constexpr duration_value_t   RTTTL_DEFAULT_DURATION_VALUE = 4;   // default duration for melodies that do not specify a melody duration in the control section.
+static constexpr octave_value_t     RTTTL_DEFAULT_OCTAVE_VALUE = 6;     // default   octave for melodies that do not specify a melody   octave in the control section.
+static constexpr bpm_value_t        RTTTL_DEFAULT_BPM_VALUE = 63;       // default      bpm for melodies that do not specify a melody      bpm in the control section.
 
-static constexpr DURATION_INDEX       INVALID_DURATION_INDEX        = (DURATION_INDEX)-1;
-static constexpr NOTE_LETTER_INDEX    INVALID_NOTE_LETTER_INDEX     = (NOTE_LETTER_INDEX)-1;
-static constexpr OCTAVE_INDEX         INVALID_OCTAVE_INDEX          = (OCTAVE_INDEX)-1;
-static constexpr BPM_INDEX            INVALID_BPM_INDEX             = (BPM_INDEX)-1;
+static constexpr duration_index_t   INVALID_DURATION_INDEX        = (duration_index_t)-1;
+static constexpr note_index_t       INVALID_NOTE_LETTER_INDEX     = (note_index_t)-1;
+static constexpr octave_index_t     INVALID_OCTAVE_INDEX          = (octave_index_t)-1;
+static constexpr bpm_index_t        INVALID_BPM_INDEX             = (bpm_index_t)-1;
 
-static constexpr RTTTL_NOTE_LETTER gNoteLetters[] = {'c','d','e','f','g','a','b','p'};
-static constexpr uint16_t gNoteLettersCount = sizeof(gNoteLetters)/sizeof(gNoteLetters[0]);
+static constexpr note_value_t gNoteValues[] = {'c','d','e','f','g','a','b','p'};
+static constexpr uint16_t gNoteValuesCount = sizeof(gNoteValues)/sizeof(gNoteValues[0]);
 
 static constexpr int gNoteOffsets[] = { 1, 3, 5, 6, 8, 10, 12, 0};
 static constexpr uint16_t gNoteOffsetsCount = sizeof(gNoteOffsets)/sizeof(gNoteOffsets[0]);
 
-static constexpr RTTTL_DURATION gNoteDurations[] = {1, 2, 4, 8, 16, 32};
+static constexpr duration_value_t gNoteDurations[] = {1, 2, 4, 8, 16, 32};
 static constexpr uint16_t gNoteDurationsCount = sizeof(gNoteDurations)/sizeof(gNoteDurations[0]);
 
-static constexpr RTTTL_OCTAVE_VALUE gNoteOctaves[] = {4, 5, 6, 7};
+static constexpr octave_value_t gNoteOctaves[] = {4, 5, 6, 7};
 static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteOctaves[0]);
 
-static constexpr RTTTL_BPM gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
+static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
-inline RTTTL_NOTE_LETTER getNoteLetterFromIndex(NOTE_LETTER_INDEX iIndex)
+inline note_value_t getNoteValueFromIndex(note_index_t iIndex)
 {
-  if (iIndex >= 0 && iIndex < gNoteLettersCount)
-    return gNoteLetters[iIndex];
+  if (iIndex >= 0 && iIndex < gNoteValuesCount)
+    return gNoteValues[iIndex];
   return -1;
 }
 
-inline NOTE_LETTER_INDEX findNoteLetterIndex(RTTTL_NOTE_LETTER n)
+inline note_index_t findNoteIndexFromNoteValue(note_value_t n)
 {
-  for(NOTE_LETTER_INDEX i=0; i<gNoteLettersCount; i++)
+  for(note_index_t i=0; i<gNoteValuesCount; i++)
   {
-    if (getNoteLetterFromIndex(i) == n)
+    if (getNoteValueFromIndex(i) == n)
     {
       return i;
     }
@@ -73,31 +73,31 @@ inline NOTE_LETTER_INDEX findNoteLetterIndex(RTTTL_NOTE_LETTER n)
   return -1;
 }
 
-inline int getNoteOffsetFromLetterIndex(NOTE_LETTER_INDEX iIndex)
+inline int getNoteOffsetFromNoteIndex(note_index_t iIndex)
 {
-  if (iIndex >= 0 && iIndex < gNoteLettersCount)
+  if (iIndex >= 0 && iIndex < gNoteValuesCount)
     return gNoteOffsets[iIndex];
   return 0;
 }
 
-inline int getNoteOffsetFromLetter(RTTTL_NOTE_LETTER n)
+inline int findNoteOffsetFromNoteValue(note_value_t n)
 {
-  NOTE_LETTER_INDEX index = findNoteLetterIndex(n);
-  return getNoteOffsetFromLetterIndex(index);
+  note_index_t index = findNoteIndexFromNoteValue(n);
+  return getNoteOffsetFromNoteIndex(index);
 }
 
-inline RTTTL_DURATION getNoteDurationFromIndex(DURATION_INDEX iIndex)
+inline duration_value_t getDurationValueFromIndex(duration_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteDurationsCount)
     return gNoteDurations[iIndex];
   return -1;
 }
 
-inline DURATION_INDEX findNoteDurationIndex(RTTTL_DURATION n)
+inline duration_index_t findDurationIndexFromValue(duration_value_t n)
 {
-  for(DURATION_INDEX i=0; i<gNoteDurationsCount; i++)
+  for(duration_index_t i=0; i<gNoteDurationsCount; i++)
   {
-    if (getNoteDurationFromIndex(i) == n)
+    if (getDurationValueFromIndex(i) == n)
     {
       return i;
     }
@@ -105,18 +105,18 @@ inline DURATION_INDEX findNoteDurationIndex(RTTTL_DURATION n)
   return -1;
 }
 
-inline RTTTL_OCTAVE_VALUE getNoteOctaveFromIndex(OCTAVE_INDEX iIndex)
+inline octave_value_t getOctaveValueFromIndex(octave_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteOctavesCount)
     return gNoteOctaves[iIndex];
   return -1;
 }
 
-inline OCTAVE_INDEX findNoteOctaveIndex(RTTTL_OCTAVE_VALUE n)
+inline octave_index_t findOctaveIndexFromValue(octave_value_t n)
 {
-  for(OCTAVE_INDEX i=0; i<gNoteOctavesCount; i++)
+  for(octave_index_t i=0; i<gNoteOctavesCount; i++)
   {
-    if (getNoteOctaveFromIndex(i) == n)
+    if (getOctaveValueFromIndex(i) == n)
     {
       return i;
     }
@@ -124,18 +124,18 @@ inline OCTAVE_INDEX findNoteOctaveIndex(RTTTL_OCTAVE_VALUE n)
   return -1;
 }
 
-inline RTTTL_BPM getBpmFromIndex(BPM_INDEX iIndex)
+inline bpm_value_t getBpmValueFromIndex(bpm_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteBpmsCount)
     return gNoteBpms[iIndex];
   return -1;
 }
 
-inline BPM_INDEX findBpmIndex(RTTTL_BPM n)
+inline bpm_index_t findBpmIndexFromValue(bpm_value_t n)
 {
-  for(BPM_INDEX i=0; i<gNoteBpmsCount; i++)
+  for(bpm_index_t i=0; i<gNoteBpmsCount; i++)
   {
-    if (getBpmFromIndex(i) == n)
+    if (getBpmValueFromIndex(i) == n)
     {
       return i;
     }

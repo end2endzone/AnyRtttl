@@ -12,6 +12,7 @@
 
 #include "Arduino.h"
 #include "rtttl_utils.h"
+#include "esp32_tone.h"
 #include "pitches.h"
 
 //#define ANY_RTTTL_DEBUG
@@ -30,12 +31,6 @@ namespace anyrtttl
 typedef char (*GetCharFuncPtr)(const char * iBuffer);
 
 /****************************************************************************
- * Description:
- *   Defines a custom type for storing a note duration.
- ****************************************************************************/
-typedef uint16_t TONE_DURATION;
-
-/****************************************************************************
  * Structure definitions
  ****************************************************************************/
 typedef struct rtttl_context_t {
@@ -43,12 +38,12 @@ typedef struct rtttl_context_t {
   const char * buffer;        // address of the melody. Can be from RAM or PROGMEM address space.
   const char * next;          // address of the next byte to process within buffer.
   GetCharFuncPtr getCharPtr;  // a custom function to get the first byte from `next` buffer.
-  byte default_dur;           // default duration of notes in the melody. Use this value for notes that do not specify a duration.
-  byte default_oct;           // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
-  RTTTL_BPM bpm;              // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
-  RTTTL_DURATION wholenote;   // time for whole note in milliseconds.
-  RTTTL_OCTAVE_VALUE scale;   // current note scale.
-  TONE_DURATION duration;     // current note duration.
+  byte melodyDefaultDur;      // default duration of notes in the melody. Use this value for notes that do not specify a duration.
+  byte melodyDefaultOct;      // default  octave  of notes in the melody. Use this value for notes that do not specify an octave.
+  bpm_value_t bpm;            // melody beats per minutes. BPM usually expresses the number of quarter notes per minute.
+  duration_value_t wholeNote; // time for whole note in milliseconds.
+  octave_value_t scale;       // current note scale.
+  duration_value_t duration;  // current note duration.
   unsigned long nextNoteMs;   // timestamp in milliseconds of end of note (start of next).
   bool playing;
   byte noteOffset;
@@ -256,74 +251,6 @@ inline bool done()                                                              
 inline bool isPlaying()                                                             { return isPlaying(anyrtttl::gGlobalContext); }
 
 }; //nonblocking namespace
-
-
-
-/****************************************************************************
- * ESP32 support functions
- ****************************************************************************/
-#ifdef ESP32
-namespace esp32
-{
-
-#ifndef ESP_ARDUINO_VERSION
-  // ESP_ARDUINO_VERSION is undefined.
-  #error This version of ESP32 arduino core does not define ESP_ARDUINO_VERSION.
-#endif
-
-/****************************************************************************
- * Description:
- *   Defines a function that allow one to map a channel number to a given pin.
- *   This definition is required if you are using ESP32 core version 2.x only.
- *   ESP32 core version 3.x manages channel automatically. 
- ****************************************************************************/
-typedef uint8_t (*ChannelMapFuncPtr)(uint8_t);
-
-/****************************************************************************
- * Description:
- *   Defines the getChannelForPin() function used by AnyRtttl.
- * Parameters:
- *   iFunc: Pointer to a tone() replacement function.
- ****************************************************************************/
-void setChannelMapFunction(ChannelMapFuncPtr iFunc);
-
-/****************************************************************************
- * Description:
- *   Return the channel number registered for a given pin.
- ****************************************************************************/
-uint8_t getChannelMapZero(uint8_t pin);
-
-/****************************************************************************
- * Description:
- *   Function esp32NoTone() stop the PWM signal for the given pin.
- *   It does not detach the pin from it's assigned channel.
- *   You can have sequential calls to esp32Tone() and esp32NoTone().
- *   without having to call esp32ToneSetup() between calls.
- ****************************************************************************/
-void noTone(uint8_t pin);
-
-/****************************************************************************
- * Description:
- *   Function esp32Tone() set a pin to output a PWM signal that matches the given frequency.
- *   The duration argument is ignored. The function signature 
- *   matches arduino's tone() function for compatibility reasons.
- *   Arduino tone() function:
- *     https://docs.arduino.cc/language-reference/en/functions/advanced-io/tone/
- *   ESP32 ledcWriteTone() function:
- *     https://github.com/espressif/arduino-esp32/blob/2.0.17/cores/esp32/esp32-hal-ledc.c#L118
- ****************************************************************************/
-void tone(uint8_t pin, unsigned int frq, unsigned long duration);
-
-/****************************************************************************
- * Description:
- *   Function esp32ToneSetup() setup the given pin to output a PWM signal
- *   for generating tones with a piezo buzzer.
- ****************************************************************************/
-void toneSetup(uint8_t pin);
-
-}; //esp32 namespace
-
-#endif // ESP32
 
 }; //anyrtttl namespace
 

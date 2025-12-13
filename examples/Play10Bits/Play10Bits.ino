@@ -209,12 +209,12 @@ void setup() {
 
 #ifdef ESP32
   // setup AnyRtttl for ESP32
-  anyrtttl::esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
-  anyrtttl::setToneFunction(&anyrtttl::esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
-  anyrtttl::setNoToneFunction(&anyrtttl::esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
+  esp32::setChannelMapFunction(&getChannelForPin);  // Required for functions using esp32 core version 2.x.
+  anyrtttl::setToneFunction(&esp32::tone);          // tell AnyRtttl to use AnyRtttl's specialized esp32 tone function.
+  anyrtttl::setNoToneFunction(&esp32::noTone);      // tell AnyRtttl to use AnyRtttl's specialized esp32 noTone() function.
 
   // setup the pin for PWM tones.
-  anyrtttl::esp32::toneSetup(BUZZER_PIN);
+  esp32::toneSetup(BUZZER_PIN);
 #endif // ESP32
 
 #ifdef DEBUG_FUNCTION_READFROMDECODINGBUFFER

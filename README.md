@@ -3,6 +3,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Github Releases](https://img.shields.io/github/release/end2endzone/AnyRtttl.svg)](https://github.com/end2endzone/AnyRtttl/releases)
+[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=end2endzone.AnyRtttl)](https://github.com/end2endzone/AnyRtttl)
+
+[![Button Install](https://img.shields.io/badge/Install-brightgreen?logoColor=white&logo=GitBook)](https://www.ardu-badge.com/AnyRtttl)
+[![Button Changelog](https://img.shields.io/badge/Changelog-blue?logoColor=white&logo=googleforms)](CHANGES)
 
 
 
@@ -16,10 +20,10 @@ Library features:
 * Blocking & Non-Blocking modes available.
 * Support custom `tone()`, `noTone()`, `delay()` and `millis()` functions.
 * Compatible with external Tone libraries.
-* Supports RTTTL melodies stored in Program Memory (`PROGMEM`).
-* Compatible with any custom RTTTL format that can be decoded as legacy RTTTL.
-* Supports highly compressed RTTTL binary format.
-* Play two monolithic melodies on two different pins using 2 piezo buzzer with the help of an external Tone library.
+* Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
+* Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
+* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
 
 
 
@@ -300,7 +304,9 @@ void loop() {
 ```
 
 
-## Other ##
+
+
+# Examples #
 
 More AnyRtttl examples are also available:
 
@@ -319,6 +325,80 @@ More AnyRtttl examples are also available:
 * [Play16Bits](examples/Play16Bits/Play16Bits.ino)
 * [PlaySerialRtttl](examples/PlaySerialRtttl/PlaySerialRtttl.ino)
 * [Rtttl2Code](examples/Rtttl2Code/Rtttl2Code.ino)
+
+
+
+
+# RTTTL #
+
+## Format specification ##
+
+This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs\nokia_rtttl.txt)).
+
+This format is specified as the following:  
+`<name>:<control-section>:<tone-commands>,<tone-commands>...`
+
+### Control Section: ###
+
+The control section is optional.
+It defines the following parameters for the melody:
+
+* `d=<value>` : Default duration of a note if unspecified.
+* `o=<value>` : Default octave of a note if unspecified.
+* `b=<value>` : Beats per minutes of a quarter note
+
+### Tone commands: ###
+
+Tones can be represented in the following format:
+
+`<duration><note><octave><.>` where :
+
+* `duration` is the duration divider of full note duration, eg. 4 represents a quarter note.
+* `note` is the note name (one of `p`,`c`,`c#`,`d`,`d#`,`e`,`f`,`f#`,`g`,`g#`,`a`,`a#`,`b`). The note `p` is a special note that represents a pause, a silent note in the melody.
+* `scale` is the scale of the melody: from 4 to 7.
+* `.` is a dotted note which increases the duration.
+
+The duration, octave and dot are optional.
+
+Example: `Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g`.
+
+## Other specifications: ##
+
+* An old but accurate specification:  
+  https://www.mobilefish.com/tutorials/rtttl/rtttl_quickguide_specification.html
+* The original Nokia Phones specification:  
+  http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt
+* The specification on Wikipedia:  
+  https://en.wikipedia.org/wiki/Ring_Tone_Text_Transfer_Language#Technical_specification
+* A more modern RTTTL specification document:  
+  https://rtttl.skully.tech/rtttl_specification
+
+
+## RTTTL ressources ##
+
+Online RTTTL players:
+
+* A web based RTTTL melody composer:  
+  https://rtttl.skully.tech/
+* Online RTTTL player:  
+  https://adamonsoon.github.io/rtttl-play/
+* Nokia Composer:  
+  https://eddmann.com/nokia-composer-web/
+
+Other:
+
+* RTTTL documentation on ESPHome:  
+  https://esphome.io/components/rtttl/
+* Converting Arduino melodies:  
+  https://end2endzone.com/how-to-convert-arduino-code-to-actual-rtttl-melodies-using-librtttl-and-anyrtttl/#game-of-throne
+
+Melody databases:
+
+* https://picaxe.com/RTTTL-Ringtones-for-Tune-Command/
+* https://www.voip-info.org/rtttl-melodies/
+* Multiple melodies for IoT projects: [example IoT-beeps](examples\IoT-beeps\IoT-beeps.ino).
+* https://github.com/end2endzone/smart-doorbell-homeassistant/blob/main/src/doorbell/rtttl_melodies.txt
+* https://github.com/end2endzone/smart-doorbell-homeassistant/blob/main/src/doorbell/rtttl_ringtones.txt
 
 
 
