@@ -14,7 +14,7 @@
 namespace anyrtttl
 {
 
-const uint16_t notes[] = { NOTE_SILENT,
+static const uint16_t gNotes[] = { NOTE_SILENT,
 NOTE_C4, NOTE_CS4, NOTE_D4, NOTE_DS4, NOTE_E4, NOTE_F4, NOTE_FS4, NOTE_G4, NOTE_GS4, NOTE_A4, NOTE_AS4, NOTE_B4,
 NOTE_C5, NOTE_CS5, NOTE_D5, NOTE_DS5, NOTE_E5, NOTE_F5, NOTE_FS5, NOTE_G5, NOTE_GS5, NOTE_A5, NOTE_AS5, NOTE_B5,
 NOTE_C6, NOTE_CS6, NOTE_D6, NOTE_DS6, NOTE_E6, NOTE_F6, NOTE_FS6, NOTE_G6, NOTE_GS6, NOTE_A6, NOTE_AS6, NOTE_B6,
@@ -283,12 +283,12 @@ void nextnote(rtttl_context_t & c)
     Serial.print("Playing: ");
     Serial.print(c.scale, 10); Serial.print(' ');
     Serial.print(c.noteOffset, 10); Serial.print(" (");
-    Serial.print(notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset], 10);
+    Serial.print(gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset], 10);
     Serial.print(") ");
     Serial.println(c.duration, 10);
     #endif
     
-    uint16_t frequency = notes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
+    uint16_t frequency = gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
     _tone(c.pin, frequency, c.duration);
     
     c.nextNoteMs = _millis() + (c.duration+1);
