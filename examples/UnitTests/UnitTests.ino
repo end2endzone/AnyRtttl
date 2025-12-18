@@ -82,7 +82,7 @@ unsigned long fakeMillis(void) {
   return output;
 }
 
-TestResult TestTetrisRamBlocking() {
+TestResult testTetrisRamBlocking() {
   resetFakeTimer();
   resetMelodyBuffer();
 
@@ -181,7 +181,7 @@ TestResult TestTetrisRamBlocking() {
   return TestResult::Pass;
 }
 
-TestResult TestProgramMemoryBlocking() {
+TestResult testProgramMemoryBlocking() {
   resetFakeTimer();
   resetMelodyBuffer();
 
@@ -219,7 +219,7 @@ TestResult TestSmalestRtttlPgmBlocking() {
   return TestResult::Pass;
 }
 
-TestResult TestSingleNotes() {
+TestResult testSingleNotes() {
   static const uint16_t expected_frequencies[] = {
     1760, // a
     1976, // b
@@ -229,12 +229,12 @@ TestResult TestSingleNotes() {
     1397, // f
     1568, // g
   };
-  static const size_t expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
+  static const int expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
-  for(int i = 0; i < 7; i++) {
+  for(int i = 0; i < expected_frequencies_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
     resetLog();
@@ -244,7 +244,7 @@ TestResult TestSingleNotes() {
     sprintf(melody, ":d=4,o=6,b=63:%c", note_character);
 
     // play
-    anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
     std::string actual = gLogBuffer;
@@ -260,19 +260,67 @@ TestResult TestSingleNotes() {
   return TestResult::Pass;
 }
 
-TestResult TestOctaves() {
+int myPowerFunction(int base, int exponent) {
+  int result = 1;
+  for (int i = 0; i < exponent; i++) {
+    result *= base;
+  }
+  return result;
+}
+
+TestResult testDurations() {
+  static const uint16_t expected_durations[] = {
+    3808, //  1a  2^0
+    1904, //  2a  2^1
+     952, //  4a  2^2
+     476, //  8a  2^3
+     238, // 16a  2^4
+     119, // 32a  2^5
+  };
+  static const int expected_durations_count = sizeof(expected_durations)/sizeof(expected_durations[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < expected_durations_count; i++) {
+    resetFakeTimer();
+    resetMelodyBuffer();
+    resetLog();
+
+    // build the melody
+    int duration_value = myPowerFunction(2, i);
+    sprintf(melody, ":d=4,o=6,b=63:%da", duration_value);
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gLogBuffer;
+
+    // build expected string
+    uint16_t expected_duration = expected_durations[i];
+    sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
+TestResult testOctaves() {
   static const uint16_t expected_frequencies[] = {
      440, // a4
      880, // a5
     1760, // a6
     3520, // a7
   };
-  static const size_t expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
+  static const int expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
-  for(int i = 0; i < 4; i++) {
+  for(int i = 0; i < expected_frequencies_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
     resetLog();
@@ -282,7 +330,7 @@ TestResult TestOctaves() {
     sprintf(melody, ":d=4,o=6,b=63:a%c", octave_character);
 
     // play
-    anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
     std::string actual = gLogBuffer;
@@ -312,11 +360,12 @@ void setup() {
   anyrtttl::setDelayFunction(&logDelay);
   anyrtttl::setMillisFunction(&fakeMillis);
 
-  TEST(TestSingleNotes);
-  TEST(TestOctaves);
+  TEST(testSingleNotes);
+  TEST(testOctaves);
+  TEST(testDurations);
 
-  //TEST(TestTetrisRamBlocking);
-  //TEST(TestProgramMemoryBlocking);
+  //TEST(testTetrisRamBlocking);
+  //TEST(testProgramMemoryBlocking);
 }
 
 void loop() {
