@@ -28,11 +28,11 @@ inline const char* ToString(TestResult r) {
 void RunTest(const char* testName, TestFunc func)
 {
   Serial.print("Running test: ");
-  Serial.println(testName);
+  Serial.print(testName);
+  Serial.print("() --> ");
 
   TestResult result = func();
 
-  Serial.print("Result: ");
   Serial.println(ToString(result));
 }
 
@@ -73,7 +73,11 @@ void RunTest(const char* testName, TestFunc func)
       Serial.print(__LINE__); \
       Serial.print(": expected "); Serial.print(#expected); \
       Serial.print(" == actual "); Serial.print(#actual); \
-      Serial.print("  (\""); Serial.print(expected); Serial.print("\" != \""); Serial.print(actual); Serial.println("\")"); \
+      Serial.print("\nwhere len(expected) is: "); Serial.print(strlen(expected)); \
+      Serial.print("\nwhere   len(actual) is: "); Serial.print(strlen(actual)); \
+      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
+      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
+      Serial.println(""); \
       return TestResult::Fail; \
     } \
   } while (0)
@@ -85,7 +89,23 @@ void RunTest(const char* testName, TestFunc func)
       Serial.print(__LINE__); \
       Serial.print(": expected "); Serial.print(#expected); \
       Serial.print(" != actual "); Serial.print(#actual); \
-      Serial.print("  (\""); Serial.print(expected); Serial.print("\" == \""); Serial.print(actual); Serial.println("\")"); \
+      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
+      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
+      Serial.println(""); \
+      return TestResult::Fail; \
+    } \
+  } while (0)
+
+#define ASSERT_STRING_CONTAINS(substring, actual) \
+  do { \
+    if (strstr((actual), (substring)) == nullptr) { \
+      Serial.print("ASSERT_STRING_CONTAINS failed at line "); \
+      Serial.print(__LINE__); \
+      Serial.print(": expected substring "); Serial.print(#substring); \
+      Serial.print(" to be contained in string "); Serial.print(#actual); \
+      Serial.print("\nwhere substring is:\n"); Serial.print(substring); \
+      Serial.print("\nwhere actual is:\n"); Serial.print(actual); \
+      Serial.println(""); \
       return TestResult::Fail; \
     } \
   } while (0)
@@ -110,16 +130,16 @@ void RunTest(const char* testName, TestFunc func)
     } \
   } while (0)
 
-#define ASSERT_FLOAT_EQ(expected, actual, tol) \
+#define ASSERT_FLOAT_EQ(expected, actual, epsilon) \
   do { \
     float _diff = fabs((expected) - (actual)); \
-    if (_diff > (tol)) { \
+    if (_diff > (epsilon)) { \
       Serial.print("ASSERT_FLOAT_EQ failed at line "); \
       Serial.print(__LINE__); \
       Serial.print(": expected "); Serial.print(#expected); \
       Serial.print(" ~= actual "); Serial.print(#actual); \
       Serial.print("  (diff="); Serial.print(_diff); \
-      Serial.print(", tol="); Serial.print(tol); Serial.println(")"); \
+      Serial.print(", epsilon="); Serial.print(epsilon); Serial.println(")"); \
       return TestResult::Fail; \
     } \
   } while (0)
