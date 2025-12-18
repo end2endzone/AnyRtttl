@@ -186,7 +186,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   {
     c.next += 2;                      // skip "d="
     number = readInteger(c);
-    if(number > 0)
+    if(isValidDuration((duration_value_t)number))
       c.melodyDefaultDur = number;
     c.next++;                         // skip comma
   }
@@ -244,7 +244,7 @@ void nextNote(rtttl_context_t & c)
 
   // get note duration, if available
   number = readInteger(c);
-  if(number > 0)
+  if(isValidDuration((duration_value_t)number))
     c.duration = c.wholeNote / number;
 
   // Parse note characters 1 by 1, until note separator or end of buffer

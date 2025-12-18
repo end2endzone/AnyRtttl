@@ -1,5 +1,6 @@
 #include <anyrtttl.h>
 #include <pitches.h>
+#include <stdint.h>
 #include "TestingFramework.hpp"
 #include "Logging.hpp"
 
@@ -69,15 +70,11 @@ unsigned long fakeMillis(void) {
     unsigned long after = gFakeMillisTimer;
 
     gFakeMillisTimerJumpSize = 0;
-
-    log("gFakeMillisTimer jump from %d to %d\n", before, after);
   }
   else {
     // increase fake timer for the next call
     gFakeMillisTimer += 1;
   }
-
-  log("gFakeMillisTimer is now %d\n", gFakeMillisTimer);
 
   return output;
 }
@@ -340,6 +337,82 @@ TestResult testDurations() {
   return TestResult::Pass;
 }
 
+TestResult testDurationsInvalid() {
+  
+  // Assert the parsing will not fail with invalid durations.
+  // The parsing algorithm should ignore these out of scope durations values
+  // and keep the default duration 4, always resulting in 952 ms note.
+
+  static const uint16_t invalid_durations[] = {0, 64};
+  static const int invalid_durations_count = sizeof(invalid_durations)/sizeof(invalid_durations[0]);
+
+  static const uint16_t expected_durations[] = {
+    952, // 0a
+    952, // 64a
+  };
+  static const int expected_durations_count = sizeof(expected_durations)/sizeof(expected_durations[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < invalid_durations_count; i++) {
+    
+    // ------------------------
+    // Test in Control Section
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      int duration_value = invalid_durations[i];
+      sprintf(melody, ":d=%d,o=6,b=63:a", duration_value);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_duration = expected_durations[i];
+      sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+
+    // ------------------------
+    // Test in individual note
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      int duration_value = invalid_durations[i];
+      sprintf(melody, ":d=4,o=6,b=63:%da", duration_value);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_duration = expected_durations[i];
+      sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+  }
+
+  return TestResult::Pass;
+}
+
 TestResult testOctaves() {
   static const uint16_t expected_frequencies[] = {
      440, // a4
@@ -410,14 +483,14 @@ TestResult testOctaves() {
   return TestResult::Pass;
 }
 
-TestResult testOctavesUnofficial() {
+TestResult testOctavesInvalid() {
   
-  // Assert the parsing can support unofficial octaves.
+  // Assert the parsing will not fail with invalid octaves.
   // The parsing algorithm should ignore these out of scope octave values
   // and keep the default octave 6, always resulting in 1760 Hz note frequency.
 
-  static const uint16_t unofficial_octaves[] = {1, 2, 3, 8, 9};
-  static const int unofficial_octaves_count = sizeof(unofficial_octaves)/sizeof(unofficial_octaves[0]);
+  static const uint16_t invalid_octaves[] = {1, 2, 3, 8, 9};
+  static const int invalid_octaves_count = sizeof(invalid_octaves)/sizeof(invalid_octaves[0]);
 
   static const uint16_t expected_frequencies[] = {
     1760, // a1
@@ -431,7 +504,7 @@ TestResult testOctavesUnofficial() {
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
-  for(int i = 0; i < unofficial_octaves_count; i++) {
+  for(int i = 0; i < invalid_octaves_count; i++) {
     
     // ------------------------
     // Test in Control Section
@@ -442,7 +515,7 @@ TestResult testOctavesUnofficial() {
       resetLog();
 
       // build the melody
-      int octave_value = unofficial_octaves[i];
+      int octave_value = invalid_octaves[i];
       sprintf(melody, ":d=4,o=%d,b=63:a", octave_value);
 
       // play
@@ -468,7 +541,7 @@ TestResult testOctavesUnofficial() {
       resetLog();
 
       // build the melody
-      int octave_value = unofficial_octaves[i];
+      int octave_value = invalid_octaves[i];
       sprintf(melody, ":d=4,o=6,b=63:a%d", octave_value);
 
       // play
@@ -602,7 +675,7 @@ TestResult testControlSectionBPMUnofficial() {
 
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
-  // because BUZZER_PIN is a fake pin number
+  // because BUZZER_PIN is a fake pin number.
   // pinMode(BUZZER_PIN, OUTPUT);
 
   Serial.begin(115200);
@@ -616,8 +689,9 @@ void setup() {
 
   TEST(testSingleNotes);
   TEST(testOctaves);
-  TEST(testOctavesUnofficial);
+  TEST(testOctavesInvalid);
   TEST(testDurations);
+  TEST(testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
 

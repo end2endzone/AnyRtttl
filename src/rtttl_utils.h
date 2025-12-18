@@ -59,9 +59,16 @@ static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteO
 static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
+inline bool isValidDuration(duration_value_t value)
+{
+  if (value >= 1 && value <= 32)
+    return true;
+  return false;
+}
+
 inline bool isValidNoteValue(char c)
 {
-  if ((c >= 'a' && c <='g') || c == 'p')
+  if ((c >= 'a' && c <= 'g') || c == 'p')
     return true;
   return false;
 }
