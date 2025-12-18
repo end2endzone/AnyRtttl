@@ -673,6 +673,33 @@ TestResult testControlSectionBPMUnofficial() {
   return TestResult::Pass;
 }
 
+TestResult testControlSectionMissing() {
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+  resetLog();
+
+  // build the melody
+  sprintf(melody, "::a");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gLogBuffer;
+
+  // build expected string
+  sprintf(expected_string, "tone(pin,1760,952);");
+
+  // assert
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  return TestResult::Pass;
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number.
@@ -694,6 +721,7 @@ void setup() {
   TEST(testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
+  TEST(testControlSectionMissing);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
