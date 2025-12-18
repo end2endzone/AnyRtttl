@@ -415,6 +415,48 @@ TestResult testMelodyBPM() {
   return TestResult::Pass;
 }
 
+TestResult testMelodyBPMUnofficial() {
+  static const uint16_t unofficial_bpms[] = {10, 60, 300, 700, 1000};
+  static const int unofficial_bpms_count = sizeof(unofficial_bpms)/sizeof(unofficial_bpms[0]);
+
+  static const uint16_t expected_durations[] = {
+    6000, //   10
+    1000, //   60
+     200, //  300
+      85, //  700
+      60, // 1000
+  };
+  static const int expected_durations_count = sizeof(expected_durations)/sizeof(expected_durations[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < unofficial_bpms_count; i++) {
+    resetFakeTimer();
+    resetMelodyBuffer();
+    resetLog();
+
+    // build the melody
+    uint16_t unofficial_bpm = unofficial_bpms[i];
+    sprintf(melody, ":d=4,o=6,b=%d:a", unofficial_bpm);
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gLogBuffer;
+
+    // build expected string
+    uint16_t expected_duration = expected_durations[i];
+    sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number
@@ -433,6 +475,7 @@ void setup() {
   TEST(testOctaves);
   TEST(testDurations);
   TEST(testMelodyBPM);
+  TEST(testMelodyBPMUnofficial);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
