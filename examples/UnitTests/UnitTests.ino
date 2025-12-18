@@ -283,26 +283,58 @@ TestResult testDurations() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < expected_durations_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
-    resetLog();
+    
+    // ------------------------
+    // Test in Control Section
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
 
-    // build the melody
-    int duration_value = myPowerFunction(2, i);
-    sprintf(melody, ":d=4,o=6,b=63:%da", duration_value);
+      // build the melody
+      int duration_value = myPowerFunction(2, i);
+      sprintf(melody, ":d=%d,o=6,b=63:a", duration_value);
 
-    // play
-    anyrtttl::blocking::play(BUZZER_PIN, melody);
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
 
-    // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
 
-    // build expected string
-    uint16_t expected_duration = expected_durations[i];
-    sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+      // build expected string
+      uint16_t expected_duration = expected_durations[i];
+      sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
 
-    // assert
-    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+
+    // ------------------------
+    // Test in individual note
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      int duration_value = myPowerFunction(2, i);
+      sprintf(melody, ":d=4,o=6,b=63:%da", duration_value);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_duration = expected_durations[i];
+      sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
   }
 
   return TestResult::Pass;
@@ -321,32 +353,64 @@ TestResult testOctaves() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < expected_frequencies_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
-    resetLog();
+    
+    // ------------------------
+    // Test in Control Section
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
 
-    // build the melody
-    char octave_character = '4' + i;
-    sprintf(melody, ":d=4,o=6,b=63:a%c", octave_character);
+      // build the melody
+      char octave_character = '4' + i;
+      sprintf(melody, ":d=4,o=%c,b=63:a", octave_character);
 
-    // play
-    anyrtttl::blocking::play(BUZZER_PIN, melody);
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
 
-    // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
 
-    // build expected string
-    uint16_t expected_frequency = expected_frequencies[i];
-    sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+      // build expected string
+      uint16_t expected_frequency = expected_frequencies[i];
+      sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
 
-    // assert
-    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+
+    // ------------------------
+    // Test in individual note
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      char octave_character = '4' + i;
+      sprintf(melody, ":d=4,o=6,b=63:a%c", octave_character);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_frequency = expected_frequencies[i];
+      sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
   }
 
   return TestResult::Pass;
 }
 
-TestResult testMelodyBPM() {
+TestResult testControlSectionBPM() {
   static const uint16_t official_bpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
   static const int official_bpms_count = sizeof(official_bpms)/sizeof(official_bpms[0]);
 
@@ -415,7 +479,7 @@ TestResult testMelodyBPM() {
   return TestResult::Pass;
 }
 
-TestResult testMelodyBPMUnofficial() {
+TestResult testControlSectionBPMUnofficial() {
   static const uint16_t unofficial_bpms[] = {10, 60, 300, 700, 1000};
   static const int unofficial_bpms_count = sizeof(unofficial_bpms)/sizeof(unofficial_bpms[0]);
 
@@ -474,8 +538,8 @@ void setup() {
   TEST(testSingleNotes);
   TEST(testOctaves);
   TEST(testDurations);
-  TEST(testMelodyBPM);
-  TEST(testMelodyBPMUnofficial);
+  TEST(testControlSectionBPM);
+  TEST(testControlSectionBPMUnofficial);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
