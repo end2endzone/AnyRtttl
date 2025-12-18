@@ -1,6 +1,7 @@
 #include <anyrtttl.h>
 #include <pitches.h>
 #include "TestingFramework.hpp"
+#include "Logging.hpp"
 
 // Define the BUZZER_PIN for current board
 #define BUZZER_PIN 0 // Using a fake pin number
@@ -8,41 +9,11 @@
 //project's constants & variables
 const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
 unsigned long gFakeMillisTimer = 0; // a fake milliseconds timer. Requied to speed up notes
-std::string gLogBuffer; // a buffer for holding the melody buffer
-const size_t TEMP_BUFFER_SIZE = 256;
-char gTempBuffer[TEMP_BUFFER_SIZE];
+//const size_t TEMP_BUFFER_SIZE = 256;
+//char gTempBuffer[TEMP_BUFFER_SIZE];
 bool gInsertTimestampsInLogs = true;
-
-void SerialFormattedPrint(const char *format, ...)
-{
-    va_list args;
-
-    // Compute required buffer size
-    va_start(args, format);
-    int size = vsnprintf(nullptr, 0, format, args);
-    va_end(args);
-
-    if (size <= 0) {
-        return; // formatting error
-    }
-
-    // Allocate buffer for output
-    char *buffer = (char *)malloc(size + 1); // +1 for null terminator
-    if (!buffer) {
-        return; // allocation failed
-    }
-
-    // Second pass: actually format into buffer
-    va_start(args, format);
-    vsnprintf(buffer, size + 1, format, args);
-    va_end(args);
-
-    // Print once
-    Serial.print(buffer);
-
-    // Clean up
-    free(buffer);
-}
+bool gOptimizeFameMillisTimerInToneCalls = true;
+unsigned long gFakeMillisTimerJumpSize = 0;
 
 void resetFakeTimer() {
   gFakeMillisTimer = 0;
@@ -65,36 +36,48 @@ void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
   if (gInsertTimestampsInLogs)
     gLogBuffer += getMillisTimestamp();
   
-  sprintf(gTempBuffer, "tone(%d,%d,%d);\n", pin, frequency, duration);
-  gLogBuffer += gTempBuffer;
+  log("tone(pin,%d,%d);\n", frequency, duration);
 
   // optimize fake timer
-  if (duration > 10) {
-    gFakeMillisTimer += (duration - 10);
-  }  
+  static const unsigned long JUMP_MIN_SIZE = 10;
+  if (gOptimizeFameMillisTimerInToneCalls && duration > JUMP_MIN_SIZE) {
+    gFakeMillisTimerJumpSize = (duration - JUMP_MIN_SIZE);
+  }
 }
 
 void logNoTone(uint8_t pin) {
   if (gInsertTimestampsInLogs)
-    gLogBuffer += getMillisTimestamp();
+    log("%s", getMillisTimestamp());
     
-  sprintf(gTempBuffer, "noTone(%d);\n", pin);
-  gLogBuffer += gTempBuffer;
+  log("noTone(pin);\n");
 }
 
 void logDelay(unsigned long duration) {
   if (gInsertTimestampsInLogs)
-    gLogBuffer += getMillisTimestamp();
+    log("%s", getMillisTimestamp());
   
-  sprintf(gTempBuffer, "delay(%d);\n", duration);
-  gLogBuffer += gTempBuffer;
+  log("delay(%d);\n", duration);
 }
 
 unsigned long fakeMillis(void) {
   unsigned long output = gFakeMillisTimer;
 
-  // increase fake timer for the next call
-  gFakeMillisTimer += 1;
+  // does fame timer must jump ?
+  if (gFakeMillisTimerJumpSize) {
+    unsigned long before = gFakeMillisTimer;
+    gFakeMillisTimer += gFakeMillisTimerJumpSize;
+    unsigned long after = gFakeMillisTimer;
+
+    gFakeMillisTimerJumpSize = 0;
+
+    log("gFakeMillisTimer jump from %d to %d\n", before, after);
+  }
+  else {
+    // increase fake timer for the next call
+    gFakeMillisTimer += 1;
+  }
+
+  log("gFakeMillisTimer is now %d\n", gFakeMillisTimer);
 
   return output;
 }
@@ -198,6 +181,123 @@ TestResult TestTetrisRamBlocking() {
   return TestResult::Pass;
 }
 
+TestResult TestProgramMemoryBlocking() {
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  const char melody[] PROGMEM = "Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g";
+  anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gLogBuffer;
+  std::string expected = ""
+    "noTone(0);\n"
+    "tone(0,1319,375);\n"
+    "noTone(0);\n";
+
+  ASSERT_STRING_EQ(expected.c_str(), actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult TestSmalestRtttlPgmBlocking() {
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  const char melody[] PROGMEM = ":d=4,o=5,b=100:c";
+  anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gLogBuffer;
+  std::string expected = ""
+    "noTone(0);\n"
+    "tone(0,1319,375);\n"
+    "noTone(0);\n";
+
+  ASSERT_STRING_EQ(expected.c_str(), actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult TestSingleNotes() {
+  static const uint16_t expected_frequencies[] = {
+    1760, // a
+    1976, // b
+    1047, // c
+    1175, // d
+    1319, // e
+    1397, // f
+    1568, // g
+  };
+  static const size_t expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < 7; i++) {
+    resetFakeTimer();
+    resetMelodyBuffer();
+    resetLog();
+
+    // build the melody
+    char note_character = 'a' + i;
+    sprintf(melody, ":d=4,o=6,b=63:%c", note_character);
+
+    // play
+    anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gLogBuffer;
+
+    // build expected string
+    uint16_t expected_frequency = expected_frequencies[i];
+    sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
+TestResult TestOctaves() {
+  static const uint16_t expected_frequencies[] = {
+     440, // a4
+     880, // a5
+    1760, // a6
+    3520, // a7
+  };
+  static const size_t expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < 4; i++) {
+    resetFakeTimer();
+    resetMelodyBuffer();
+    resetLog();
+
+    // build the melody
+    char octave_character = '4' + i;
+    sprintf(melody, ":d=4,o=6,b=63:a%c", octave_character);
+
+    // play
+    anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gLogBuffer;
+
+    // build expected string
+    uint16_t expected_frequency = expected_frequencies[i];
+    sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number
@@ -212,7 +312,11 @@ void setup() {
   anyrtttl::setDelayFunction(&logDelay);
   anyrtttl::setMillisFunction(&fakeMillis);
 
-  TEST(TestTetrisRamBlocking);
+  TEST(TestSingleNotes);
+  TEST(TestOctaves);
+
+  //TEST(TestTetrisRamBlocking);
+  //TEST(TestProgramMemoryBlocking);
 }
 
 void loop() {

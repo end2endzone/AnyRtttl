@@ -234,13 +234,13 @@ void nextNote(rtttl_context_t & c)
 {
   int number = 0;
 
-  //stop current note
+  //stop previous playing note, if any
   _noTone(c.pin);
 
   // Set default values
   c.duration = c.wholeNote / c.melodyDefaultDur;  // we will check if we are a dotted note later
-  c.scale = c.melodyDefaultOct; // default scale if unspecified
-  c.noteOffset = 0; // pause/silence note if unspecified
+  c.scale = c.melodyDefaultOct; // default scale, if unspecified
+  c.noteOffset = 0; // default note is a pause/silence note, if unspecified
 
   // get note duration, if available
   number = readInteger(c);
@@ -261,12 +261,12 @@ void nextNote(rtttl_context_t & c)
       // optional '.' dotted note
       c.duration += c.duration/2;
     }
-    else if(isOctaveCharacter(character))
+    else if(isValidOctaveCharacter(character))
     {
       // scale
       c.scale = (character - '0');
     }
-    else if (isNoteCharacter(character))
+    else if (isValidNoteValueCharacter(character))
     {
       // now get the note
       c.noteOffset = findNoteOffsetFromNoteValue(character);
