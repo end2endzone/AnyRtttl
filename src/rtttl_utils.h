@@ -39,6 +39,11 @@ static constexpr note_index_t       INVALID_NOTE_LETTER_INDEX     = (note_index_
 static constexpr octave_index_t     INVALID_OCTAVE_INDEX          = (octave_index_t)-1;
 static constexpr bpm_index_t        INVALID_BPM_INDEX             = (bpm_index_t)-1;
 
+static constexpr duration_value_t   INVALID_DURATION_VALUE        = (duration_value_t)-1;
+static constexpr note_value_t       INVALID_NOTE_LETTER_VALUE     = (note_value_t)-1;
+static constexpr octave_value_t     INVALID_OCTAVE_VALUE          = (octave_value_t)-1;
+static constexpr bpm_value_t        INVALID_BPM_VALUE             = (bpm_value_t)-1;
+
 static constexpr note_value_t gNoteValues[] = {'c','d','e','f','g','a','b','p'};
 static constexpr uint16_t gNoteValuesCount = sizeof(gNoteValues)/sizeof(gNoteValues[0]);
 
@@ -54,11 +59,25 @@ static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteO
 static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
+inline bool isNoteCharacter(char c)
+{
+  if ((c >= 'a' && c <='g') || c == 'p')
+    return true;
+  return false;
+}
+
+inline bool isOctaveCharacter(char c)
+{
+  if (c >= '4' && c <='7')
+    return true;
+  return false;
+}
+
 inline note_value_t getNoteValueFromIndex(note_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteValuesCount)
     return gNoteValues[iIndex];
-  return -1;
+  return INVALID_NOTE_LETTER_VALUE;
 }
 
 inline note_index_t findNoteIndexFromNoteValue(note_value_t n)
@@ -70,7 +89,7 @@ inline note_index_t findNoteIndexFromNoteValue(note_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_NOTE_LETTER_INDEX;
 }
 
 inline int getNoteOffsetFromNoteIndex(note_index_t iIndex)
@@ -90,7 +109,7 @@ inline duration_value_t getDurationValueFromIndex(duration_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteDurationsCount)
     return gNoteDurations[iIndex];
-  return -1;
+  return INVALID_DURATION_VALUE;
 }
 
 inline duration_index_t findDurationIndexFromValue(duration_value_t n)
@@ -102,14 +121,14 @@ inline duration_index_t findDurationIndexFromValue(duration_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_DURATION_INDEX;
 }
 
 inline octave_value_t getOctaveValueFromIndex(octave_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteOctavesCount)
     return gNoteOctaves[iIndex];
-  return -1;
+  return INVALID_OCTAVE_VALUE;
 }
 
 inline octave_index_t findOctaveIndexFromValue(octave_value_t n)
@@ -121,14 +140,14 @@ inline octave_index_t findOctaveIndexFromValue(octave_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_OCTAVE_INDEX;
 }
 
 inline bpm_value_t getBpmValueFromIndex(bpm_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteBpmsCount)
     return gNoteBpms[iIndex];
-  return -1;
+  return INVALID_BPM_VALUE;
 }
 
 inline bpm_index_t findBpmIndexFromValue(bpm_value_t n)
