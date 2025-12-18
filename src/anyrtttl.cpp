@@ -237,45 +237,49 @@ void nextNote(rtttl_context_t & c)
   //stop current note
   _noTone(c.pin);
 
-  // first, get note duration, if available
+  // Set default values
+  c.duration = c.wholeNote / c.melodyDefaultDur;  // we will check if we are a dotted note later
+  c.scale = c.melodyDefaultOct; // default scale if unspecified
+  c.noteOffset = 0; // pause/silence note if unspecified
+
+  // get note duration, if available
   number = readInteger(c);
-  
   if(number > 0)
     c.duration = c.wholeNote / number;
-  else
-    c.duration = c.wholeNote / c.melodyDefaultDur;  // we will need to check if we are a dotted note after
 
-  // now get the note
-  c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
-  c.next++;                           // skip note letter
+  // Parse note characters 1 by 1, until note separator or end of buffer
+  while (peekChar(c) != '\0') {
+    char character = readChar(c);
 
-  // now, get optional '#' sharp
-  if(peekChar(c) == '#')
-  {
-    c.noteOffset++;
-    c.next++;                         // skip '#'
+    if(character == '#')
+    {
+      // optional '#' sharp
+      c.noteOffset++;
+    }
+    else if(character == '.')
+    {
+      // optional '.' dotted note
+      c.duration += c.duration/2;
+    }
+    else if(isOctaveCharacter(character))
+    {
+      // scale
+      c.scale = (character - '0');
+    }
+    else if (isNoteCharacter(character))
+    {
+      // now get the note
+      c.noteOffset = findNoteOffsetFromNoteValue(character);
+    }
+    else if(character == ',')
+    {
+      // end of note
+      break;
+    }
+    else {
+      // unknown character
+    }
   }
-
-  // now, get optional '.' dotted note
-  if(peekChar(c) == '.')
-  {
-    c.duration += c.duration/2;
-    c.next++;                         // skip '.'
-  }
-
-  // now, get scale
-  if(isdigit(peekChar(c)))
-  {
-    c.scale = peekChar(c) - '0';
-    c.next++;                         // skip scale
-  }
-  else
-  {
-    c.scale = c.melodyDefaultOct;
-  }
-
-  if(peekChar(c) == ',')
-    c.next++;                         // skip comma for next note (or we may be at the end)
 
   // now play the note
   if(c.noteOffset)
