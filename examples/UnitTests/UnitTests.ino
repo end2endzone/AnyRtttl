@@ -410,6 +410,85 @@ TestResult testOctaves() {
   return TestResult::Pass;
 }
 
+TestResult testOctavesUnofficial() {
+  
+  // Assert the parsing can support unofficial octaves.
+  // The parsing algorithm should ignore these out of scope octave values
+  // and keep the default octave 6, always resulting in 1760 Hz note frequency.
+
+  static const uint16_t unofficial_octaves[] = {1, 2, 3, 8, 9};
+  static const int unofficial_octaves_count = sizeof(unofficial_octaves)/sizeof(unofficial_octaves[0]);
+
+  static const uint16_t expected_frequencies[] = {
+    1760, // a1
+    1760, // a2
+    1760, // a3
+    1760, // a8
+    1760, // a9
+  };
+  static const int expected_frequencies_count = sizeof(expected_frequencies)/sizeof(expected_frequencies[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < unofficial_octaves_count; i++) {
+    
+    // ------------------------
+    // Test in Control Section
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      int octave_value = unofficial_octaves[i];
+      sprintf(melody, ":d=4,o=%d,b=63:a", octave_value);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_frequency = expected_frequencies[i];
+      sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+
+    // ------------------------
+    // Test in individual note
+    // ------------------------
+    {
+      resetFakeTimer();
+      resetMelodyBuffer();
+      resetLog();
+
+      // build the melody
+      int octave_value = unofficial_octaves[i];
+      sprintf(melody, ":d=4,o=6,b=63:a%d", octave_value);
+
+      // play
+      anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+      // get the melody calls with timestamps
+      std::string actual = gLogBuffer;
+
+      // build expected string
+      uint16_t expected_frequency = expected_frequencies[i];
+      sprintf(expected_string, "tone(pin,%d,952);", expected_frequency);
+
+      // assert
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+  }
+
+  return TestResult::Pass;
+}
+
 TestResult testControlSectionBPM() {
   static const uint16_t official_bpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
   static const int official_bpms_count = sizeof(official_bpms)/sizeof(official_bpms[0]);
@@ -537,6 +616,7 @@ void setup() {
 
   TEST(testSingleNotes);
   TEST(testOctaves);
+  TEST(testOctavesUnofficial);
   TEST(testDurations);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);

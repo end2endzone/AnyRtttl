@@ -200,7 +200,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   {
     c.next += 2;                      // skip "o="
     number = readInteger(c);
-    if(number >= 3 && number <= 7)
+    if(isValidOctave((octave_value_t)number))
       c.melodyDefaultOct = number;
     c.next++;                         // skip comma
   }
@@ -261,12 +261,12 @@ void nextNote(rtttl_context_t & c)
       // optional '.' dotted note
       c.duration += c.duration/2;
     }
-    else if(isValidOctaveCharacter(character))
+    else if(isValidOctave(character))
     {
       // scale
       c.scale = (character - '0');
     }
-    else if (isValidNoteValueCharacter(character))
+    else if (isValidNoteValue(character))
     {
       // now get the note
       c.noteOffset = findNoteOffsetFromNoteValue(character);
@@ -292,7 +292,7 @@ void nextNote(rtttl_context_t & c)
     Serial.print(") ");
     Serial.println(c.duration, 10);
     #endif
-    
+ 
     uint16_t frequency = gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
     _tone(c.pin, frequency, c.duration);
     

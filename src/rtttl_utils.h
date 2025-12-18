@@ -59,18 +59,24 @@ static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteO
 static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
-inline bool isValidNoteValueCharacter(char c)
+inline bool isValidNoteValue(char c)
 {
   if ((c >= 'a' && c <='g') || c == 'p')
     return true;
   return false;
 }
 
-inline bool isValidOctaveCharacter(char c)
+inline bool isValidOctave(octave_value_t value)
 {
-  if (c >= '4' && c <='7')
+  if (value >= 4 && value <= 7)
     return true;
   return false;
+}
+
+inline bool isValidOctave(char c)
+{
+  octave_value_t value = (octave_value_t)(c - '0'); // convert from ascii to integer
+  return isValidOctave(value);
 }
 
 inline note_value_t getNoteValueFromIndex(note_index_t iIndex)
