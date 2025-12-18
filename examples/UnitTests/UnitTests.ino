@@ -346,6 +346,75 @@ TestResult testOctaves() {
   return TestResult::Pass;
 }
 
+TestResult testMelodyBPM() {
+  static const uint16_t official_bpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
+  static const int official_bpms_count = sizeof(official_bpms)/sizeof(official_bpms[0]);
+
+  static const uint16_t expected_durations[] = {
+    2400, //  25
+    2142, //  28
+    1935, //  31
+    1714, //  35
+    1500, //  40
+    1333, //  45
+    1200, //  50
+    1071, //  56
+     952, //  63
+     857, //  70
+     750, //  80
+     666, //  90
+     600, // 100
+     535, // 112
+     480, // 125
+     428, // 140
+     375, // 160
+     333, // 180
+     300, // 200
+     266, // 225
+     240, // 250
+     210, // 285
+     187, // 320
+     169, // 355
+     150, // 400
+     133, // 450
+     120, // 500
+     106, // 565
+      94, // 635
+      83, // 715
+      75, // 800
+      66, // 900
+  };
+  static const int expected_durations_count = sizeof(expected_durations)/sizeof(expected_durations[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+  for(int i = 0; i < official_bpms_count; i++) {
+    resetFakeTimer();
+    resetMelodyBuffer();
+    resetLog();
+
+    // build the melody
+    uint16_t official_bpm = official_bpms[i];
+    sprintf(melody, ":d=4,o=6,b=%d:a", official_bpm);
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gLogBuffer;
+
+    // build expected string
+    uint16_t expected_duration = expected_durations[i];
+    sprintf(expected_string, "tone(pin,1760,%d);", expected_duration);
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number
@@ -363,6 +432,7 @@ void setup() {
   TEST(testSingleNotes);
   TEST(testOctaves);
   TEST(testDurations);
+  TEST(testMelodyBPM);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
