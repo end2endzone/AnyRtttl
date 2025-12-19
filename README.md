@@ -22,8 +22,12 @@ Library features:
 * Compatible with external Tone libraries.
 * Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
 * Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
-* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Support a STRICT or RELAXED parsing mode. See `RTTTL_PARSER_STRICT` and `RTTTL_PARSER_RELAXED` macros.
+  * Strict has lowest memory and program footprint. It matches the original Nokia specification. Relaxed is more resilient to invalid characters or parsing errors.
+  * Supports RTTTL duration of 64 or 128 in RELAXED mode.
+  * Supports each control in the control section (d, o and b) to be parsed in any order in RELAXED mode.
 * Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
+* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
 
 
 

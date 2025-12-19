@@ -11,6 +11,27 @@
 #include "Arduino.h"
 #include "pitches.h"
 
+#if defined(RTTTL_PARSER_STRICT) && defined(RTTTL_PARSER_RELAXED)
+#error "RTTTL_PARSER_STRICT and RTTTL_PARSER_RELAXED cannot be defined at the same time"
+#endif
+#if !defined(RTTTL_PARSER_STRICT) && !defined(RTTTL_PARSER_RELAXED)
+#define RTTTL_PARSER_STRICT // STRICT parsing rules by default
+#endif
+
+#ifndef RTTTL_PARSER_STRICT
+  // Strict RTTTL parsing rules
+  #define RTTTL_DURATION_MIN_VALUE 1
+  #define RTTTL_DURATION_MAX_VALUE 32
+  #define RTTTL_BMP_MIN_VALUE 25
+  #define RTTTL_BMP_MAX_VALUE 900
+#else
+  // Relaxed RTTTL parsing rules
+  #define RTTTL_DURATION_MIN_VALUE 1
+  #define RTTTL_DURATION_MAX_VALUE 128
+  #define RTTTL_BMP_MIN_VALUE 10
+  #define RTTTL_BMP_MAX_VALUE 2000
+#endif
+
 namespace anyrtttl
 {
 
@@ -50,7 +71,11 @@ static constexpr uint16_t gNoteValuesCount = sizeof(gNoteValues)/sizeof(gNoteVal
 static constexpr int gNoteOffsets[] = { 1, 3, 5, 6, 8, 10, 12, 0};
 static constexpr uint16_t gNoteOffsetsCount = sizeof(gNoteOffsets)/sizeof(gNoteOffsets[0]);
 
-static constexpr duration_value_t gNoteDurations[] = {1, 2, 4, 8, 16, 32};
+static constexpr duration_value_t gNoteDurations[] = {1, 2, 4, 8, 16, 32
+#ifdef RTTTL_PARSER_RELAXED
+, 64, 128
+#endif
+};
 static constexpr uint16_t gNoteDurationsCount = sizeof(gNoteDurations)/sizeof(gNoteDurations[0]);
 
 static constexpr octave_value_t gNoteOctaves[] = {4, 5, 6, 7};
@@ -59,9 +84,25 @@ static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteO
 static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
+inline bool isValidBpm(bpm_value_t value)
+{
+  #ifdef RTTTL_PARSER_STRICT
+    for(bpm_index_t i=0; i<gNoteBpmsCount; i++)
+    {
+      if (gNoteBpms[i] == value)
+        return true;
+    }
+    return false;
+  #else
+    if (value >= RTTTL_BMP_MIN_VALUE && value <= RTTTL_BMP_MAX_VALUE)
+      return true;
+    return false;
+  #endif
+}
+
 inline bool isValidDuration(duration_value_t value)
 {
-  if (value >= 1 && value <= 32)
+  if (value >= RTTTL_DURATION_MIN_VALUE && value <= RTTTL_DURATION_MAX_VALUE)
     return true;
   return false;
 }

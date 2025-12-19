@@ -177,48 +177,82 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
-  //read buffer until first note
+  // skip melody name
   while(peekChar(c) != ':') c.next++; // ignore name
   c.next++;                           // skip ':'
 
-  // get default duration
-  if(peekChar(c) == 'd')
-  {
-    c.next += 2;                      // skip "d="
-    number = readInteger(c);
-    if(isValidDuration((duration_value_t)number))
-      c.melodyDefaultDur = number;
-    c.next++;                         // skip comma
-  }
+  #if 0 // RTTTL_PARSER_STRICT
+    // get default duration
+    if(peekChar(c) == 'd')
+    {
+      c.next += 2;                      // skip "d="
+      number = readInteger(c);
+      if(isValidDuration((duration_value_t)number))
+        c.melodyDefaultDur = number;
+      c.next++;                         // skip comma
+    }
+    
+    // get default octave
+    if(peekChar(c) == 'o')
+    {
+      c.next += 2;                      // skip "o="
+      number = readInteger(c);
+      if(isValidOctave((octave_value_t)number))
+        c.melodyDefaultOct = number;
+      c.next++;                         // skip comma
+    }
+    
+    // get BPM
+    if(peekChar(c) == 'b')
+    {
+      c.next += 2;                      // skip "b="
+      number = readInteger(c);
+      c.bpm = number;
+      c.next++;                         // skip colon
+    }
+  #else // RTTTL_PARSER_RELAXED
+    char character = readChar(c);
+    while(character != ':') { // read until the end of control section.
+      switch(character) {
+        case 'd': {
+          // get default duration
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          if(isValidDuration((duration_value_t)number))
+            c.melodyDefaultDur = number;
+        }
+        break;
+        case 'o': {
+          // get default octave
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          if(isValidOctave((octave_value_t)number))
+            c.melodyDefaultOct = number;
+        }
+        break;
+        case 'b': {
+          // get BPM
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          c.bpm = number;
+        }
+        break;
+        case '\0': {
+          // Parsing error: unexpected end of control section
+          stop(c);
+          return;
+        }
+        break;
+      }
+
+      // read next
+      character = readChar(c);
+    }
+  #endif // RTTTL_PARSER_STRICT / RTTTL_PARSER_RELAXED
 
   #ifdef ANY_RTTTL_INFO
   Serial.print("ddur: "); Serial.println(c.melodyDefaultDur, 10);
-  #endif
-  
-  // get default octave
-  if(peekChar(c) == 'o')
-  {
-    c.next += 2;                      // skip "o="
-    number = readInteger(c);
-    if(isValidOctave((octave_value_t)number))
-      c.melodyDefaultOct = number;
-    c.next++;                         // skip comma
-  }
-
-  #ifdef ANY_RTTTL_INFO
   Serial.print("doct: "); Serial.println(c.melodyDefaultOct, 10);
-  #endif
-  
-  // get BPM
-  if(peekChar(c) == 'b')
-  {
-    c.next += 2;                      // skip "b="
-    number = readInteger(c);
-    c.bpm = number;
-    c.next++;                         // skip colon
-  }
-
-  #ifdef ANY_RTTTL_INFO
   Serial.print("bpm: "); Serial.println(c.bpm, 10);
   #endif
 
@@ -247,39 +281,73 @@ void nextNote(rtttl_context_t & c)
   if(isValidDuration((duration_value_t)number))
     c.duration = c.wholeNote / number;
 
-  // Parse note characters 1 by 1, until note separator or end of buffer
-  while (peekChar(c) != '\0') {
-    char character = readChar(c);
+  #if 0 // RTTTL_PARSER_STRICT
+    // now get the note
+    c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
+    c.next++;                           // skip note letter
 
-    if(character == '#')
+    // now, get optional '#' sharp
+    if(peekChar(c) == '#')
     {
-      // optional '#' sharp
       c.noteOffset++;
+      c.next++;                         // skip '#'
     }
-    else if(character == '.')
+
+    // now, get optional '.' dotted note
+    if(peekChar(c) == '.')
     {
-      // optional '.' dotted note
       c.duration += c.duration/2;
+      c.next++;                         // skip '.'
     }
-    else if(isValidOctave(character))
+
+    // now, get scale
+    if(isdigit(peekChar(c)))
     {
-      // scale
-      c.scale = (character - '0');
+      c.scale = peekChar(c) - '0';
+      c.next++;                         // skip scale
     }
-    else if (isValidNoteValue(character))
+    else
     {
-      // now get the note
-      c.noteOffset = findNoteOffsetFromNoteValue(character);
+      c.scale = c.melodyDefaultOct;
     }
-    else if(character == ',')
-    {
-      // end of note
-      break;
+
+    if(peekChar(c) == ',')
+      c.next++;                         // skip comma for next note (or we may be at the end)
+  #else // RTTTL_PARSER_RELAXED
+    // Parse note characters 1 by 1, until note separator or end of buffer
+    while (peekChar(c) != '\0') {
+      char character = readChar(c);
+
+      if(character == '#')
+      {
+        // optional '#' sharp
+        c.noteOffset++;
+      }
+      else if(character == '.')
+      {
+        // optional '.' dotted note
+        c.duration += c.duration/2;
+      }
+      else if(isValidOctave(character))
+      {
+        // scale
+        c.scale = (character - '0');
+      }
+      else if (isValidNoteValue(character))
+      {
+        // now get the note
+        c.noteOffset = findNoteOffsetFromNoteValue(character);
+      }
+      else if(character == ',')
+      {
+        // end of note
+        break;
+      }
+      else {
+        // unknown character
+      }
     }
-    else {
-      // unknown character
-    }
-  }
+  #endif // RTTTL_PARSER_STRICT / RTTTL_PARSER_RELAXED
 
   // now play the note
   if(c.noteOffset)
