@@ -696,7 +696,7 @@ TestResult testControlSectionBPMUnofficial() {
   return TestResult::Pass;
 }
 
-TestResult testControlSectionMissing() {
+TestResult testShortestMelody() {
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
@@ -718,6 +718,162 @@ TestResult testControlSectionMissing() {
   sprintf(expected_string, "tone(pin,1760,952);");
 
   // assert
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult testControlSectionMissingControls() {
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  // :d=16,o=5,b=160:a
+
+  // ------------------------
+  // Test missing duration
+  // ------------------------
+  {
+    resetFakeTimer();
+    resetMelodyBuffer();
+
+    // build the melody
+    sprintf(melody, ":o=5,b=160:a");
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gMelodyOutput;
+
+    // build expected string
+    sprintf(expected_string, "tone(pin,880,375);");
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // ------------------------
+  // Test missing octave
+  // ------------------------
+  {
+    resetFakeTimer();
+    resetMelodyBuffer();
+
+    // build the melody
+    sprintf(melody, ":d=16,b=160:a");
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gMelodyOutput;
+
+    // build expected string
+    sprintf(expected_string, "tone(pin,1760,93);");
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // ------------------------
+  // Test missing octave
+  // ------------------------
+  {
+    resetFakeTimer();
+    resetMelodyBuffer();
+
+    // build the melody
+    sprintf(melody, ":d=16,o=5:a");
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gMelodyOutput;
+
+    // build expected string
+    sprintf(expected_string, "tone(pin,880,238);");
+
+    // assert
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  return TestResult::Pass;
+}
+
+TestResult testInvalidNoteAreIgnored() {
+  
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=4,o=6,b=63:2a,z,16b");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+
+  // assert note 2a is found
+  sprintf(expected_string, "tone(pin,1760,1904);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 16b is found
+  sprintf(expected_string, "tone(pin,1976,238);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult testMelodyWithSpaces() {
+  
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=4,o=6,b=63:2a , 4b,8 c, 16 d ");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+
+  // assert note 2a is found
+  sprintf(expected_string, "tone(pin,1760,1904);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 4b is found
+  sprintf(expected_string, "tone(pin,1976,952);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 8c is found
+  sprintf(expected_string, "tone(pin,1047,952);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 16d is found
+  sprintf(expected_string, "tone(pin,1175,952);");
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
 
   return TestResult::Pass;
@@ -805,7 +961,10 @@ void setup() {
   TEST(testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
-  TEST(testControlSectionMissing);
+  TEST(testShortestMelody);
+  TEST(testControlSectionMissingControls);
+  TEST(testInvalidNoteAreIgnored);
+  TEST(testMelodyWithSpaces);
   TEST(testControlSectionAnyOrder);
 
   //TEST(testTetrisRamBlocking);
