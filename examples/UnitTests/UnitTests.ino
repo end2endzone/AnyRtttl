@@ -341,6 +341,11 @@ TestResult testDurations() {
 
 TestResult testDurationsInvalid() {
   
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
   // Assert the parsing will not fail with invalid durations.
   // The parsing algorithm should ignore these out of scope durations values
   // and keep the default duration 4, always resulting in 952 ms note.
@@ -487,6 +492,11 @@ TestResult testOctaves() {
 
 TestResult testOctavesInvalid() {
   
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
   // Assert the parsing will not fail with invalid octaves.
   // The parsing algorithm should ignore these out of scope octave values
   // and keep the default octave 6, always resulting in 1760 Hz note frequency.
@@ -703,6 +713,12 @@ TestResult testControlSectionMissing() {
 }
 
 TestResult testControlSectionAnyOrder() {
+
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
   typedef struct permutation_t {
     int a;
     int b;
@@ -770,17 +786,14 @@ void setup() {
 
   TEST(testSingleNotes);
   TEST(testOctaves);
+  TEST(testOctavesInvalid);
   TEST(testDurations);
+  TEST(testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
   TEST(testControlSectionMissing);
-
-  #if defined(RTTTL_PARSER_RELAXED)
-  TEST(testOctavesInvalid);
-  TEST(testDurationsInvalid);
   TEST(testControlSectionAnyOrder);
-  #endif // RTTTL_PARSER_RELAXED
-  
+
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
 }

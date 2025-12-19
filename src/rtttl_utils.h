@@ -15,8 +15,7 @@
 #error "RTTTL_PARSER_STRICT and RTTTL_PARSER_RELAXED cannot be defined at the same time"
 #endif
 #if !defined(RTTTL_PARSER_STRICT) && !defined(RTTTL_PARSER_RELAXED)
-//#define RTTTL_PARSER_RELAXED // RELAXED parsing rules by default
-#define RTTTL_PARSER_STRICT
+#define RTTTL_PARSER_RELAXED // RELAXED parsing rules by default
 #endif
 
 #ifndef RTTTL_PARSER_STRICT
