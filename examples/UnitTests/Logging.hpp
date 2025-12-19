@@ -27,8 +27,8 @@ int vlog(std::string & buffer, const char* format, va_list args) {
     std::string tempBuffer(len, '\0');
     vsnprintf(tempBuffer.data(), tempBuffer.size() + 1, format, args);
 
-    // Append go given buffer
-    buffer += tempBuffer;
+    // Move tempBuffer by appending it to the given buffer
+    buffer += std::move(tempBuffer);  // tempBuffer is now empty
 
     return len;
 }
