@@ -2,6 +2,8 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#else
+#include <cstdio>
 #endif // ARDUINO
 
 #include <string>
@@ -10,6 +12,38 @@
 #include "Logging.hpp"
 
 std::string testTraces; // a global buffer to hold assertions or traces while executing a test
+
+// testPrint is a platform-aware print() implementation that
+// automatically print the given c-string to the appropriate output.
+void testPrint(const char* value) {
+#ifdef ARDUINO
+  Serial.print(value);
+#else
+  std::printf("%s", value);
+#endif
+}
+
+// Typedef for a function pointer that injects a c-string
+typedef void (*PrintFunctionDelegate)(const char*);
+
+// Global function to print a c-string to an output.
+PrintFunctionDelegate testPrintFuncPtr = &testPrint;
+
+// testPrintv() print the given arguments using the print function pointer delegate testPrintFuncPtr().
+int testPrintv(const char* format, ...) {
+  std::string tempBuffer;
+
+  // Print arguments to tempBuffer
+  va_list args;
+  va_start(args, format);
+  int len = vlog(tempBuffer, format, args);
+  va_end(args);
+
+  // Delegate to print function pointer  testPrintFuncPtr().
+  testPrintFuncPtr(tempBuffer.c_str());
+
+  return len;
+}
 
 enum class TestResult {
   Unknown = 0,
@@ -60,9 +94,7 @@ void RunTest(const char* testName, TestFunc func)
   // Reset test trace logs
   testTraces.clear();
 
-  Serial.print("Running test: ");
-  Serial.print(testName);
-  Serial.print("() --> ");
+  testPrintv("Running test: %s() --> ", testName);
 
   TestResult result = TestResult::Unknown;
   if (strncmp(testName, "DISABLED_", 9) == 0) {
@@ -74,22 +106,18 @@ void RunTest(const char* testName, TestFunc func)
     result = func();
   }
 
-  Serial.print(ToString(result));
-  Serial.print(" ");
-  Serial.println(ToUtf8Symbol(result));
+  testPrintv("%s %s\n", ToString(result), ToUtf8Symbol(result));
 
   // Print test log traces if test is not PASS 
   if (result != TestResult::Pass) {
     if (!testTraces.empty())
-      Serial.println(testTraces.c_str());
+      testPrintv("%s\n", testTraces.c_str());
 
     // And print again the name of the test
-    Serial.print(ToUtf8Symbol(result));
-    Serial.print("  ");
-    Serial.println(ToString(result));
+    testPrintv("%s  %s\n", ToUtf8Symbol(result), ToString(result));
 
     // Space failing tests by 1 line
-    Serial.println();
+    testPrintFuncPtr("%s\n");
   }
 }
 
