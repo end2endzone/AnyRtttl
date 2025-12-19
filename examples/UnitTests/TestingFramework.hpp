@@ -5,11 +5,12 @@
 #include <stdarg.h>
 
 enum class TestResult {
-  Pass = 0,
+  Unknown = 0,
+  Pass,
   Fail,
   Skip,
   Timeout,
-  Error
+  Error,
 };
 
 typedef TestResult (*TestFunc)();
@@ -21,7 +22,20 @@ inline const char* ToString(TestResult r) {
     case TestResult::Skip:    return "SKIP";
     case TestResult::Timeout: return "TIMEOUT";
     case TestResult::Error:   return "ERROR";
+    case TestResult::Unknown:
     default:                  return "UNKNOWN";
+  }
+}
+
+inline const char* ToUtf8Symbol(TestResult r) {
+  switch (r) {
+    case TestResult::Pass:    return "✅";
+    case TestResult::Fail:    return "❌";
+    case TestResult::Skip:    return "⏩";
+    case TestResult::Timeout: return "⏱";
+    case TestResult::Error:   return "⚠️";
+    case TestResult::Unknown:
+    default:                  return "❓";
   }
 }
 
@@ -31,9 +45,19 @@ void RunTest(const char* testName, TestFunc func)
   Serial.print(testName);
   Serial.print("() --> ");
 
-  TestResult result = func();
+  TestResult result = TestResult::Unknown;
+  if (strncmp(testName, "DISABLED_", 9) == 0) {
+    // Skip disabled tests.
+    result = TestResult::Skip;
+  }
+  else {
+    // Run test function and get result.
+    result = func();
+  }
 
-  Serial.println(ToString(result));
+  Serial.print(ToString(result));
+  Serial.print(" ");
+  Serial.println(ToUtf8Symbol(result));
 }
 
 #define TEST(func) RunTest(#func, func)
