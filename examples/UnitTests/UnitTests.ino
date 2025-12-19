@@ -12,8 +12,6 @@
 //project's constants & variables
 const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
 unsigned long gFakeMillisTimer = 0; // a fake milliseconds timer. Requied to speed up notes
-//const size_t TEMP_BUFFER_SIZE = 256;
-//char gTempBuffer[TEMP_BUFFER_SIZE];
 bool gInsertTimestampsInLogs = true;
 bool gOptimizeFameMillisTimerInToneCalls = true;
 unsigned long gFakeMillisTimerJumpSize = 0;
