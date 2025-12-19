@@ -339,7 +339,7 @@ TestResult testDurations() {
   return TestResult::Pass;
 }
 
-TestResult DISABLED_testDurationsInvalid() {
+TestResult testDurationsInvalid() {
   
   // Assert the parsing will not fail with invalid durations.
   // The parsing algorithm should ignore these out of scope durations values
@@ -770,14 +770,17 @@ void setup() {
 
   TEST(testSingleNotes);
   TEST(testOctaves);
-  TEST(testOctavesInvalid);
   TEST(testDurations);
-  TEST(DISABLED_testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
   TEST(testControlSectionMissing);
-  TEST(testControlSectionAnyOrder);
 
+  #if defined(RTTTL_PARSER_RELAXED)
+  TEST(testOctavesInvalid);
+  TEST(testDurationsInvalid);
+  TEST(testControlSectionAnyOrder);
+  #endif // RTTTL_PARSER_RELAXED
+  
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
 }

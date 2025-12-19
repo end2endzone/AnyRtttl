@@ -181,7 +181,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   while(peekChar(c) != ':') c.next++; // ignore name
   c.next++;                           // skip ':'
 
-  #if 0 // RTTTL_PARSER_STRICT
+  #if defined(RTTTL_PARSER_STRICT)
     // get default duration
     if(peekChar(c) == 'd')
     {
@@ -210,7 +210,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
       c.bpm = number;
       c.next++;                         // skip colon
     }
-  #else // RTTTL_PARSER_RELAXED
+  #elif defined(RTTTL_PARSER_RELAXED)
     char character = readChar(c);
     while(character != ':') { // read until the end of control section.
       switch(character) {
@@ -281,7 +281,7 @@ void nextNote(rtttl_context_t & c)
   if(isValidDuration((duration_value_t)number))
     c.duration = c.wholeNote / number;
 
-  #if 0 // RTTTL_PARSER_STRICT
+  #if defined(RTTTL_PARSER_STRICT)
     // now get the note
     c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
     c.next++;                           // skip note letter
@@ -313,7 +313,7 @@ void nextNote(rtttl_context_t & c)
 
     if(peekChar(c) == ',')
       c.next++;                         // skip comma for next note (or we may be at the end)
-  #else // RTTTL_PARSER_RELAXED
+  #elif defined(RTTTL_PARSER_RELAXED)
     // Parse note characters 1 by 1, until note separator or end of buffer
     while (peekChar(c) != '\0') {
       char character = readChar(c);
