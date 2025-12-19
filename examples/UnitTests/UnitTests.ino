@@ -15,13 +15,14 @@ unsigned long gFakeMillisTimer = 0; // a fake milliseconds timer. Requied to spe
 bool gInsertTimestampsInLogs = true;
 bool gOptimizeFameMillisTimerInToneCalls = true;
 unsigned long gFakeMillisTimerJumpSize = 0;
+std::string gMelodyOutput; // a global buffer to hold the rtttl commands output when calling functions such as tone(), noTone(), etc.
 
 void resetFakeTimer() {
   gFakeMillisTimer = 0;
 }
 
 void resetMelodyBuffer() {
-  gLogBuffer.clear();
+  gMelodyOutput.clear();
 }
 
 const char * getMillisTimestamp() {
@@ -35,9 +36,9 @@ const char * getMillisTimestamp() {
 //*******************************************************************************************************************
 void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
   if (gInsertTimestampsInLogs)
-    gLogBuffer += getMillisTimestamp();
+    gMelodyOutput += getMillisTimestamp();
   
-  log("tone(pin,%d,%d);\n", frequency, duration);
+  log(gMelodyOutput, "tone(pin,%d,%d);\n", frequency, duration);
 
   // optimize fake timer
   static const unsigned long JUMP_MIN_SIZE = 10;
@@ -48,16 +49,16 @@ void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
 
 void logNoTone(uint8_t pin) {
   if (gInsertTimestampsInLogs)
-    log("%s", getMillisTimestamp());
+    log(gMelodyOutput, "%s", getMillisTimestamp());
     
-  log("noTone(pin);\n");
+  log(gMelodyOutput, "noTone(pin);\n");
 }
 
 void logDelay(unsigned long duration) {
   if (gInsertTimestampsInLogs)
-    log("%s", getMillisTimestamp());
+    log(gMelodyOutput, "%s", getMillisTimestamp());
   
-  log("delay(%d);\n", duration);
+  log(gMelodyOutput, "delay(%d);\n", duration);
 }
 
 unsigned long fakeMillis(void) {
@@ -79,6 +80,29 @@ unsigned long fakeMillis(void) {
   return output;
 }
 
+//-----------------------------------------------------------------------------
+
+TestResult testThisTestAlwaysPass() {
+  return TestResult::Pass;
+}
+
+TestResult testThisTestAlwaysFailsStringContains() {
+  ASSERT_STRING_CONTAINS("foo", "this is a complete haystack string");
+  return TestResult::Pass;
+}
+
+TestResult testThisTestAlwaysFailsIntegerEquals() {
+  ASSERT_EQ(-1, 42);
+  return TestResult::Pass;
+}
+
+void SerialPrintMelodyOutput(int line) {
+  Serial.print("Line ");
+  Serial.print(line);
+  Serial.print(": ");
+  Serial.println(gMelodyOutput.c_str());
+}
+
 TestResult testTetrisRamBlocking() {
   resetFakeTimer();
   resetMelodyBuffer();
@@ -86,7 +110,6 @@ TestResult testTetrisRamBlocking() {
   anyrtttl::blocking::play(BUZZER_PIN, tetris);
 
   // get the melody calls with timestamps
-  std::string actual = gLogBuffer;
   std::string expected = ""
     "noTone(0);\n"
     "tone(0,1319,375);\n"
@@ -172,6 +195,7 @@ TestResult testTetrisRamBlocking() {
     "noTone(0);\n"
     "tone(0,880,375);\n"
     "noTone(0);\n";
+  std::string actual = gMelodyOutput;
 
   ASSERT_STRING_EQ(expected.c_str(), actual.c_str());
 
@@ -186,7 +210,7 @@ TestResult testProgramMemoryBlocking() {
   anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
 
   // get the melody calls with timestamps
-  std::string actual = gLogBuffer;
+  std::string actual = gMelodyOutput;
   std::string expected = ""
     "noTone(0);\n"
     "tone(0,1319,375);\n"
@@ -205,7 +229,7 @@ TestResult TestSmalestRtttlPgmBlocking() {
   anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
 
   // get the melody calls with timestamps
-  std::string actual = gLogBuffer;
+  std::string actual = gMelodyOutput;
   std::string expected = ""
     "noTone(0);\n"
     "tone(0,1319,375);\n"
@@ -234,7 +258,6 @@ TestResult testSingleNotes() {
   for(int i = 0; i < expected_frequencies_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
-    resetLog();
 
     // build the melody
     char note_character = 'a' + i;
@@ -244,7 +267,7 @@ TestResult testSingleNotes() {
     anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+    std::string actual = gMelodyOutput;
 
     // build expected string
     uint16_t expected_frequency = expected_frequencies[i];
@@ -287,7 +310,6 @@ TestResult testDurations() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int duration_value = myPowerFunction(2, i);
@@ -297,7 +319,7 @@ TestResult testDurations() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_duration = expected_durations[i];
@@ -313,7 +335,6 @@ TestResult testDurations() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int duration_value = myPowerFunction(2, i);
@@ -323,7 +344,7 @@ TestResult testDurations() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_duration = expected_durations[i];
@@ -368,7 +389,6 @@ TestResult testDurationsInvalid() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int duration_value = invalid_durations[i];
@@ -378,7 +398,7 @@ TestResult testDurationsInvalid() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_duration = expected_durations[i];
@@ -394,7 +414,6 @@ TestResult testDurationsInvalid() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int duration_value = invalid_durations[i];
@@ -404,7 +423,7 @@ TestResult testDurationsInvalid() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_duration = expected_durations[i];
@@ -438,7 +457,6 @@ TestResult testOctaves() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       char octave_character = '4' + i;
@@ -448,7 +466,7 @@ TestResult testOctaves() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_frequency = expected_frequencies[i];
@@ -464,7 +482,6 @@ TestResult testOctaves() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       char octave_character = '4' + i;
@@ -474,7 +491,7 @@ TestResult testOctaves() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_frequency = expected_frequencies[i];
@@ -522,7 +539,6 @@ TestResult testOctavesInvalid() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int octave_value = invalid_octaves[i];
@@ -532,7 +548,7 @@ TestResult testOctavesInvalid() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_frequency = expected_frequencies[i];
@@ -548,7 +564,6 @@ TestResult testOctavesInvalid() {
     {
       resetFakeTimer();
       resetMelodyBuffer();
-      resetLog();
 
       // build the melody
       int octave_value = invalid_octaves[i];
@@ -558,7 +573,7 @@ TestResult testOctavesInvalid() {
       anyrtttl::blocking::play(BUZZER_PIN, melody);
 
       // get the melody calls with timestamps
-      std::string actual = gLogBuffer;
+      std::string actual = gMelodyOutput;
 
       // build expected string
       uint16_t expected_frequency = expected_frequencies[i];
@@ -618,7 +633,6 @@ TestResult testControlSectionBPM() {
   for(int i = 0; i < official_bpms_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
-    resetLog();
 
     // build the melody
     uint16_t official_bpm = official_bpms[i];
@@ -628,7 +642,7 @@ TestResult testControlSectionBPM() {
     anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+    std::string actual = gMelodyOutput;
 
     // build expected string
     uint16_t expected_duration = expected_durations[i];
@@ -660,7 +674,6 @@ TestResult testControlSectionBPMUnofficial() {
   for(int i = 0; i < unofficial_bpms_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
-    resetLog();
 
     // build the melody
     uint16_t unofficial_bpm = unofficial_bpms[i];
@@ -670,7 +683,7 @@ TestResult testControlSectionBPMUnofficial() {
     anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+    std::string actual = gMelodyOutput;
 
     // build expected string
     uint16_t expected_duration = expected_durations[i];
@@ -684,13 +697,13 @@ TestResult testControlSectionBPMUnofficial() {
 }
 
 TestResult testControlSectionMissing() {
+
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
   resetFakeTimer();
   resetMelodyBuffer();
-  resetLog();
 
   // build the melody
   sprintf(melody, "::a");
@@ -699,7 +712,7 @@ TestResult testControlSectionMissing() {
   anyrtttl::blocking::play(BUZZER_PIN, melody);
 
   // get the melody calls with timestamps
-  std::string actual = gLogBuffer;
+  std::string actual = gMelodyOutput;
 
   // build expected string
   sprintf(expected_string, "tone(pin,1760,952);");
@@ -743,7 +756,6 @@ TestResult testControlSectionAnyOrder() {
   for(int i = 0; i < permutations_count; i++) {
     resetFakeTimer();
     resetMelodyBuffer();
-    resetLog();
 
     // build the melody
     permutation_t permutation = permutations[i];
@@ -756,7 +768,7 @@ TestResult testControlSectionAnyOrder() {
     anyrtttl::blocking::play(BUZZER_PIN, melody);
 
     // get the melody calls with timestamps
-    std::string actual = gLogBuffer;
+    std::string actual = gMelodyOutput;
 
     // build expected string
     sprintf(expected_string, "tone(pin,3520,75);");
@@ -781,6 +793,10 @@ void setup() {
   anyrtttl::setNoToneFunction(&logNoTone);
   anyrtttl::setDelayFunction(&logDelay);
   anyrtttl::setMillisFunction(&fakeMillis);
+
+  //TEST(testThisTestAlwaysPass);
+  //TEST(testThisTestAlwaysFailsStringContains);
+  //TEST(testThisTestAlwaysFailsIntegerEquals);
 
   TEST(testSingleNotes);
   TEST(testOctaves);

@@ -1,8 +1,15 @@
 #pragma once
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#endif // ARDUINO
+
 #include <string>
 #include <stdarg.h>
+
+#include "Logging.hpp"
+
+std::string testTraces; // a global buffer to hold assertions or traces while executing a test
 
 enum class TestResult {
   Unknown = 0,
@@ -39,8 +46,20 @@ inline const char* ToUtf8Symbol(TestResult r) {
   }
 }
 
+int testTracesAppend(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  int len = vlog(testTraces, format, args);
+  va_end(args);
+
+  return len;
+}
+
 void RunTest(const char* testName, TestFunc func)
 {
+  // Reset test trace logs
+  testTraces.clear();
+
   Serial.print("Running test: ");
   Serial.print(testName);
   Serial.print("() --> ");
@@ -58,112 +77,99 @@ void RunTest(const char* testName, TestFunc func)
   Serial.print(ToString(result));
   Serial.print(" ");
   Serial.println(ToUtf8Symbol(result));
+
+  // Print test log traces if test is not PASS 
+  if (result != TestResult::Pass) {
+    if (!testTraces.empty())
+      Serial.println(testTraces.c_str());
+
+    // And print again the name of the test
+    Serial.print(ToUtf8Symbol(result));
+    Serial.print("  ");
+    Serial.println(ToString(result));
+
+    // Space failing tests by 1 line
+    Serial.println();
+  }
 }
 
 #define TEST(func) RunTest(#func, func)
 
 #define ASSERT_EQ(expected, actual) \
   do { \
-    if (!((expected) == (actual))) { \
-      Serial.print("ASSERT_EQ failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected "); Serial.print(#expected); \
-      Serial.print(" == actual "); Serial.print(#actual); \
-      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
-      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
-      Serial.println(""); \
+    if ((expected) != (actual)) { \
+      testTracesAppend("ASSERT_EQ failed: expected=%d actual=%d (file %s, line %d)", \
+                        (int)(expected), (int)(actual), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
-  } while (0)
+    }\
+  } while(0)
 
 #define ASSERT_NE(expected, actual) \
   do { \
-    if (!((expected) != (actual))) { \
-      Serial.print("ASSERT_NE failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected "); Serial.print(#expected); \
-      Serial.print(" != actual "); Serial.print(#actual); \
-      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
-      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
-      Serial.println(""); \
+    if ((expected) == (actual)) { \
+      testTracesAppend("ASSERT_NE failed: expected==actual==%d (file %s, line %d)", \
+                        (int)(val1), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
+    }\
+  } while (0)
+
+#define ASSERT_NEAR(expected, actual, epsilon) \
+  do { \
+    if (std::abs((expected) - (actual)) > (epsilon)) { \
+      testTracesAppend("ASSERT_NEAR failed: expected=%d actual=%d epsilon=%d (file %s, line %d)", \
+                        (int)(expected), (int)(actual), (int)(epsilon), __FILE__, __LINE__); \
+      return TestResult::Fail; \
+    }\
   } while (0)
 
 #define ASSERT_STRING_EQ(expected, actual) \
-  do { \
+do { \
     if (strcmp((expected), (actual)) != 0) { \
-      Serial.print("ASSERT_STRING_EQ failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected "); Serial.print(#expected); \
-      Serial.print(" == actual "); Serial.print(#actual); \
-      Serial.print("\nwhere len(expected) is: "); Serial.print(strlen(expected)); \
-      Serial.print("\nwhere   len(actual) is: "); Serial.print(strlen(actual)); \
-      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
-      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
-      Serial.println(""); \
+        testTracesAppend("ASSERT_STREQ failed: expected=`%s` actual=`%s` (file %s, line %d)", \
+                          (expected), (actual), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
-  } while (0)
+    }\
+} while(0)
 
 #define ASSERT_STRING_NE(expected, actual) \
-  do { \
+do { \
     if (strcmp((expected), (actual)) == 0) { \
-      Serial.print("ASSERT_STRING_NE failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected "); Serial.print(#expected); \
-      Serial.print(" != actual "); Serial.print(#actual); \
-      Serial.print("\nwhere expected is:\n"); Serial.print(expected); \
-      Serial.print("\nwhere   actual is:\n"); Serial.print(actual); \
-      Serial.println(""); \
+        testTracesAppend("ASSERT_STRING_NE failed: expected==actual==`%s` (file %s, line %d)", \
+                          (actual), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
-  } while (0)
+    }\
+} while(0)
 
 #define ASSERT_STRING_CONTAINS(substring, actual) \
   do { \
-    if (strstr((actual), (substring)) == nullptr) { \
-      Serial.print("ASSERT_STRING_CONTAINS failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected substring "); Serial.print(#substring); \
-      Serial.print(" to be contained in string "); Serial.print(#actual); \
-      Serial.print("\nwhere substring is:\n"); Serial.print(substring); \
-      Serial.print("\nwhere actual is:\n"); Serial.print(actual); \
-      Serial.println(""); \
+    if (strstr((actual), (substring)) == 0) { \
+      testTracesAppend("ASSERT_STRING_CONTAINS failed: `%s` not found in `%s` (file %s, line %d)", \
+                        (substring), (actual), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
+    }\
   } while (0)
 
-#define ASSERT_TRUE(actual) \
+#define ASSERT_TRUE(cond) \
   do { \
-    if (!(actual)) { \
-      Serial.print("ASSERT_TRUE failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": "); Serial.print(#actual); Serial.println(" is false"); \
+    if (!(cond)) { \
+      testTracesAppend("ASSERT_TRUE failed: condition was false (file %s, line %d)", __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
+    }\
   } while (0)
 
-#define ASSERT_FALSE(actual) \
+#define ASSERT_FALSE(cond) \
   do { \
-    if (actual) { \
-      Serial.print("ASSERT_FALSE failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": "); Serial.print(#actual); Serial.println(" is true"); \
+    if ((cond)) { \
+      testTracesAppend("ASSERT_FALSE failed: condition was true (file %s, line %d)", __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
+    }\
   } while (0)
 
 #define ASSERT_FLOAT_EQ(expected, actual, epsilon) \
   do { \
-    float _diff = fabs((expected) - (actual)); \
-    if (_diff > (epsilon)) { \
-      Serial.print("ASSERT_FLOAT_EQ failed at line "); \
-      Serial.print(__LINE__); \
-      Serial.print(": expected "); Serial.print(#expected); \
-      Serial.print(" ~= actual "); Serial.print(#actual); \
-      Serial.print("  (diff="); Serial.print(_diff); \
-      Serial.print(", epsilon="); Serial.print(epsilon); Serial.println(")"); \
+    if (fabs((expected) - (actual)) > (epsilon)) { \
+      testTracesAppend("ASSERT_FLOAT_EQ failed: expected=%f actual=%f epsilon=%f (file %s, line %d)", \
+                        (expected), (actual), (epsilon), __FILE__, __LINE__); \
       return TestResult::Fail; \
-    } \
+    }\
   } while (0)

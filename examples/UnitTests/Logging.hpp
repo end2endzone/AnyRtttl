@@ -1,8 +1,13 @@
 #pragma once
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#endif // ARDUINO
+
 #include <string>
 #include <stdarg.h>
+#include <cstdarg>
+#include <cstdio>
 
 std::string gLogBuffer; // a buffer for holding log calls
 
@@ -10,32 +15,40 @@ void resetLog() {
     gLogBuffer.clear();
 }
 
-void log(const char *format, ...) {
+// log() will print the given arguments to the given std::string.
+int vlog(std::string & buffer, const char* format, va_list args) {
+    // Copy args to measure length of output formatted string
+    va_list copy;
+    va_copy(copy, args);
+    int len = vsnprintf(nullptr, 0, format, copy);
+    va_end(copy);
+
+    // Print formatted string into output buffer
+    std::string tempBuffer(len, '\0');
+    vsnprintf(tempBuffer.data(), tempBuffer.size() + 1, format, args);
+
+    // Append go given buffer
+    buffer += tempBuffer;
+
+    return len;
+}
+
+// log() will print the given arguments to the given std::string.
+int log(std::string & buffer, const char* format, ...) {
     va_list args;
-
-    // First pass: compute required buffer size
     va_start(args, format);
-    int size = vsnprintf(nullptr, 0, format, args);
+    int len = vlog(buffer, format, args);
     va_end(args);
 
-    if (size <= 0) {
-        return; // formatting error
-    }
+    return len;
+}
 
-    // Allocate buffer for output
-    char *buffer = (char *)malloc(size + 1); // +1 for null terminator
-    if (!buffer) {
-        return; // allocation failed
-    }
-
-    // Second pass: actually format into buffer
+// log() will print the given arguments to the global gLogBuffer string.
+int log(const char *format, ...) {
+    va_list args;
     va_start(args, format);
-    vsnprintf(buffer, size + 1, format, args);
+    int len = vlog(gLogBuffer, format, args);
     va_end(args);
 
-    // Store temporary buffer
-    gLogBuffer += buffer;
-
-    // Clean up
-    free(buffer);
+    return len;
 }
