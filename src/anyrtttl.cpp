@@ -128,7 +128,7 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iG
   while( !anyrtttl::nonblocking::done(c) ) 
   {
     anyrtttl::nonblocking::play(c);
-    delay(1); // prevent watchdog to reset the board.
+    yield(); // prevent watchdog to reset the board.
   }
 }
 
@@ -172,7 +172,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 
   //stop current note
-  noTone(c.pin);
+  _noTone(c.pin);
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
