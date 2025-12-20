@@ -3,6 +3,7 @@
 #include <anyrtttl.h>
 #include <pitches.h>
 #include <stdint.h>
+#include <sstream>
 #include "TestingFramework.hpp"
 #include "Logging.hpp"
 
@@ -16,6 +17,7 @@ bool gInsertTimestampsInLogs = true;
 bool gOptimizeFameMillisTimerInToneCalls = true;
 unsigned long gFakeMillisTimerJumpSize = 0;
 std::string gMelodyOutput; // a global buffer to hold the rtttl commands output when calling functions such as tone(), noTone(), etc.
+static const unsigned long INVALID_TIMER_TIMESTAMP = (unsigned long)-1;
 
 void resetFakeTimer() {
   gFakeMillisTimer = 0;
@@ -50,6 +52,27 @@ size_t countTokens(const char * token, const char * str) {
   }
 
   return count;
+}
+
+unsigned long getToneTimestamp(const char * token, const std::string & str) {
+    std::istringstream iss(str);
+    std::string line;
+
+    // Read str line by line
+    while (std::getline(iss, line)) {
+        // Check if the line contains the token
+        if (line.find(token) != std::string::npos) {
+            // Extract the timestamp (first 6 characters before ':')
+            std::string timestampStr = line.substr(0, 6);
+
+            // Convert to integer
+            unsigned long timestamp = (unsigned long)(std::stoi(timestampStr));
+            return timestamp;
+        }
+    }
+
+    // Token is not found
+    return INVALID_TIMER_TIMESTAMP;
 }
 
 //*******************************************************************************************************************
@@ -929,6 +952,52 @@ TestResult testDottedNoteRelaxed() {
   return TestResult::Pass;
 }
 
+TestResult testPauseNotes() {
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=8,o=6,b=45:,a.,32p,2b.");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+  testTracesAppend("melody=`%s`\n", actual.c_str());
+
+  // assert note a. is found
+  sprintf(expected_string, "tone(pin,1760,999);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  uint16_t note1Timestamp = getToneTimestamp(expected_string, actual.c_str());
+
+  // assert note 2b. is found
+  sprintf(expected_string, "tone(pin,1976,3999);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  uint16_t note2Timestamp = getToneTimestamp(expected_string, actual.c_str());
+
+  // Assert only 2 notes
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ(2, count);
+
+  // Compute timestamp difference and add traces
+  uint16_t actualDiff = (note2Timestamp - note1Timestamp);
+  testTracesAppend("note1Timestamp=%d\n", note1Timestamp);
+  testTracesAppend("note2Timestamp=%d\n", note2Timestamp);
+  testTracesAppend("actualDiff=%d\n", actualDiff);
+
+  // Assert notes are delayed by a a. duration + 32p duration
+  static const uint16_t expected_diff = 1000 + 166;
+  static const uint16_t epsilon = 25;
+  ASSERT_NEAR(expected_diff, actualDiff, epsilon);
+
+  return TestResult::Pass;
+}
+
 TestResult testInvalidNoteAreIgnored() {
   
   #if defined(RTTTL_PARSER_STRICT)
@@ -1094,6 +1163,7 @@ void setup() {
   TEST(testControlSectionMissingControls);
   TEST(testDottedNoteNokia);
   TEST(testDottedNoteRelaxed);
+  TEST(testPauseNotes);
   TEST(testShortestMelody);
   TEST(testComplexNotes);
   TEST(testInvalidNoteAreIgnored);
