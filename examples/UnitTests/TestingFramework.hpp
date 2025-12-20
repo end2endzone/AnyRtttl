@@ -117,7 +117,7 @@ void RunTest(const char* testName, TestFunc func)
     testPrintv("%s  %s\n", ToUtf8Symbol(result), ToString(result));
 
     // Space failing tests by 1 line
-    testPrintFuncPtr("%s\n");
+    testPrintFuncPtr("\n");
   }
 }
 

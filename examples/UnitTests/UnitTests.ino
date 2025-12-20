@@ -31,6 +31,27 @@ const char * getMillisTimestamp() {
   return gTimestampBuffer;
 }
 
+// Count how many times the given token appears in the string str.
+size_t countTokens(const char * token, const char * str) {
+  if (!str || !token || *token == '\0' || *str == '\0') {
+    return 0;  // invalid input or empty token/str
+  }
+
+  size_t count = 0;
+  const char *pos = str;
+
+  pos = strstr(pos, token);
+  while (pos != NULL) {
+    count++;
+    pos += strlen(token);  // move past the position of the token
+
+    // search again
+    pos = strstr(pos, token);
+  }
+
+  return count;
+}
+
 //*******************************************************************************************************************
 //  The following replacement functions prints the function call & parameters to a custom buffer string.
 //*******************************************************************************************************************
@@ -80,7 +101,9 @@ unsigned long fakeMillis(void) {
   return output;
 }
 
-//-----------------------------------------------------------------------------
+//*******************************************************************************************************************
+//  Unit test functions
+//*******************************************************************************************************************
 
 TestResult testThisTestAlwaysPass() {
   return TestResult::Pass;
@@ -723,6 +746,50 @@ TestResult testShortestMelody() {
   return TestResult::Pass;
 }
 
+TestResult testComplexNotes() {
+
+  static const char * expected_notes[] = {
+    "tone(pin,1865,3808);", // 1a#
+    "tone(pin,3951,1904);", // 2b7
+    "tone(pin,1109,476);",  // 8c#6
+    "tone(pin,1245,357);",  // 16d#.
+    "tone(pin,2960,357);",  // 16f#.7
+  };
+  static const int expected_notes_count = sizeof(expected_notes)/sizeof(expected_notes[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=4,o=6,b=63:1a#,2b7,8c#6,16d#.,16f#.7");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+
+  // assert all notes are found
+  for(int i = 0; i < expected_notes_count; i++) {
+    // build expected string
+    const char * expected_note = expected_notes[i];
+    sprintf(expected_string, "tone(pin,1760,%d);", expected_note);
+
+    // assert this note is found in the output
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // Assert only all tones are found
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ((size_t)expected_notes_count, count);
+
+  return TestResult::Pass;
+}
+
 TestResult testControlSectionMissingControls() {
 
   static const size_t MELODY_BUFFER_SIZE = 256;
@@ -803,6 +870,65 @@ TestResult testControlSectionMissingControls() {
   return TestResult::Pass;
 }
 
+TestResult testDottedNoteNokia() {
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=4,o=6,b=63:32a.");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+
+  // assert note 32a. is found
+  sprintf(expected_string, "tone(pin,1760,178);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult testDottedNoteRelaxed() {
+  
+  // Testing an alternative format of dotted notes
+  // Official Nokia's format is [duration][note][.][octave].
+  // This alternative format is [duration][note][octave][.].
+
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody
+  sprintf(melody, ":d=4,o=6,b=63:32.a");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+
+  // assert note 32a. is found
+  sprintf(expected_string, "tone(pin,1760,178);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  
+  return TestResult::Pass;
+}
+
 TestResult testInvalidNoteAreIgnored() {
   
   #if defined(RTTTL_PARSER_STRICT)
@@ -833,6 +959,10 @@ TestResult testInvalidNoteAreIgnored() {
   // assert note 16b is found
   sprintf(expected_string, "tone(pin,1976,238);");
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // Assert only 2 notes
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ(2, count);
 
   return TestResult::Pass;
 }
@@ -961,8 +1091,11 @@ void setup() {
   TEST(testDurationsInvalid);
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
-  TEST(testShortestMelody);
   TEST(testControlSectionMissingControls);
+  TEST(testDottedNoteNokia);
+  TEST(testDottedNoteRelaxed);
+  TEST(testShortestMelody);
+  TEST(testComplexNotes);
   TEST(testInvalidNoteAreIgnored);
   TEST(testMelodyWithSpaces);
   TEST(testControlSectionAnyOrder);
