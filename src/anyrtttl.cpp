@@ -79,10 +79,22 @@ void serialPrint(rtttl_context_t & c)
  * Custom functions
  ****************************************************************************/
 
-ToneFuncPtr _tone = &tone;
-NoToneFuncPtr _noTone = &noTone;
-DelayFuncPtr _delay = &delay;
-MillisFuncPtr _millis = &millis;
+ #if defined(ANY_RTTTL_NO_DEFAULT_FUNCTIONS)
+  ToneFuncPtr _tone = NULL;
+  NoToneFuncPtr _noTone = NULL;
+  DelayFuncPtr _delay = NULL;
+  MillisFuncPtr _millis = NULL;
+#elif defined(ANY_RTTTL_DONT_USE_TONE_LIB)
+  ToneFuncPtr _tone = NULL;
+  NoToneFuncPtr _noTone = NULL;
+  DelayFuncPtr _delay = &delay;
+  MillisFuncPtr _millis = &millis;
+#else
+  ToneFuncPtr _tone = &tone;
+  NoToneFuncPtr _noTone = &noTone;
+  DelayFuncPtr _delay = &delay;
+  MillisFuncPtr _millis = &millis;
+#endif
 
 void setToneFunction(ToneFuncPtr iFunc) {
   _tone = iFunc;
