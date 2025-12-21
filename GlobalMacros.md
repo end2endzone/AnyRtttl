@@ -83,32 +83,14 @@ Using core 'esp32' from platform in folder: C:\Users\JohnDoe\AppData\Local\Ardui
 
 #### Windows
 - **Arduino AVR Core**  
-  Path:
-  ```
-  %LOCALAPPDATA%\Arduino15\packages\arduino\hardware\avr\<version>\
-  ```
-  Example:
-  ```
-  C:\Users\<YourUser>\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\
-  ```
+  Path: `%LOCALAPPDATA%\Arduino15\packages\arduino\hardware\avr\<version>\`  
+  Example: `C:\Users\<YourUser>\AppData\Local\Arduino15\packages\arduino\hardware\avr\1.8.6\`
 - **ESP8266**  
-  Path:
-  ```
-  %LOCALAPPDATA%\Arduino15\packages\esp8266\hardware\esp8266\<version>\
-  ```
-  Example:
-  ```
-  C:\Users\<YourUser>\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.1.2\
-  ```
+  Path: `%LOCALAPPDATA%\Arduino15\packages\esp8266\hardware\esp8266\<version>\`  
+  Example: `C:\Users\<YourUser>\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.1.2\`
 - **ESP32**  
-  Path:
-  ```
-  %LOCALAPPDATA%\Arduino15\packages\esp32\hardware\esp32\<version>\
-  ```
-  Example:
-  ```
-  C:\Users\<YourUser>\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.3.2\
-  ```
+  Path: `%LOCALAPPDATA%\Arduino15\packages\esp32\hardware\esp32\<version>\`  
+  Example: `C:\Users\<YourUser>\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.3.2\`
 
 
 
@@ -116,20 +98,11 @@ Using core 'esp32' from platform in folder: C:\Users\JohnDoe\AppData\Local\Ardui
 
 Preferences and packages live under your user Library.
 - **Arduino AVR Core**  
-  Path:
-  ```
-  ~/Library/Arduino15/packages/arduino/hardware/avr/<version>/
-  ```
+  Path: `~/Library/Arduino15/packages/arduino/hardware/avr/<version>/`
 - **ESP8266**  
-  Path:
-  ```
-  ~/Library/Arduino15/packages/esp8266/hardware/esp8266/<version>/
-  ```
+  Path: `~/Library/Arduino15/packages/esp8266/hardware/esp8266/<version>/`
 - **ESP32**  
-  Path:
-  ```
-  ~/Library/Arduino15/packages/esp32/hardware/esp32/<version>/
-  ```
+  Path: `~/Library/Arduino15/packages/esp32/hardware/esp32/<version>/`
 
 
 
@@ -137,20 +110,12 @@ Preferences and packages live under your user Library.
 
 Preferences and packages live under `~/.arduino15`.
 - **Arduino AVR Core**  
-  Path:
-  ```
-  ~/.arduino15/packages/arduino/hardware/avr/<version>/
-  ```
+  Path: `~/.arduino15/packages/arduino/hardware/avr/<version>/`
 - **ESP8266**  
-  Path:
-  ```
-  ~/.arduino15/packages/esp8266/hardware/esp8266/<version>/
-  ```
+  Path: `~/.arduino15/packages/esp8266/hardware/esp8266/<version>/`
 - **ESP32**  
-  Path:
-  ```
-  ~/.arduino15/packages/esp32/hardware/esp32/<version>/
-  ```
+  Path: `~/.arduino15/packages/esp32/hardware/esp32/<version>/`
+
 
 
 ### Visual Studio Code - with PlatformIO extension
