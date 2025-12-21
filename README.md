@@ -59,9 +59,49 @@ With AnyRtttl non-blocking mode, your program can read/write IOs pins while play
 
 ## External Tone or Timer #0 libraries ##
 
-The AnyRtttl library is also flexible by allowing you to use the build-in arduino `tone()` and `noTone()` functions or an implementation from any external library which makes it compatible with any Tone library in the market.
+
+### Custom delay() and millis() functions (timer0) ###
 
 The library also supports custom `delay()` and `millis()` functions. If a project requires modification to the microcontroller's build-in Timer #0, the `millis()` function may be impacted and behave incorrectly. To maximize compatibility, one can supply a custom function which behaves like the original to prevent altering playback.
+
+
+### Custom tone() and noTone() functions (timer2) ###
+
+The AnyRtttl library is also flexible by allowing you to use the build-in arduino `tone()` and `noTone()` functions or an implementation from any external library which makes it compatible with any Tone library in the market.
+
+> **Note:**  
+When using your own functions for implementing `tone()` and `noTone()`, it is recommended to also define macro `ANY_RTTTL_DONT_USE_TONE_LIB`.
+&nbsp;  
+&nbsp;  
+By default, AnyRtttl uses Arduino's built‑in `tone()` and `noTone()` functions. This automatically link your sketch with the tone library, which may lead to compilation or linking errors in situations where Timer2 is already used. To avoid this, you can define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB`.
+&nbsp;  
+&nbsp;  
+See [configuration](#Configuration) section for more details.
+
+### Example on Arduino Nano ##
+
+On the Arduino Nano, the [tone() function relies on Timer2](https://forum.arduino.cc/t/timers-used-by-nano/1103697/5). If Timer2 is already in use for another task, the built-in `tone()` and `noTone()` functions will conflict with it. In that case, you will need to create your own custom versions and configure AnyRtttl to use them.
+
+For example :
+```cpp
+#include <avr/interrupt.h>
+// ...
+ISR(TIMER2_COMPA_vect) { }
+
+// Define tone() and noTone() versions that relies on Timer1.
+void timer1_tone(uint8_t pin, unsigned int frequency, unsigned long duration) {
+  // ...
+}
+void timer1_no_tone(uint8_t pin) {
+  // ...
+}
+
+void setup()
+{
+	anyrtttl::setToneFunction(&timer1_tone);
+	anyrtttl::setNoToneFunction(&timer1_no_tone);
+}
+```
 
 
 
@@ -81,12 +121,24 @@ See [BinaryRTTTL.md](BinaryRTTTL.md) for a definition of this custom RTTTL forma
 
 The following instructions show how to use the library.
 
-Define `ANY_RTTTL_INFO` to enable the debugging of the library state on the serial port.
+
+## Configuration ##
+
+
+### Macros ###
 
 Use `ANY_RTTTL_VERSION` to get the current version of the library.
 
-Note, the specified macros must be defined before including `anyrtttl.h` in your sketches.
+Define `ANY_RTTTL_INFO` to enable the debugging of the library state on the serial port. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
 
+Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to prevent AnyRtttl to link with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link against the tone library. However, you must manually define these functions by calling `anyrtttl::setToneFunction()` and `anyrtttl::setNoToneFunction()` before playing any melody.
+
+
+> **Note:**  
+AnyRtttl is distributed with its own separate C++ source files (\*.cpp). A macro that is only defined at the start of your sketch does not propagate into the library's source files. As a result, AnyRtttl mostly remain unaffected by the sketch‑level macro definition.
+&nbsp;  
+&nbsp;  
+See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
 
 
 ## Non-blocking mode ##
