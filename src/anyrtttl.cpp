@@ -82,17 +82,14 @@ void serialPrint(rtttl_context_t & c)
  #if defined(ANY_RTTTL_NO_DEFAULT_FUNCTIONS)
   ToneFuncPtr _tone = NULL;
   NoToneFuncPtr _noTone = NULL;
-  DelayFuncPtr _delay = NULL;
   MillisFuncPtr _millis = NULL;
 #elif defined(ANY_RTTTL_DONT_USE_TONE_LIB)
   ToneFuncPtr _tone = NULL;
   NoToneFuncPtr _noTone = NULL;
-  DelayFuncPtr _delay = &delay;
   MillisFuncPtr _millis = &millis;
 #else
   ToneFuncPtr _tone = &tone;
   NoToneFuncPtr _noTone = &noTone;
-  DelayFuncPtr _delay = &delay;
   MillisFuncPtr _millis = &millis;
 #endif
 
@@ -102,10 +99,6 @@ void setToneFunction(ToneFuncPtr iFunc) {
 
 void setNoToneFunction(NoToneFuncPtr iFunc) {
   _noTone = iFunc;
-}
-
-void setDelayFunction(DelayFuncPtr iFunc) {
-  _delay = iFunc;
 }
 
 void setMillisFunction(MillisFuncPtr iFunc) {

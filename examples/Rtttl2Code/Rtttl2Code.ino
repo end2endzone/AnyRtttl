@@ -33,11 +33,6 @@ void serialNoTone(uint8_t pin) {
   Serial.println(");");
 }
 
-void serialDelay(unsigned long duration) {
-  Serial.print("delay(");
-  Serial.print(duration);
-  Serial.println(");");
-}
 
 void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
@@ -48,7 +43,6 @@ void setup() {
   //Use custom functions
   anyrtttl::setToneFunction(&serialTone);
   anyrtttl::setNoToneFunction(&serialNoTone);
-  anyrtttl::setDelayFunction(&serialDelay);
 }
 
 void loop() {
