@@ -158,6 +158,16 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   // init context
   initContext(c);
 
+  // Check uninitialized _tone(), _noTone() or _millis() function pointers.
+  if (_tone == NULL || _noTone == NULL || _millis == NULL) {
+    #ifdef ANY_RTTTL_DEBUG
+    Serial.println(F( "AnyRtttl initialization incomplete!\n"
+                      "No function defined for _tone(), _noTone() or _millis().\n"
+                      "Use anyrtttl::setToneFunction(), anyrtttl::setNoToneFunction() or anyrtttl::setMillisFunction() to assign custom functions."));
+    #endif
+    return;
+  }
+
   //init values
   c.pin = iPin;
   c.melodyDefaultDur = RTTTL_DEFAULT_DURATION_VALUE;
