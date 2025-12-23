@@ -54,8 +54,8 @@ Follow these instructions to create a `platform.local.txt` file for your board:
 1. Open a text editor (e.g., Notepad++, VS Code).
 2. Add your custom build flags. Example:
    ```
-   compiler.c.extra_flags=-DENABLE_GLOBAL_DEBUG -DMY_OTHER_MACRO=1 -DFOOBAR_LIBRARY_DEBUG
-   compiler.cpp.extra_flags=-DENABLE_GLOBAL_DEBUG -DMY_OTHER_MACRO=1 -DFOOBAR_LIBRARY_DEBUG
+   compiler.c.extra_flags=-DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB
+   compiler.cpp.extra_flags=-DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB
    ```
 3. Save the file as `platform.local.txt`. Ensure the extension is `.txt` and the file's EOL character uses unix LF, even on Windows.
 4. Place it in the correct folder for the board platform (see sections below).
@@ -64,7 +64,7 @@ Follow these instructions to create a `platform.local.txt` file for your board:
 > **Note**  
 > The Arduino IDE may need to be restarted after adding the file for the change to take effect.
 
-The example above defines `ENABLE_GLOBAL_DEBUG`, `MY_OTHER_MACRO` and `FOOBAR_LIBRARY_DEBUG` global macros that will affect your sketch **and** all libraries built with the selected core.
+The example above defines `ANY_RTTTL_DEBUG` and `ANY_RTTTL_DONT_USE_TONE_LIB` as global macros that will affect your sketch **and** all libraries built with the selected core.
 
 To confirm you are in the right folder:
 
@@ -139,53 +139,16 @@ PlatformIO does not use `platform.local.txt`. Instead, define global macros and 
 4. Define your macro:  
    Use the `-D` flag followed immediately by your *macro name* and *optional value*.
 
-#### Examples
+#### Example
 
-* To define a macros for all environments:
+* To define macros for `test_anyrtttl_custom_tone` environment:
 ```ini
-[env]
+[env:test_anyrtttl_debug_and_custom_tone]
 ; ... other options ...
-build_flags = 
-  -DENABLE_GLOBAL_DEBUG -DMY_OTHER_MACRO=1 -DFOOBAR_LIBRARY_DEBUG
-```
-
-In your source code, you can check for this macro using `#ifdef ENABLE_GLOBAL_DEBUG`.
-
-* To define a macro with a numeric value (e.g., `BAUD` with value `115200`):
-```ini
-[env]
-; ... other options ...
-build_flags = 
-  -DBAUD=115200
-```
-
-In your source code, you can use it directly, for example `Serial.begin(BAUD);`.
-
-* To define a macro with a string value, you must wrap the value in escaped double quotes \" within single quotes to prevent shell evaluation.
-```ini
-[env]
-; ... other options ...
-build_flags = 
-  '-DDEVICE_NAME="MyDevice"'
-```
-
-In your C/C++ code, this will be treated as the string `"MyDevice"`.
-
-If you prefer to keep flags separated from `platformio.ini`, use an **extra script**:
-
-```ini
-; platformio.ini
-extra_scripts = pre:extra_flags.py
-```
-
-```python
-# extra_flags.py
-Import("env")
-# Append macros/flags globally (affects all sources and libraries in the env)
-env.Append(
-    CCFLAGS=["-DENABLE_GLOBAL_DEBUG"],
-    CXXFLAGS=["-DENABLE_GLOBAL_DEBUG"],
-)
+build_flags =
+    -DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB
+lib_deps =
+    https://github.com/end2endzone/AnyRtttl.git  
 ```
 
 > **Effect on libraries**  
@@ -210,8 +173,8 @@ To provide per-project macros *without* using `platform.local.txt`, you can also
 
 ```bash
 arduino-cli compile -b esp32:esp32:esp32dev \
-  --build-property compiler.c.extra_flags="-DENABLE_GLOBAL_DEBUG -DMY_OTHER_MACRO=1 -DFOOBAR_LIBRARY_DEBUG" \
-  --build-property compiler.cpp.extra_flags="-DENABLE_GLOBAL_DEBUG -DMY_OTHER_MACRO=1 -DFOOBAR_LIBRARY_DEBUG" \
+  --build-property compiler.c.extra_flags="-DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB" \
+  --build-property compiler.cpp.extra_flags="-DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB" \
   /path/to/your/sketch
 ```
 

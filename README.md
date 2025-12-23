@@ -129,10 +129,14 @@ The following instructions show how to use the library.
 
 Use `ANY_RTTTL_VERSION` to get the current version of the library.
 
-Define `ANY_RTTTL_INFO` to enable the debugging of the library state on the serial port. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
+Define `ANY_RTTTL_INFO` to activate library state debugging via the serial port.  
+Define `ANY_RTTTL_DEBUG` to enable more detailed, advanced debugging of the library. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
 
-Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to prevent AnyRtttl to link with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link against the tone library. However, you must manually define these functions by calling `anyrtttl::setToneFunction()` and `anyrtttl::setNoToneFunction()` before playing any melody.
+Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to disable linking with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link or depend on the tone library.
 
+Define the global macro `ANY_RTTTL_NO_DEFAULT_FUNCTIONS` to disable all default function assignments. In this mode, AnyRtttl will not provide default implementations for its internal function pointers.
+
+If you use either `ANY_RTTTL_DONT_USE_TONE_LIB` or `ANY_RTTTL_NO_DEFAULT_FUNCTIONS`, you must manually configure AnyRtttl at runtime by calling `anyrtttl::setToneFunction()`, `anyrtttl::setNoToneFunction()` or `anyrtttl::setMillisFunction()` before attempting to play a melody.
 
 > **Note:**  
 AnyRtttl is distributed with its own separate C++ source files (\*.cpp). A macro that is only defined at the start of your sketch does not propagate into the library's source files. As a result, AnyRtttl mostly remain unaffected by the sketch‑level macro definition.
