@@ -800,7 +800,7 @@ TestResult testComplexNotes() {
   for(int i = 0; i < expected_notes_count; i++) {
     // build expected string
     const char * expected_note = expected_notes[i];
-    sprintf(expected_string, "tone(pin,1760,%d);", expected_note);
+    sprintf(expected_string, "%s", expected_note);
 
     // assert this note is found in the output
     ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
@@ -1051,7 +1051,7 @@ TestResult testMelodyWithSpaces() {
   resetMelodyBuffer();
 
   // build the melody
-  sprintf(melody, ":d=4,o=6,b=63:2a , 4b,8 c, 16 d ");
+  sprintf(melody, ":d=4,o=6,b=63:2a , 4b,8 c, 16 d , 32 a . , 2 a # 4 , 8 f # . 4 ");
 
   // play
   anyrtttl::blocking::play(BUZZER_PIN, melody);
@@ -1068,11 +1068,23 @@ TestResult testMelodyWithSpaces() {
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
 
   // assert note 8c is found
-  sprintf(expected_string, "tone(pin,1047,952);");
+  sprintf(expected_string, "tone(pin,1047,476);");
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
 
   // assert note 16d is found
-  sprintf(expected_string, "tone(pin,1175,952);");
+  sprintf(expected_string, "tone(pin,1175,238);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 32a. is found
+  sprintf(expected_string, "tone(pin,1760,178);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 2a#4 is found
+  sprintf(expected_string, "tone(pin,466,1904);");
+  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  // assert note 8f#.4 is found
+  sprintf(expected_string, "tone(pin,370,714);");
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
 
   return TestResult::Pass;

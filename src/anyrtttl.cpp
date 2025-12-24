@@ -43,6 +43,13 @@ inline char readChar(rtttl_context_t & c)
   return character;
 }
 
+inline void skipWhiteSpace(rtttl_context_t & c)
+{
+    while(peekChar(c) == ' ')
+      c.next++; // ignore white space
+}
+
+
 int readInteger(rtttl_context_t & c)
 {
   int value = 0;
@@ -276,12 +283,12 @@ void nextNote(rtttl_context_t & c)
   c.scale = c.melodyDefaultOct; // default scale, if unspecified
   c.noteOffset = 0; // default note is a pause/silence note, if unspecified
 
-  // get note duration, if available
-  number = readInteger(c);
-  if(isValidDuration((duration_value_t)number))
-    c.duration = c.wholeNote / number;
-
   #if defined(RTTTL_PARSER_STRICT)
+    // get note duration, if available
+    number = readInteger(c);
+    if(isValidDuration((duration_value_t)number))
+      c.duration = c.wholeNote / number;
+
     // now get the note
     c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
     c.next++;                           // skip note letter
@@ -314,6 +321,13 @@ void nextNote(rtttl_context_t & c)
     if(peekChar(c) == ',')
       c.next++;                         // skip comma for next note (or we may be at the end)
   #elif defined(RTTTL_PARSER_RELAXED)
+    skipWhiteSpace(c);
+
+    // get note duration, if available
+    number = readInteger(c);
+    if(isValidDuration((duration_value_t)number))
+      c.duration = c.wholeNote / number;
+    
     // Parse note characters 1 by 1, until note separator or end of buffer
     while (peekChar(c) != '\0') {
       char character = readChar(c);
