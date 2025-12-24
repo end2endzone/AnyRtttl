@@ -28,27 +28,33 @@ static const byte NOTES_PER_OCTAVE = 12;
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
 
-#define isDigitInlined(n) (n >= '0' && n <= '9')
+inline __attribute__((always_inline)) bool isDigitCharacter(char c) {
+  return (c >= '0' && c <= '9');
+}
 
-inline char peekChar(rtttl_context_t & c)
+inline __attribute__((always_inline)) char peekChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   return character;
 }
 
-inline char readChar(rtttl_context_t & c)
+inline __attribute__((always_inline)) char readChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   c.next++;
   return character;
 }
 
-inline void skipWhiteSpace(rtttl_context_t & c)
+inline __attribute__((always_inline)) void skipCharacters(rtttl_context_t & c, char character)
 {
-    while(peekChar(c) == ' ')
+    while(peekChar(c) == character)
       c.next++; // ignore white space
 }
 
+inline __attribute__((always_inline)) void skipWhiteSpace(rtttl_context_t & c)
+{
+  skipCharacters(c, ' ');
+}
 
 int readInteger(rtttl_context_t & c)
 {
@@ -56,7 +62,7 @@ int readInteger(rtttl_context_t & c)
 
   // read first character
   char character = peekChar(c); // peek only at the next character
-  while(isDigitInlined(character))
+  while(isDigitCharacter(character))
   {
     character = readChar(c); // actually move the read offset
     value = (value * 10) + (character - '0');
