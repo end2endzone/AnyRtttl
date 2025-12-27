@@ -144,12 +144,16 @@ PlatformIO does not use `platform.local.txt`. Instead, define global macros and 
 * To define macros for `test_anyrtttl_custom_tone` environment:
 ```ini
 [env:test_anyrtttl_debug_and_custom_tone]
-; ... other options ...
+platform = atmelavr
+framework = arduino
+board = uno
 build_flags =
-    -DANY_RTTTL_DEBUG -DANY_RTTTL_DONT_USE_TONE_LIB
+    -DANY_RTTTL_DEBUG
+    -DANY_RTTTL_DONT_USE_TONE_LIB
 lib_deps =
-    https://github.com/end2endzone/AnyRtttl.git  
+    https://github.com/end2endzone/AnyRtttl.git
 ```
+
 
 > **Effect on libraries**  
 In PlatformIO, macros supplied via `build_flags` or `env.Append` are passed to the compiler for **all** translation units, including libraries, mirroring the global behavior you get with Arduino's `platform.local.txt`.
