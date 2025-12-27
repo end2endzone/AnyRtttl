@@ -1036,7 +1036,7 @@ TestResult testInvalidNoteAreIgnored() {
   return TestResult::Pass;
 }
 
-TestResult testMelodyWithSpaces() {
+TestResult testSpacesInMelody() {
   
   #if defined(RTTTL_PARSER_STRICT)
   // Not supported in STRICT parsing mode.
@@ -1086,6 +1086,56 @@ TestResult testMelodyWithSpaces() {
   // assert note 8f#.4 is found
   sprintf(expected_string, "tone(pin,370,714);");
   ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+
+  return TestResult::Pass;
+}
+
+TestResult testSpacesInControlSection() {
+  
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
+  static const char * test_inputs[] = {
+    "d=4,o=6,b=63",
+    " d=4 ,o=6,b=63",
+    "d=4, o=6 ,b=63",
+    "d=4,o=6, b=63 ",
+    "  d=4  ,  o=6  ,  b=63  ",
+  };
+  static const int test_inputs_count = sizeof(test_inputs)/sizeof(test_inputs[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  // for each test inputs
+  for(int i = 0; i < test_inputs_count; i++) {
+    const char * test_input = test_inputs[i];
+
+    resetFakeTimer();
+    resetMelodyBuffer();
+
+    testTracesAppend("i=%d", i);
+
+    // build the melody
+    sprintf(melody, ":%s:a", test_input);
+    testTracesAppend("melody=`%s`\n", melody);
+
+    // play
+    anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+    // get the melody calls with timestamps
+    std::string actual = gMelodyOutput;
+
+    // build expected string
+    static const char * expected_note = "tone(pin,1760,952);";
+    sprintf(expected_string, "%s", expected_note);
+
+    // assert this note is found in the output
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
 
   return TestResult::Pass;
 }
@@ -1179,7 +1229,8 @@ void setup() {
   TEST(testShortestMelody);
   TEST(testComplexNotes);
   TEST(testInvalidNoteAreIgnored);
-  TEST(testMelodyWithSpaces);
+  TEST(testSpacesInMelody);
+  TEST(testSpacesInControlSection);
   TEST(testControlSectionAnyOrder);
 
   //TEST(testTetrisRamBlocking);
