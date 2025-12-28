@@ -19,6 +19,9 @@ unsigned long gFakeMillisTimerJumpSize = 0;
 std::string gMelodyOutput; // a global buffer to hold the rtttl commands output when calling functions such as tone(), noTone(), etc.
 static const unsigned long INVALID_TIMER_TIMESTAMP = (unsigned long)-1;
 
+static const char * DEFAULT_CONTROL_SECTION = "d=4,o=6,b=63";
+static const char * CUSTOM_CONTROL_SECTION = "d=16,o=5,b=160";
+
 void resetFakeTimer() {
   gFakeMillisTimer = 0;
 }
@@ -1098,11 +1101,11 @@ TestResult testSpacesInControlSection() {
   #endif // RTTTL_PARSER_STRICT
 
   static const char * test_inputs[] = {
-    "d=4,o=6,b=63",
-    " d=4 ,o=6,b=63",
-    "d=4, o=6 ,b=63",
-    "d=4,o=6, b=63 ",
-    "  d=4  ,  o=6  ,  b=63  ",
+    "d=16,o=5,b=160",
+    " d=16 ,o=5,b=160",
+    "d=16, o=5 ,b=160",
+    "d=16,o=5, b=160 ",
+    "  d=16  ,  o=5  ,  b=160  ",
   };
   static const int test_inputs_count = sizeof(test_inputs)/sizeof(test_inputs[0]);
 
@@ -1130,7 +1133,7 @@ TestResult testSpacesInControlSection() {
     std::string actual = gMelodyOutput;
 
     // build expected string
-    static const char * expected_note = "tone(pin,1760,952);";
+    static const char * expected_note = "tone(pin,880,93);";
     sprintf(expected_string, "%s", expected_note);
 
     // assert this note is found in the output
@@ -1197,6 +1200,74 @@ TestResult testControlSectionAnyOrder() {
   return TestResult::Pass;
 }
 
+TestResult testUpperCaseControlSectionAndMelody() {
+  
+  #if defined(RTTTL_PARSER_STRICT)
+  // Not supported in STRICT parsing mode.
+  return TestResult::Skip;
+  #endif // RTTTL_PARSER_STRICT
+
+  static const char * expected_notes[] = {
+    "tone(pin,880,93);", // A
+    // P
+    "tone(pin,494,750);", // 2B4
+    "tone(pin,523,375);", // 4C5
+    "tone(pin,1175,93);", // 16D6
+    "tone(pin,2637,46);", // 32E7
+    "tone(pin,698,93);",  // F
+    "tone(pin,784,750);", // 2G
+  };
+  static const int expected_notes_count = sizeof(expected_notes)/sizeof(expected_notes[0]);
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetFakeTimer();
+  resetMelodyBuffer();
+
+  // build the melody (custom control section to validate proper parsing)
+  sprintf(melody, ":D=16,O=5,B=160:A,P,2B4,4C5,16D6,32E7,F,2G");
+
+  // play
+  anyrtttl::blocking::play(BUZZER_PIN, melody);
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+  testTracesAppend("actual=`%s`\n", actual.c_str());
+
+  // assert all notes are found
+  for(int i = 0; i < expected_notes_count; i++) {
+    // build expected string
+    const char * expected_note = expected_notes[i];
+    sprintf(expected_string, "%s", expected_note);
+
+    // assert this note is found in the output
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // Assert only all tones are found
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ((size_t)expected_notes_count, count);
+
+  uint16_t note0Timestamp = getToneTimestamp(expected_notes[0], actual.c_str());
+  uint16_t note1Timestamp = getToneTimestamp(expected_notes[1], actual.c_str());
+
+  // Compute timestamp difference and add traces
+  uint16_t actualDiff = (note1Timestamp - note0Timestamp);
+  testTracesAppend("note0Timestamp=%d\n", note0Timestamp);
+  testTracesAppend("note1Timestamp=%d\n", note1Timestamp);
+  testTracesAppend("actualDiff=%d\n", actualDiff);
+
+  // Assert pause duration for 'A,P,2B4'.
+  // Assert pause duration is duration of 'A' + 'P' --> 93 + 93
+  static const uint16_t expected_diff = 93 + 93;
+  static const uint16_t epsilon = 10;
+  ASSERT_NEAR(expected_diff, actualDiff, epsilon);
+
+  return TestResult::Pass;
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number.
@@ -1232,6 +1303,7 @@ void setup() {
   TEST(testSpacesInMelody);
   TEST(testSpacesInControlSection);
   TEST(testControlSectionAnyOrder);
+  TEST(testUpperCaseControlSectionAndMelody);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);

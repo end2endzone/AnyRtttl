@@ -32,6 +32,10 @@ inline __attribute__((always_inline)) bool isDigitCharacter(char c) {
   return (c >= '0' && c <= '9');
 }
 
+inline __attribute__((always_inline)) bool isUpperCaseCharacter(char c) {
+  return (c >= 'A' && c <= 'Z');
+}
+
 inline __attribute__((always_inline)) char peekChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
@@ -42,6 +46,18 @@ inline __attribute__((always_inline)) char readChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   c.next++;
+  return character;
+}
+
+inline __attribute__((always_inline)) char readLowerCaseChar(rtttl_context_t & c)
+{
+  char character = readChar(c);
+
+  // Support uppercase characters in melody
+  if (isUpperCaseCharacter(character)) {
+    character = (character - 'A' + 'a');
+  }
+
   return character;
 }
 
@@ -224,7 +240,8 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
       c.next++;                         // skip colon
     }
   #elif defined(RTTTL_PARSER_RELAXED)
-    char character = readChar(c);
+    char character = readLowerCaseChar(c);
+
     while(character != ':') { // read until the end of control section.
       switch(character) {
         case 'd': {
@@ -259,7 +276,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
       }
 
       // read next
-      character = readChar(c);
+      character = readLowerCaseChar(c);
     }
   #endif // RTTTL_PARSER_STRICT / RTTTL_PARSER_RELAXED
 
@@ -336,7 +353,7 @@ void nextNote(rtttl_context_t & c)
     
     // Parse note characters 1 by 1, until note separator or end of buffer
     while (peekChar(c) != '\0') {
-      char character = readChar(c);
+      char character = readLowerCaseChar(c);
 
       if(character == '#')
       {

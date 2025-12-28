@@ -1,7 +1,3 @@
-* Unit tests:
-  * Melody with spaces between notes and in middle of notes.
-  * Pause/silent notes (multiple)
-  * Support uppercase notes ?
 * README
   * Check documentation about MODE in "feature" section.
   * Add a section in README to talk about STRICT vs RELAXED parsing mode/rules.
