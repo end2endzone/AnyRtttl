@@ -156,7 +156,7 @@ void loop() {
 
 Use `ANY_RTTTL_VERSION` to get the current version of the library.
 
-Define `ANY_RTTTL_INFO` to activate library state debugging via the serial port.  
+Define `ANY_RTTTL_INFO` to enable library state debugging via the serial port.
 Define `ANY_RTTTL_DEBUG` to enable more detailed, advanced debugging of the library. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
 
 Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to disable linking with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link or depend on the tone library.
@@ -200,9 +200,6 @@ Use macro `RTTTL_PARSER_RELAXED` to configure the library in relazed parsing mod
 * Supports RTTTL note duration of 64 or 128.
 * Supports for uppercase note characters.
 * Supports each control in the control section (d, o and b) to be specified in any order.
-
-
-
 
 
 
@@ -257,9 +254,6 @@ void loop() {
   }
 }
 ```
-
-
-
 
 
 
