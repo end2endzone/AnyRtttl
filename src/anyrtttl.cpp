@@ -79,10 +79,19 @@ void serialPrint(rtttl_context_t & c)
  * Custom functions
  ****************************************************************************/
 
-ToneFuncPtr _tone = &tone;
-NoToneFuncPtr _noTone = &noTone;
-DelayFuncPtr _delay = &delay;
-MillisFuncPtr _millis = &millis;
+ #if defined(ANY_RTTTL_NO_DEFAULT_FUNCTIONS)
+  ToneFuncPtr _tone = NULL;
+  NoToneFuncPtr _noTone = NULL;
+  MillisFuncPtr _millis = NULL;
+#elif defined(ANY_RTTTL_DONT_USE_TONE_LIB)
+  ToneFuncPtr _tone = NULL;
+  NoToneFuncPtr _noTone = NULL;
+  MillisFuncPtr _millis = &millis;
+#else
+  ToneFuncPtr _tone = &tone;
+  NoToneFuncPtr _noTone = &noTone;
+  MillisFuncPtr _millis = &millis;
+#endif
 
 void setToneFunction(ToneFuncPtr iFunc) {
   _tone = iFunc;
@@ -90,10 +99,6 @@ void setToneFunction(ToneFuncPtr iFunc) {
 
 void setNoToneFunction(NoToneFuncPtr iFunc) {
   _noTone = iFunc;
-}
-
-void setDelayFunction(DelayFuncPtr iFunc) {
-  _delay = iFunc;
 }
 
 void setMillisFunction(MillisFuncPtr iFunc) {
@@ -128,7 +133,7 @@ void play(rtttl_context_t & c, byte iPin, const char* iBuffer, GetCharFuncPtr iG
   while( !anyrtttl::nonblocking::done(c) ) 
   {
     anyrtttl::nonblocking::play(c);
-    delay(1); // prevent watchdog to reset the board.
+    yield(); // prevent watchdog to reset the board.
   }
 }
 
@@ -150,6 +155,16 @@ void nextNote(rtttl_context_t & c);
 
 void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr iGetCharFuncPtr)
 {
+  // Check uninitialized _tone(), _noTone() or _millis() function pointers.
+  if (_tone == NULL || _noTone == NULL || _millis == NULL) {
+    #ifdef ANY_RTTTL_DEBUG
+    Serial.println(F( "AnyRtttl initialization incomplete!\n"
+                      "No function defined for _tone(), _noTone() or _millis().\n"
+                      "Use anyrtttl::setToneFunction(), anyrtttl::setNoToneFunction() or anyrtttl::setMillisFunction() to assign custom functions."));
+    #endif
+    return;
+  }
+
   // init context
   initContext(c);
 
@@ -172,7 +187,7 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   #endif
 
   //stop current note
-  noTone(c.pin);
+  _noTone(c.pin);
 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
@@ -307,6 +322,16 @@ void nextNote(rtttl_context_t & c)
 
 void play(rtttl_context_t & c)
 {
+  // Check uninitialized _tone(), _noTone() or _millis() function pointers.
+  if (_tone == NULL || _noTone == NULL || _millis == NULL) {
+    #ifdef ANY_RTTTL_DEBUG
+    Serial.println(F( "AnyRtttl initialization incomplete!\n"
+                      "No function defined for _tone(), _noTone() or _millis().\n"
+                      "Use anyrtttl::setToneFunction(), anyrtttl::setNoToneFunction() or anyrtttl::setMillisFunction() to assign custom functions."));
+    #endif
+    return;
+  }
+
   //if done playing the song, return
   if (!c.playing)
   {
@@ -359,6 +384,16 @@ void play(rtttl_context_t & c)
 
 void stop(rtttl_context_t & c)
 {
+  // Check uninitialized _tone(), _noTone() or _millis() function pointers.
+  if (_tone == NULL || _noTone == NULL || _millis == NULL) {
+    #ifdef ANY_RTTTL_DEBUG
+    Serial.println(F( "AnyRtttl initialization incomplete!\n"
+                      "No function defined for _tone(), _noTone() or _millis().\n"
+                      "Use anyrtttl::setToneFunction(), anyrtttl::setNoToneFunction() or anyrtttl::setMillisFunction() to assign custom functions."));
+    #endif
+    return;
+  }
+
   if (c.playing)
   {
     //increase song buffer until the end
