@@ -187,6 +187,7 @@ Use macro `RTTTL_PARSER_STRICT` to configure the library in strict parsing mode.
 * May fail with invalid syntax or unsupported constructs.
 * Has no error handling.
 * Parsing errors may result in potential crashes.
+* Supports names longer than the 10 character limit.
 
 
 
@@ -194,11 +195,14 @@ Use macro `RTTTL_PARSER_STRICT` to configure the library in strict parsing mode.
 
 Relaxed mode prioritizes robustness and usability. The parser attempts to interpret and recover from minor issues instead of failing.
 
-Use macro `RTTTL_PARSER_RELAXED` to configure the library in relazed parsing mode. This mode is also the default mode when `RTTTL_PARSER_STRICT` and `RTTTL_PARSER_RELAXED` are not specified.
+Use macro `RTTTL_PARSER_RELAXED` to configure the library in relaxed parsing mode. This mode is also the default mode when `RTTTL_PARSER_STRICT` and `RTTTL_PARSER_RELAXED` are not specified.
 
 * Relaxed is more resilient to invalid characters or parsing errors.
+* Supports names longer than the 10 character limit.
 * Supports RTTTL note duration of 64 or 128.
-* Supports for uppercase note characters.
+* Supports any BPM values between 10 and 2000.
+* Supports RTTTL melodies with uppercase characters.
+* Supports RTTTL melodies with spaces.
 * Supports each control in the control section (d, o and b) to be specified in any order.
 
 
@@ -435,9 +439,9 @@ More AnyRtttl examples are also available:
 
 
 
-# RTTTL #
+# RTTTL Format #
 
-## Format specification ##
+## Nokia's original specification ##
 
 This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs\nokia_rtttl.txt)).
 
