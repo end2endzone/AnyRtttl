@@ -71,7 +71,7 @@ The [Play16bits example](examples\Play16Bits\Play16Bits.ino) shows how to use th
 #if defined(ESP32)
 #define BUZZER_PIN 25 // Using GPIO25 (pin labeled D25)
 #elif defined(ESP8266)
-#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D2)
+#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D4)
 #else // base arduino models
 #define BUZZER_PIN 9
 #endif
@@ -331,7 +331,7 @@ The [Play10bits example](examples\Play10Bits\Play10Bits.ino) shows how to use th
 #if defined(ESP32)
 #define BUZZER_PIN 25 // Using GPIO25 (pin labeled D25)
 #elif defined(ESP8266)
-#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D2)
+#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D4)
 #else // base arduino models
 #define BUZZER_PIN 9
 #endif

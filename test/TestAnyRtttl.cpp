@@ -285,7 +285,6 @@ namespace arduino { namespace test
   //--------------------------------------------------------------------------------------------------
   static int toneCounts = 0;
   static int noToneCounts = 0;
-  static int delayCounts = 0;
   void myToneFunc(uint8_t pin, unsigned int frequency, unsigned long duration)
   {
     toneCounts++;
@@ -294,10 +293,7 @@ namespace arduino { namespace test
   {
     noToneCounts++;
   }
-  void myDelayFunc(unsigned long duration)
-  {
-    delayCounts++;
-  }
+
 
   TEST_F(TestAnyRtttl, testCustomFunctionsPlay)
   {
@@ -307,12 +303,10 @@ namespace arduino { namespace test
 
     toneCounts = 0;
     noToneCounts = 0;
-    delayCounts = 0;
 
     //use test's custom functions
     anyrtttl::setToneFunction(&myToneFunc);
     anyrtttl::setNoToneFunction(&myNoToneFunc);
-    anyrtttl::setDelayFunction(&myDelayFunc);
 
     //play the actual content
     anyrtttl::blocking::play(PIEZO_PIN, tetris);
@@ -320,12 +314,10 @@ namespace arduino { namespace test
     //back to native arduino functions
     anyrtttl::setToneFunction(&tone);
     anyrtttl::setNoToneFunction(&noTone);
-    anyrtttl::setDelayFunction(&delay);
 
     //assert
     ASSERT_GT( toneCounts  , 0 );
     ASSERT_GT( noToneCounts, 0 );
-    ASSERT_GT( delayCounts , 0 );
   }
   //--------------------------------------------------------------------------------------------------
 } // End namespace test

@@ -7,6 +7,7 @@ Changes for 2.5.0
 * Fixed issue #23 - Reduce library footprint.
 * Fixed issue #24 - Clarify default pin for RTTTL for all supported boards.
 * Fixed issue #30 - Documentation and code cleanup.
+* Fixed issue #35 - Remove Arduino's tone() and noTone() from 'anyrtttl.cpp' to really support custom callbacks.
 
 
 Changes for 2.4.0

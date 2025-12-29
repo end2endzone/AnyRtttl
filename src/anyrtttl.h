@@ -8,7 +8,7 @@
 #ifndef ANY_RTTTL_H
 #define ANY_RTTTL_H
 
-#define ANY_RTTTL_VERSION 2.4
+#define ANY_RTTTL_VERSION 2.5
 
 #include "Arduino.h"
 #include "rtttl_utils.h"
@@ -81,16 +81,6 @@ typedef void (*NoToneFuncPtr)(uint8_t pin);
 
 /****************************************************************************
  * Description:
- *   Defines a function pointer to a delay() function
- ****************************************************************************/
-#if defined(ESP32)
-typedef void (*DelayFuncPtr)(uint32_t);
-#else
-typedef void (*DelayFuncPtr)(unsigned long);
-#endif
-
-/****************************************************************************
- * Description:
  *   Defines a function pointer to a millis() function
  ****************************************************************************/
 typedef unsigned long (*MillisFuncPtr)(void);
@@ -110,14 +100,6 @@ void setToneFunction(ToneFuncPtr iFunc);
  *   iFunc: Pointer to a noTone() replacement function.
  ****************************************************************************/
 void setNoToneFunction(NoToneFuncPtr iFunc);
-
-/****************************************************************************
- * Description:
- *   Defines the delay() function used by AnyRtttl.
- * Parameters:
- *   iFunc: Pointer to a delay() replacement function.
- ****************************************************************************/
-void setDelayFunction(DelayFuncPtr iFunc);
 
 /****************************************************************************
  * Description:
