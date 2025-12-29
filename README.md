@@ -204,6 +204,7 @@ Use macro `RTTTL_PARSER_RELAXED` to configure the library in relaxed parsing mod
 * Supports RTTTL melodies with uppercase characters.
 * Supports RTTTL melodies with spaces.
 * Supports each control in the control section (d, o and b) to be specified in any order.
+* Supports dotted notes in format `<duration><note><octave><.>` (Nokia's specification) or the alternate format `<duration><note><.><octave>` (Nokia's Simpsons example).
 
 
 
@@ -448,6 +449,7 @@ This library implements the [original Nokia Phone specification](http://merwin.b
 This format is specified as the following:  
 `<name>:<control-section>:<tone-commands>,<tone-commands>...`
 
+
 ### Control Section: ###
 
 The control section is optional.
@@ -457,11 +459,12 @@ It defines the following parameters for the melody:
 * `o=<value>` : Default octave of a note if unspecified.
 * `b=<value>` : Beats per minutes of a quarter note
 
+
 ### Tone commands: ###
 
 Tones can be represented in the following format:
 
-`<duration><note><octave><.>` where :
+`[<duration>] <note> [<scale>] [.] <delimiter>` where :
 
 * `duration` is the duration divider of full note duration, eg. 4 represents a quarter note.
 * `note` is the note name (one of `p`,`c`,`c#`,`d`,`d#`,`e`,`f`,`f#`,`g`,`g#`,`a`,`a#`,`b`). The note `p` is a special note that represents a pause, a silent note in the melody.
@@ -470,7 +473,15 @@ Tones can be represented in the following format:
 
 The duration, octave and dot are optional.
 
+
+## Nokia's ambiguity with dotted notes (Simpsons example) ##
+
+The original Nokia RTTTL specification defines the note format as `[<duration>] <note> [<scale>] [<special-duration>] <delimiter>`, which implies that the dot should appear after the optional `<scale>` character.
+
+However, the official example of the _Simpsons_ ringtone included in the specification, place the dot before the scale character (e.g., `g.6` instead of `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
+
 Example: `Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g`.
+
 
 ## Other specifications: ##
 
