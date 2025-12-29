@@ -4,6 +4,7 @@
 //  The code & updates for the library can be found at https://github.com/end2endzone/AnyRtttl
 //  MIT License: http://www.opensource.org/licenses/mit-license.php
 // ---------------------------------------------------------------------------
+
 #include "Arduino.h"
 #include "anyrtttl.h"
 
@@ -338,7 +339,7 @@ void nextNote(rtttl_context_t & c)
       c.next++;                         // skip '#'
     }
 
-    // now, get optional '.' dotted note
+    // now, get optional '.' dotted note (Nokia's Simpsons example)
     if(peekChar(c) == '.')
     {
       c.duration += c.duration/2;
@@ -354,6 +355,13 @@ void nextNote(rtttl_context_t & c)
     else
     {
       c.scale = c.melodyDefaultOct;
+    }
+
+    // now, get optional '.' dotted note (Nokia's original specification)
+    if(peekChar(c) == '.')
+    {
+      c.duration += c.duration/2;
+      c.next++;                         // skip '.'
     }
 
     if(peekChar(c) == ',')

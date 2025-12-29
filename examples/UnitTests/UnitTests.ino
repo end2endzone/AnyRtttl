@@ -11,7 +11,8 @@
 #define BUZZER_PIN 0 // Using a fake pin number
 
 //project's constants & variables
-const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+static const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+static const char * simpsons = "Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g";
 unsigned long gFakeMillisTimer = 0; // a fake milliseconds timer. Requied to speed up notes
 bool gInsertTimestampsInLogs = true;
 bool gOptimizeFameMillisTimerInToneCalls = true;
@@ -99,13 +100,6 @@ void logNoTone(uint8_t pin) {
     log(gMelodyOutput, "%s", getMillisTimestamp());
     
   log(gMelodyOutput, "noTone(pin);\n");
-}
-
-void logDelay(unsigned long duration) {
-  if (gInsertTimestampsInLogs)
-    log(gMelodyOutput, "%s", getMillisTimestamp());
-  
-  log(gMelodyOutput, "delay(%d);\n", duration);
 }
 
 unsigned long fakeMillis(void) {
@@ -896,7 +890,7 @@ TestResult testControlSectionMissingControls() {
   return TestResult::Pass;
 }
 
-TestResult testDottedNoteNokia() {
+TestResult testDottedNoteNokiaSpecification() {
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
@@ -921,16 +915,28 @@ TestResult testDottedNoteNokia() {
   return TestResult::Pass;
 }
 
-TestResult testDottedNoteRelaxed() {
+TestResult testDottedNoteNokiaSimpsonsExample() {
   
-  // Testing an alternative format of dotted notes
-  // Official Nokia's format is [duration][note][.][octave].
-  // This alternative format is [duration][note][octave][.].
+  // Testing an alternative format of dotted notes:
+  // Official Nokia's format is `[duration][note][.][octave]`.
+  // This alternative format is `[duration][note][octave][.]`, matching Nokia's Simpsons example.
 
-  #if defined(RTTTL_PARSER_STRICT)
-  // Not supported in STRICT parsing mode.
-  return TestResult::Skip;
-  #endif // RTTTL_PARSER_STRICT
+  static const char * expected_notes[] = {
+    // 32p
+    "tone(pin,1047,562);", // c.6
+    "tone(pin,1319,375);", // e6
+    "tone(pin,1480,375);", // f#6
+    "tone(pin,1760,187);", // 8a6
+    "tone(pin,1568,562);", // g.6
+    "tone(pin,1319,375);", // e6
+    "tone(pin,1047,375);", // c6
+    "tone(pin,880,187);", // 8a
+    "tone(pin,740,187);", // 8f#
+    "tone(pin,740,187);", // 8f#
+    "tone(pin,740,187);", // 8f#
+    "tone(pin,784,750);", // 2g
+  };
+  static const int expected_notes_count = sizeof(expected_notes)/sizeof(expected_notes[0]);
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
@@ -939,19 +945,30 @@ TestResult testDottedNoteRelaxed() {
   resetFakeTimer();
   resetMelodyBuffer();
 
-  // build the melody
-  sprintf(melody, ":d=4,o=6,b=63:32.a");
+  sprintf(melody, simpsons);
+  testTracesAppend("melody=`%s`\n", melody);
 
   // play
   anyrtttl::blocking::play(BUZZER_PIN, melody);
 
   // get the melody calls with timestamps
   std::string actual = gMelodyOutput;
+  testTracesAppend("actual=`%s`\n", actual.c_str());
 
-  // assert note 32a. is found
-  sprintf(expected_string, "tone(pin,1760,178);");
-  ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
-  
+  // assert all notes are found
+  for(int i = 0; i < expected_notes_count; i++) {
+    // build expected string
+    const char * expected_note = expected_notes[i];
+    sprintf(expected_string, "%s", expected_note);
+
+    // assert this note is found in the output
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // Assert only all tones are found
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ((size_t)expected_notes_count, count);
+
   return TestResult::Pass;
 }
 
@@ -1279,7 +1296,6 @@ void setup() {
   //Use custom functions
   anyrtttl::setToneFunction(&logTone);
   anyrtttl::setNoToneFunction(&logNoTone);
-  anyrtttl::setDelayFunction(&logDelay);
   anyrtttl::setMillisFunction(&fakeMillis);
 
   //TEST(testThisTestAlwaysPass);
@@ -1294,8 +1310,8 @@ void setup() {
   TEST(testControlSectionBPM);
   TEST(testControlSectionBPMUnofficial);
   TEST(testControlSectionMissingControls);
-  TEST(testDottedNoteNokia);
-  TEST(testDottedNoteRelaxed);
+  TEST(testDottedNoteNokiaSpecification);
+  TEST(testDottedNoteNokiaSimpsonsExample);
   TEST(testPauseNotes);
   TEST(testShortestMelody);
   TEST(testComplexNotes);
@@ -1307,6 +1323,8 @@ void setup() {
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
+
+  testPrint("All test completed\n");
 }
 
 void loop() {

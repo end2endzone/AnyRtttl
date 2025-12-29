@@ -25,7 +25,8 @@ AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2en
 * Support a STRICT or RELAXED parsing mode. See [Strict parsing mode](#strict-parsing-mode) and [Relaxed parsing mode](#relaxed-parsing-mode).
 * Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
 * Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
-
+* Supports names longer than the 10 character limit.
+* Supports dotted notes in format `[<duration>]<note>[<octave>][.]` (Nokia's specification) or the alternate format `[<duration>]<note>[.][<octave>]` (Nokia's Simpsons example).
 
 
 ## Status ##
@@ -198,13 +199,11 @@ Relaxed mode prioritizes robustness and usability. The parser attempts to interp
 Use macro `RTTTL_PARSER_RELAXED` to configure the library in relaxed parsing mode. This mode is also the default mode when `RTTTL_PARSER_STRICT` and `RTTTL_PARSER_RELAXED` are not specified.
 
 * Relaxed is more resilient to invalid characters or parsing errors.
-* Supports names longer than the 10 character limit.
 * Supports RTTTL note duration of 64 or 128.
 * Supports any BPM values between 10 and 2000.
 * Supports RTTTL melodies with uppercase characters.
 * Supports RTTTL melodies with spaces.
 * Supports each control in the control section (d, o and b) to be specified in any order.
-* Supports dotted notes in format `<duration><note><octave><.>` (Nokia's specification) or the alternate format `<duration><note><.><octave>` (Nokia's Simpsons example).
 
 
 
@@ -478,7 +477,7 @@ The duration, octave and dot are optional.
 
 The original Nokia RTTTL specification defines the note format as `[<duration>] <note> [<scale>] [<special-duration>] <delimiter>`, which implies that the dot should appear after the optional `<scale>` character.
 
-However, the official example of the _Simpsons_ ringtone included in the specification, place the dot before the scale character (e.g., `g.6` instead of `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
+However, the official example of the _Simpsons_ ringtone included in the specification, place the dot before the scale character (e.g., `c.6` and `g.6` instead of `c6.` and `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
 
 Example: `Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g`.
 
