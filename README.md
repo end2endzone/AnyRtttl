@@ -14,16 +14,17 @@
 
 AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2endzone.com/anyrtttl-a-feature-rich-arduino-library-for-playing-rtttl-melodies/#Quick_recall_of_the_RTTTL_format) melodies. The library offers much more interesting features than relying on the widely available `void play_rtttl(char *p)` function. The library supports all best RTTTL features.
 
-Library features:
+## Features ##
 
 * Really small increase in memory & code footprint compared to the usual blocking algorithm.
 * Blocking & Non-Blocking modes available.
-* Support for custom `tone()`, `noTone()` and `millis()` functions.
+* Support custom `tone()`, `noTone()` and `millis()` functions.
 * Compatible with external Tone libraries.
 * Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
 * Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
-* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Support a STRICT or RELAXED parsing mode. See [Strict parsing mode](#strict-parsing-mode) and [Relaxed parsing mode](#relaxed-parsing-mode).
 * Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
+* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
 
 
 
@@ -47,11 +48,9 @@ Other libraries available which allows you to "play" a melody in [RTTTL](http://
 
 AnyRtttl is different since it packs multiple RTTTL related features in a single library. It supports [blocking](https://en.wikipedia.org/wiki/Blocking_(computing)) & [non-blocking](http://en.wikipedia.org/wiki/Non-blocking_algorithm) API which makes it suitable to be used by more advanced algorithm. For instance, when using the non-blocking API, the melody can be stopped when a button is pressed. The library is also compatible with external Tone libraries and it supports highly compressed RTTTL binary formats.
 
+**Existing Non-Blocking code**
 
-
-## Non-Blocking ##
-
-Most of the code that can "play" a melody on internet are build the same way: sequential calls to `tone()` and `delay()` functions using hardcoded values. This type of implementation might be good for robots but not for realtime application or projects that needs to monitor pins while the song is playing.
+Most of the code that can play a melody on internet are build the same way: sequential calls to `tone()` and `delay()` functions using hardcoded values. This type of implementation might be good for robots but not for realtime application or projects that needs to monitor pins while the song is playing.
 
 With AnyRtttl non-blocking mode, your program can read/write IOs pins while playing and react on changes. Implementing a "stop" or "next song" push button is easy!
 
