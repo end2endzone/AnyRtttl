@@ -18,7 +18,7 @@ AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2en
 
 * Really small increase in memory & code footprint compared to the usual blocking algorithm.
 * Blocking & Non-Blocking modes available.
-* Support custom `tone()`, `noTone()`, `delay()` and `millis()` functions.
+* Support custom `tone()`, `noTone()` and `millis()` functions.
 * Compatible with external Tone libraries.
 * Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
 * Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
@@ -47,7 +47,6 @@ After publishing [NonBlockingRtttl](https://github.com/end2endzone/NonBlockingRT
 Other libraries available which allows you to "play" a melody in [RTTTL](http://www.end2endzone.com/anyrtttl-a-feature-rich-arduino-library-for-playing-rtttl-melodies/#Quick_recall_of_the_RTTTL_format) format suffer the same issue: they are based on blocking APIs or the RTTTL data is not optimized for space.
 
 AnyRtttl is different since it packs multiple RTTTL related features in a single library. It supports [blocking](https://en.wikipedia.org/wiki/Blocking_(computing)) & [non-blocking](http://en.wikipedia.org/wiki/Non-blocking_algorithm) API which makes it suitable to be used by more advanced algorithm. For instance, when using the non-blocking API, the melody can be stopped when a button is pressed. The library is also compatible with external Tone libraries and it supports highly compressed RTTTL binary formats.
-
 
 **Existing Non-Blocking code**
 
@@ -153,20 +152,32 @@ void loop() {
 ```
 
 
-
 ## Macros ##
-
-Define `ANY_RTTTL_INFO` to enable debugging of the library state on the serial port.
 
 Use `ANY_RTTTL_VERSION` to get the current version of the library.
 
-Note, the specified macros must be defined before including `anyrtttl.h` in your sketches.
+Define `ANY_RTTTL_INFO` to enable library state debugging via the serial port.
+Define `ANY_RTTTL_DEBUG` to enable more detailed, advanced debugging of the library. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
+
+Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to disable linking with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link or depend on the tone library.
+
+Define the global macro `ANY_RTTTL_NO_DEFAULT_FUNCTIONS` to disable all default function assignments. In this mode, AnyRtttl will not provide default implementations for its internal function pointers.
+
+If you use either `ANY_RTTTL_DONT_USE_TONE_LIB` or `ANY_RTTTL_NO_DEFAULT_FUNCTIONS`, you must manually configure AnyRtttl at runtime by calling `anyrtttl::setToneFunction()`, `anyrtttl::setNoToneFunction()` or `anyrtttl::setMillisFunction()` before attempting to play a melody.
+
+> **Note:**  
+AnyRtttl is distributed with its own separate C++ source files (\*.cpp). A macro that is only defined at the start of your sketch does not propagate into the library's source files. As a result, AnyRtttl mostly remain unaffected by the sketch‑level macro definition.
+&nbsp;  
+&nbsp;  
+See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
+
+### Parsing modes ###
 
 This library supports two parsing modes: _Strict_ and _Relaxed_. It provides different levels of input quality and validation requirements. The selected mode determines how rigorously the parser validates input and how it reacts to malformed or ambiguous data.
 
 
 
-### Strict parsing mode ###
+#### Strict parsing mode ####
 
 Strict mode do not validates the RTTTL melody content. It expect the melody to match the [original Nokia's specification](#format-specification).
 
@@ -179,7 +190,7 @@ Use macro `RTTTL_PARSER_STRICT` to configure the library in strict parsing mode.
 
 
 
-### Relaxed parsing mode ###
+#### Relaxed parsing mode ####
 
 Relaxed mode prioritizes robustness and usability. The parser attempts to interpret and recover from minor issues instead of failing.
 
@@ -252,9 +263,49 @@ void loop() {
 
 ## External Tone or Timer #0 libraries ##
 
+
+### Custom millis() function (timer0) ###
+
+The library also supports custom `millis()` function. If a project requires modification to the microcontroller's build-in Timer #0, the `millis()` function may be impacted and behave incorrectly. To maximize compatibility, one can supply a custom function which behaves like the original to prevent altering playback.
+
+
+### Custom tone() and noTone() functions (timer2) ###
+
 The AnyRtttl library is also flexible by allowing you to use the build-in arduino `tone()` and `noTone()` functions or an implementation from any external library which makes it compatible with any Tone library in the market.
 
-The library also supports custom `delay()` and `millis()` functions. If a project requires modification to the microcontroller's build-in Timer #0, the `millis()` function may be impacted and behave incorrectly. To maximize compatibility, one can supply a custom function which behaves like the original to prevent altering playback.
+> **Note:**  
+When using your own functions for implementing `tone()` and `noTone()`, it is recommended to also define macro `ANY_RTTTL_DONT_USE_TONE_LIB`.
+&nbsp;  
+&nbsp;  
+By default, AnyRtttl uses Arduino's built‑in `tone()` and `noTone()` functions. This automatically link your sketch with the tone library, which may lead to compilation or linking errors in situations where Timer2 is already used. To avoid this, you can define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB`.
+&nbsp;  
+&nbsp;  
+See [configuration](#Configuration) section for more details.
+
+### Example on Arduino Nano ##
+
+On the Arduino Nano, the [tone() function relies on Timer2](https://forum.arduino.cc/t/timers-used-by-nano/1103697/5). If Timer2 is already in use for another task, the built-in `tone()` and `noTone()` functions will conflict with it. In that case, you will need to create your own custom versions and configure AnyRtttl to use them.
+
+For example :
+```cpp
+#include <avr/interrupt.h>
+// ...
+ISR(TIMER2_COMPA_vect) { }
+
+// Define tone() and noTone() versions that relies on Timer1.
+void timer1_tone(uint8_t pin, unsigned int frequency, unsigned long duration) {
+  // ...
+}
+void timer1_no_tone(uint8_t pin) {
+  // ...
+}
+
+void setup()
+{
+	anyrtttl::setToneFunction(&timer1_tone);
+	anyrtttl::setNoToneFunction(&timer1_no_tone);
+}
+```
 
 
 
@@ -293,11 +344,6 @@ void serialNoTone(byte pin) {
   Serial.println(");");
 }
 
-void serialDelay(uint32_t duration) {
-  Serial.print("delay(");
-  Serial.print(duration);
-  Serial.println(");");
-}
 ```
 
 Each new functions prints the function call & arguments to the serial port.
@@ -308,7 +354,6 @@ In the `setup()` function, setup the AnyRtttl library to use the new functions:
 //Use custom functions
 anyrtttl::setToneFunction(&serialTone);
 anyrtttl::setNoToneFunction(&serialNoTone);
-anyrtttl::setDelayFunction(&serialDelay);
 ```
 
 Use the `anyrtttl::blocking::play()` API for "playing" an RTTTL melody and monitor the output of the serial port to see the actual arduino code generated by the library.
@@ -343,11 +388,6 @@ void serialNoTone(byte pin) {
   Serial.println(");");
 }
 
-void serialDelay(uint32_t duration) {
-  Serial.print("delay(");
-  Serial.print(duration);
-  Serial.println(");");
-}
 
 void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
@@ -358,7 +398,6 @@ void setup() {
   //Use custom functions
   anyrtttl::setToneFunction(&serialTone);
   anyrtttl::setNoToneFunction(&serialNoTone);
-  anyrtttl::setDelayFunction(&serialDelay);
 }
 
 void loop() {
@@ -396,7 +435,7 @@ More AnyRtttl examples are also available:
 
 
 
-# RTTTL Format #
+# RTTTL #
 
 ## Format specification ##
 

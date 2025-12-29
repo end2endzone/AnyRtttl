@@ -6,7 +6,7 @@
 #if defined(ESP32)
 #define BUZZER_PIN 25 // Using GPIO25 (pin labeled D25)
 #elif defined(ESP8266)
-#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D2)
+#define BUZZER_PIN  2 // Using GPIO2  (pin labeled D4)
 #else // base arduino models
 #define BUZZER_PIN 9
 #endif
@@ -33,11 +33,6 @@ void serialNoTone(uint8_t pin) {
   Serial.println(");");
 }
 
-void serialDelay(unsigned long duration) {
-  Serial.print("delay(");
-  Serial.print(duration);
-  Serial.println(");");
-}
 
 void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
@@ -48,7 +43,6 @@ void setup() {
   //Use custom functions
   anyrtttl::setToneFunction(&serialTone);
   anyrtttl::setNoToneFunction(&serialNoTone);
-  anyrtttl::setDelayFunction(&serialDelay);
 }
 
 void loop() {
