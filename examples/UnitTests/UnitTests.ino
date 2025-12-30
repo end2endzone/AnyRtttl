@@ -6,6 +6,7 @@
 #include <sstream>
 #include "TestingFramework.hpp"
 #include "LoggingFramework.hpp"
+#include "StringFormatter.hpp"
 
 // Define the BUZZER_PIN for current board
 #define BUZZER_PIN 0 // Using a fake pin number
@@ -86,7 +87,7 @@ void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
   if (gInsertTimestampsInLogs)
     gMelodyOutput += getMillisTimestamp();
   
-  log(gMelodyOutput, "tone(pin,%d,%d);\n", frequency, duration);
+  stringPrintf(gMelodyOutput, "tone(pin,%d,%d);\n", frequency, duration);
 
   // optimize fake timer
   static const unsigned long JUMP_MIN_SIZE = 10;
@@ -97,9 +98,9 @@ void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
 
 void logNoTone(uint8_t pin) {
   if (gInsertTimestampsInLogs)
-    log(gMelodyOutput, "%s", getMillisTimestamp());
+    stringPrintf(gMelodyOutput, "%s", getMillisTimestamp());
     
-  log(gMelodyOutput, "noTone(pin);\n");
+  stringPrintf(gMelodyOutput, "noTone(pin);\n");
 }
 
 unsigned long fakeMillis(void) {
@@ -137,13 +138,6 @@ TestResult testThisTestAlwaysFailsStringContains() {
 TestResult testThisTestAlwaysFailsIntegerEquals() {
   ASSERT_EQ(-1, 42);
   return TestResult::Pass;
-}
-
-void SerialPrintMelodyOutput(int line) {
-  Serial.print("Line ");
-  Serial.print(line);
-  Serial.print(": ");
-  Serial.println(gMelodyOutput.c_str());
 }
 
 TestResult testTetrisRamBlocking() {

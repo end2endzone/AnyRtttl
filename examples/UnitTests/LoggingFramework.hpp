@@ -1,13 +1,6 @@
 #pragma once
 
-#ifdef ARDUINO
-#include <Arduino.h>
-#endif // ARDUINO
-
-#include <string>
-#include <stdarg.h>
-#include <cstdarg>
-#include <cstdio>
+#include "StringFormatter.hpp"
 
 std::string gLogBuffer; // a buffer for holding log calls
 
@@ -32,44 +25,6 @@ static inline const char * logBaseName(const char * file_path) {
     return file_name;
 }
 
-// vlog() will print the given variable argument list to the given std::string.
-int vlog(std::string & buffer, const char* format, va_list args) {
-    // Copy args to measure length of output formatted string
-    va_list copy;
-    va_copy(copy, args);
-    int len = vsnprintf(nullptr, 0, format, copy);
-    va_end(copy);
-
-    // Print formatted string into output buffer
-    std::string tempBuffer(len, '\0');
-    vsnprintf(tempBuffer.data(), tempBuffer.size() + 1, format, args);
-
-    // Move tempBuffer by appending it to the given buffer
-    buffer += std::move(tempBuffer);  // tempBuffer is now empty
-
-    return len;
-}
-
-// log() will print the given arguments to the given std::string.
-int log(std::string & buffer, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    int len = vlog(buffer, format, args);
-    va_end(args);
-
-    return len;
-}
-
-// log() will print the given arguments to the global gLogBuffer string.
-int log(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    int len = vlog(gLogBuffer, format, args); // delegate to vlog()
-    va_end(args);
-
-    return len;
-}
-
 int log(std::string & buffer, const char * file_path, int line, const char* format, ...) {
     const char *file_name = logBaseName(file_path);
 
@@ -88,7 +43,7 @@ int log(std::string & buffer, const char * file_path, int line, const char* form
     // Delegate to vlog (since we have va_list)
     va_list args;
     va_start(args, format);
-    int len = vlog(buffer, new_format, args);
+    int len = stringPrintf(buffer, new_format, args);
     va_end(args);
 
     // Free heap memory
@@ -115,7 +70,7 @@ int log(const char * file_path, int line, const char* format, ...) {
     // Delegate to vlog (since we have va_list)
     va_list args;
     va_start(args, format);
-    int len = vlog(gLogBuffer, new_format, args);
+    int len = stringPrintf(gLogBuffer, new_format, args);
     va_end(args);
 
     // Free heap memory

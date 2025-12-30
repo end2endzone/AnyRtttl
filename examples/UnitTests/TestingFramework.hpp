@@ -1,15 +1,13 @@
 #pragma once
 
-#ifdef ARDUINO
-#include <Arduino.h>
+#if defined(ARDUINO) || defined(ESP32)
+  // Arduino/ESP32 environment
+  #include <Arduino.h>  // for Serial
 #else
-#include <cstdio>
-#endif // ARDUINO
+  // PC environment
+#endif
 
-#include <string>
-#include <stdarg.h>
-
-#include "LoggingFramework.hpp"
+#include "StringFormatter.hpp"
 
 std::string gTestTraces; // a global buffer to hold assertion outputs or traces while executing a test
 
@@ -36,11 +34,20 @@ int testPrintv(const char* format, ...) {
   // Print arguments to tempBuffer
   va_list args;
   va_start(args, format);
-  int len = vlog(tempBuffer, format, args);
+  int len = stringPrintf(tempBuffer, format, args);
   va_end(args);
 
   // Delegate to print function pointer  gTestPrintFuncPtr().
   gTestPrintFuncPtr(tempBuffer.c_str());
+
+  return len;
+}
+
+int testTracesAppend(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  int len = stringPrintf(gTestTraces, format, args);
+  va_end(args);
 
   return len;
 }
@@ -80,14 +87,7 @@ inline const char* toUtf8Symbol(TestResult r) {
   }
 }
 
-int testTracesAppend(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  int len = vlog(gTestTraces, format, args);
-  va_end(args);
-
-  return len;
-}
+#define TEST(func) runTest(#func, func)
 
 void runTest(const char* testName, TestFunc func)
 {
@@ -121,7 +121,9 @@ void runTest(const char* testName, TestFunc func)
   }
 }
 
-#define TEST(func) runTest(#func, func)
+// ------------------------------------------------------------------
+// ASSERTIONS
+// ------------------------------------------------------------------
 
 #define ASSERT_EQ(expected, actual) \
   do { \
