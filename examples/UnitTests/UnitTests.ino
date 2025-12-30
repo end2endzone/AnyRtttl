@@ -1279,6 +1279,22 @@ TestResult testUpperCaseControlSectionAndMelody() {
   return TestResult::Pass;
 }
 
+const char * getBoardDescriptor() {
+#if defined(ARDUINO_AVR_UNO)
+  return "Arduino Uno";
+#elif defined(ARDUINO_AVR_NANO)
+  return "Arduino Nano";
+#elif defined(ARDUINO_AVR_MEGA2560)
+  return "Arduino Mega 2560";
+#elif defined(ESP8266)
+  return "ESP8266";
+#elif defined(ESP32)
+  return "ESP32";
+#else
+  return "Unknown Board";
+#endif
+}
+
 void setup() {
   // Do not initialize the BUZZER_PIN pin.
   // because BUZZER_PIN is a fake pin number.
@@ -1286,6 +1302,12 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println();
+
+  // Print a TEST HEADER
+  unsigned long testStartMs = millis();
+  LOG("Running tests on a %s.\n", getBoardDescriptor());
+  LOG("Current time is %d.\n", testStartMs);
+  LOG("--------------------------------------------------------\n");
 
   //Use custom functions
   anyrtttl::setToneFunction(&logTone);
@@ -1318,7 +1340,12 @@ void setup() {
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);
 
-  testPrint("All test completed\n");
+  // Print a TEST FOOTER
+  unsigned long testEndMs = millis();
+  unsigned long elapsedMs = testEndMs - testStartMs;
+  LOG("--------------------------------------------------------\n");
+  LOG("All test completed.\n");
+  LOG("Elapsed time in milliseconds: %d\n", elapsedMs);
 }
 
 void loop() {
