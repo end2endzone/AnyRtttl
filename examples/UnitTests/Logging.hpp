@@ -15,7 +15,23 @@ void resetLog() {
     gLogBuffer.clear();
 }
 
-// log() will print the given arguments to the given std::string.
+const char * getFileNameFromPath(const char * file_path) {
+    // Extract file name
+
+    // Find last separator
+    const char* file_name = strrchr(file_path, '/');
+    if (!file_name) {
+        file_name = strrchr(file_path, '\\');
+    }
+
+    // If last separator is found, return "last separator" + 1.
+    // Otherwise, return original file_path
+    file_name = file_name ? file_name + 1 : file_path;
+
+    return file_name;
+}
+
+// vlog() will print the given variable argument list to the given std::string.
 int vlog(std::string & buffer, const char* format, va_list args) {
     // Copy args to measure length of output formatted string
     va_list copy;
@@ -47,8 +63,62 @@ int log(std::string & buffer, const char* format, ...) {
 int log(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    int len = vlog(gLogBuffer, format, args);
+    int len = vlog(gLogBuffer, format, args); // delegate to vlog()
     va_end(args);
+
+    return len;
+}
+
+int log(std::string & buffer, const char * file_path, int line, const char* format, ...) {
+    const char *file_name = getFileNameFromPath(file_path);
+
+    // Compute required length for new format string
+    size_t needed = snprintf(NULL, 0, "%s, %d: %s", file_name, line, format) + 1; // +1 for the NULL terminated string.
+
+    // Allocate a new format on heap
+    char* new_format = (char*)malloc(needed);
+    if (!new_format) {
+        return -1; // allocation failed
+    }
+
+    // Build the format string
+    snprintf(new_format, needed, "%s, %d: %s", file_name, line, format);
+
+    // Delegate to vlog (since we have va_list)
+    va_list args;
+    va_start(args, format);
+    int len = vlog(buffer, new_format, args);
+    va_end(args);
+
+    // Free heap memory
+    free(new_format);
+
+    return len;
+}
+
+int log(const char * file_path, int line, const char* format, ...) {
+    const char *file_name = getFileNameFromPath(file_path);
+
+    // Compute required length for new format string
+    size_t needed = snprintf(NULL, 0, "%s, %d: %s", file_name, line, format) + 1; // +1 for the NULL terminated string.
+
+    // Allocate a new format on heap
+    char* new_format = (char*)malloc(needed);
+    if (!new_format) {
+        return -1; // allocation failed
+    }
+
+    // Build the format string
+    snprintf(new_format, needed, "%s, %d: %s", file_name, line, format);
+
+    // Delegate to vlog (since we have va_list)
+    va_list args;
+    va_start(args, format);
+    int len = vlog(gLogBuffer, new_format, args);
+    va_end(args);
+
+    // Free heap memory
+    free(new_format);
 
     return len;
 }
