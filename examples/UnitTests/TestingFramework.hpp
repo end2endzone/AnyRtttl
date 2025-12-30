@@ -9,7 +9,7 @@
 #include <string>
 #include <stdarg.h>
 
-#include "Logging.hpp"
+#include "LoggingFramework.hpp"
 
 std::string gTestTraces; // a global buffer to hold assertion outputs or traces while executing a test
 

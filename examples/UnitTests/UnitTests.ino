@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <sstream>
 #include "TestingFramework.hpp"
-#include "Logging.hpp"
+#include "LoggingFramework.hpp"
 
 // Define the BUZZER_PIN for current board
 #define BUZZER_PIN 0 // Using a fake pin number
