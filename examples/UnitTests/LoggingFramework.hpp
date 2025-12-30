@@ -2,17 +2,11 @@
 
 #include "StringFormatter.hpp"
 
-std::string gLogBuffer;  // a buffer for holding log calls
-
 // Type for the platform-specific function that output log messages.
 typedef void (*log_output_fn_t)(const char* message);
 
 // Global function pointer used to forward message to the platform-specific output function.
 static log_output_fn_t gLogOutputFunc = NULL;
-
-void resetLog() {
-  gLogBuffer.clear();
-}
 
 static inline const char* logBaseName(const char* file_path) {
   if (!file_path) return "";
