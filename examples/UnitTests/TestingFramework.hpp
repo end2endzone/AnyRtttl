@@ -56,7 +56,7 @@ enum class TestResult {
 
 typedef TestResult (*TestFunc)();
 
-inline const char* ToString(TestResult r) {
+inline const char* toString(TestResult r) {
   switch (r) {
     case TestResult::Pass:    return "PASS";
     case TestResult::Fail:    return "FAIL";
@@ -68,7 +68,7 @@ inline const char* ToString(TestResult r) {
   }
 }
 
-inline const char* ToUtf8Symbol(TestResult r) {
+inline const char* toUtf8Symbol(TestResult r) {
   switch (r) {
     case TestResult::Pass:    return "✅";
     case TestResult::Fail:    return "❌";
@@ -89,7 +89,7 @@ int testTracesAppend(const char *format, ...) {
   return len;
 }
 
-void RunTest(const char* testName, TestFunc func)
+void runTest(const char* testName, TestFunc func)
 {
   // Reset test trace logs
   gTestTraces.clear();
@@ -106,7 +106,7 @@ void RunTest(const char* testName, TestFunc func)
     result = func();
   }
 
-  testPrintv("%s %s\n", ToString(result), ToUtf8Symbol(result));
+  testPrintv("%s %s\n", toString(result), toUtf8Symbol(result));
 
   // Print test log traces if test is not PASS 
   if (result != TestResult::Pass) {
@@ -114,14 +114,14 @@ void RunTest(const char* testName, TestFunc func)
       testPrintv("%s\n", gTestTraces.c_str());
 
     // And print again the name of the test
-    testPrintv("%s  %s\n", ToUtf8Symbol(result), ToString(result));
+    testPrintv("%s  %s\n", toUtf8Symbol(result), toString(result));
 
     // Space failing tests by 1 line
     gTestPrintFuncPtr("\n");
   }
 }
 
-#define TEST(func) RunTest(#func, func)
+#define TEST(func) runTest(#func, func)
 
 #define ASSERT_EQ(expected, actual) \
   do { \

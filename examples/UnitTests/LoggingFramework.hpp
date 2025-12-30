@@ -32,6 +32,7 @@ static inline const char * logBaseName(const char * file_path) {
     return file_name;
 }
 
+
 // vlog() will print the given variable argument list to the given std::string.
 int vlog(std::string & buffer, const char* format, va_list args) {
     // Copy args to measure length of output formatted string
