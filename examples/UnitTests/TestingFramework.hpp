@@ -11,7 +11,7 @@
 
 #include "Logging.hpp"
 
-std::string testTraces; // a global buffer to hold assertions or traces while executing a test
+std::string gTestTraces; // a global buffer to hold assertion outputs or traces while executing a test
 
 // testPrint is a platform-aware print() implementation that
 // automatically print the given c-string to the appropriate output.
@@ -24,12 +24,12 @@ void testPrint(const char* value) {
 }
 
 // Typedef for a function pointer that injects a c-string
-typedef void (*PrintFunctionDelegate)(const char*);
+typedef void (*TestPrintFuncDelegate)(const char*);
 
 // Global function to print a c-string to an output.
-PrintFunctionDelegate testPrintFuncPtr = &testPrint;
+TestPrintFuncDelegate gTestPrintFuncPtr = &testPrint;
 
-// testPrintv() print the given arguments using the print function pointer delegate testPrintFuncPtr().
+// testPrintv() print the given arguments using the print function pointer delegate gTestPrintFuncPtr().
 int testPrintv(const char* format, ...) {
   std::string tempBuffer;
 
@@ -39,8 +39,8 @@ int testPrintv(const char* format, ...) {
   int len = vlog(tempBuffer, format, args);
   va_end(args);
 
-  // Delegate to print function pointer  testPrintFuncPtr().
-  testPrintFuncPtr(tempBuffer.c_str());
+  // Delegate to print function pointer  gTestPrintFuncPtr().
+  gTestPrintFuncPtr(tempBuffer.c_str());
 
   return len;
 }
@@ -83,7 +83,7 @@ inline const char* ToUtf8Symbol(TestResult r) {
 int testTracesAppend(const char *format, ...) {
   va_list args;
   va_start(args, format);
-  int len = vlog(testTraces, format, args);
+  int len = vlog(gTestTraces, format, args);
   va_end(args);
 
   return len;
@@ -92,7 +92,7 @@ int testTracesAppend(const char *format, ...) {
 void RunTest(const char* testName, TestFunc func)
 {
   // Reset test trace logs
-  testTraces.clear();
+  gTestTraces.clear();
 
   testPrintv("Running test: %s() --> ", testName);
 
@@ -110,14 +110,14 @@ void RunTest(const char* testName, TestFunc func)
 
   // Print test log traces if test is not PASS 
   if (result != TestResult::Pass) {
-    if (!testTraces.empty())
-      testPrintv("%s\n", testTraces.c_str());
+    if (!gTestTraces.empty())
+      testPrintv("%s\n", gTestTraces.c_str());
 
     // And print again the name of the test
     testPrintv("%s  %s\n", ToUtf8Symbol(result), ToString(result));
 
     // Space failing tests by 1 line
-    testPrintFuncPtr("\n");
+    gTestPrintFuncPtr("\n");
   }
 }
 

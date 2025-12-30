@@ -15,13 +15,14 @@ void resetLog() {
     gLogBuffer.clear();
 }
 
-const char * getFileNameFromPath(const char * file_path) {
-    // Extract file name
+static inline const char * logBaseName(const char * file_path) {
+    if (!file_path) return "";
 
+    // Extract file name
     // Find last separator
-    const char* file_name = strrchr(file_path, '/');
+    const char* file_name = strrchr(file_path, '/'); // unix
     if (!file_name) {
-        file_name = strrchr(file_path, '\\');
+        file_name = strrchr(file_path, '\\'); // windows
     }
 
     // If last separator is found, return "last separator" + 1.
@@ -70,7 +71,7 @@ int log(const char *format, ...) {
 }
 
 int log(std::string & buffer, const char * file_path, int line, const char* format, ...) {
-    const char *file_name = getFileNameFromPath(file_path);
+    const char *file_name = logBaseName(file_path);
 
     // Compute required length for new format string
     size_t needed = snprintf(NULL, 0, "%s, %d: %s", file_name, line, format) + 1; // +1 for the NULL terminated string.
@@ -97,7 +98,7 @@ int log(std::string & buffer, const char * file_path, int line, const char* form
 }
 
 int log(const char * file_path, int line, const char* format, ...) {
-    const char *file_name = getFileNameFromPath(file_path);
+    const char *file_name = logBaseName(file_path);
 
     // Compute required length for new format string
     size_t needed = snprintf(NULL, 0, "%s, %d: %s", file_name, line, format) + 1; // +1 for the NULL terminated string.
