@@ -18,11 +18,29 @@ unsigned long gFakeMillisTimer = 0; // a fake milliseconds timer. Requied to spe
 bool gInsertTimestampsInLogs = true;
 bool gOptimizeFameMillisTimerInToneCalls = true;
 unsigned long gFakeMillisTimerJumpSize = 0;
+unsigned long gTonesPlayedCount = 0;
 std::string gMelodyOutput; // a global buffer to hold the rtttl commands output when calling functions such as tone(), noTone(), etc.
 static const unsigned long INVALID_TIMER_TIMESTAMP = (unsigned long)-1;
 
 static const char * DEFAULT_CONTROL_SECTION = "d=4,o=6,b=63";
 static const char * CUSTOM_CONTROL_SECTION = "d=16,o=5,b=160";
+
+static const char * simpsons_expected_notes[] = {
+  // 32p
+  "tone(pin,1047,562);", // c.6
+  "tone(pin,1319,375);", // e6
+  "tone(pin,1480,375);", // f#6
+  "tone(pin,1760,187);", // 8a6
+  "tone(pin,1568,562);", // g.6
+  "tone(pin,1319,375);", // e6
+  "tone(pin,1047,375);", // c6
+  "tone(pin,880,187);", // 8a
+  "tone(pin,740,187);", // 8f#
+  "tone(pin,740,187);", // 8f#
+  "tone(pin,740,187);", // 8f#
+  "tone(pin,784,750);", // 2g
+};
+static const int simpsons_expected_notes_count = sizeof(simpsons_expected_notes)/sizeof(simpsons_expected_notes[0]);
 
 void resetFakeTimer() {
   gFakeMillisTimer = 0;
@@ -30,6 +48,12 @@ void resetFakeTimer() {
 
 void resetMelodyBuffer() {
   gMelodyOutput.clear();
+}
+
+void resetTestData() {
+  gTonesPlayedCount = 0;
+  resetFakeTimer();
+  resetMelodyBuffer();
 }
 
 const char * getMillisTimestamp() {
@@ -80,6 +104,22 @@ unsigned long getToneTimestamp(const char * token, const std::string & str) {
     return INVALID_TIMER_TIMESTAMP;
 }
 
+const char * getBoardDescriptor() {
+#if defined(ARDUINO_AVR_UNO)
+  return "Arduino Uno";
+#elif defined(ARDUINO_AVR_NANO)
+  return "Arduino Nano";
+#elif defined(ARDUINO_AVR_MEGA2560)
+  return "Arduino Mega 2560";
+#elif defined(ESP8266)
+  return "ESP8266";
+#elif defined(ESP32)
+  return "ESP32";
+#else
+  return "Unknown Board";
+#endif
+}
+
 //*******************************************************************************************************************
 //  The following replacement functions prints the function call & parameters to a custom buffer string.
 //*******************************************************************************************************************
@@ -88,6 +128,8 @@ void logTone(uint8_t pin, unsigned int frequency, unsigned long duration) {
     gMelodyOutput += getMillisTimestamp();
   
   stringPrintf(gMelodyOutput, "tone(pin,%d,%d);\n", frequency, duration);
+
+  gTonesPlayedCount++;
 
   // optimize fake timer
   static const unsigned long JUMP_MIN_SIZE = 10;
@@ -141,8 +183,7 @@ TestResult testThisTestAlwaysFailsIntegerEquals() {
 }
 
 TestResult testTetrisRamBlocking() {
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   anyrtttl::blocking::play(BUZZER_PIN, tetris);
 
@@ -240,8 +281,7 @@ TestResult testTetrisRamBlocking() {
 }
 
 TestResult testProgramMemoryBlocking() {
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   const char melody[] PROGMEM = "Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g";
   anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
@@ -259,8 +299,7 @@ TestResult testProgramMemoryBlocking() {
 }
 
 TestResult TestSmalestRtttlPgmBlocking() {
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   const char melody[] PROGMEM = ":d=4,o=5,b=100:c";
   anyrtttl::blocking::playProgMem(BUZZER_PIN, melody);
@@ -293,8 +332,7 @@ TestResult testSingleNotes() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < expected_frequencies_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     char note_character = 'a' + i;
@@ -345,8 +383,7 @@ TestResult testDurations() {
     // Test in Control Section
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int duration_value = myPowerFunction(2, i);
@@ -370,8 +407,7 @@ TestResult testDurations() {
     // Test in individual note
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int duration_value = myPowerFunction(2, i);
@@ -424,8 +460,7 @@ TestResult testDurationsInvalid() {
     // Test in Control Section
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int duration_value = invalid_durations[i];
@@ -449,8 +484,7 @@ TestResult testDurationsInvalid() {
     // Test in individual note
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int duration_value = invalid_durations[i];
@@ -492,8 +526,7 @@ TestResult testOctaves() {
     // Test in Control Section
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       char octave_character = '4' + i;
@@ -517,8 +550,7 @@ TestResult testOctaves() {
     // Test in individual note
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       char octave_character = '4' + i;
@@ -574,8 +606,7 @@ TestResult testOctavesInvalid() {
     // Test in Control Section
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int octave_value = invalid_octaves[i];
@@ -599,8 +630,7 @@ TestResult testOctavesInvalid() {
     // Test in individual note
     // ------------------------
     {
-      resetFakeTimer();
-      resetMelodyBuffer();
+      resetTestData();
 
       // build the melody
       int octave_value = invalid_octaves[i];
@@ -668,8 +698,7 @@ TestResult testControlSectionBPM() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < official_bpms_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     uint16_t official_bpm = official_bpms[i];
@@ -709,8 +738,7 @@ TestResult testControlSectionBPMUnofficial() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < unofficial_bpms_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     uint16_t unofficial_bpm = unofficial_bpms[i];
@@ -739,8 +767,7 @@ TestResult testShortestMelody() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, "::a");
@@ -775,8 +802,7 @@ TestResult testComplexNotes() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, ":d=4,o=6,b=63:1a#,2b7,8c#6,16d#.,16f#.7");
@@ -816,8 +842,7 @@ TestResult testControlSectionMissingControls() {
   // Test missing duration
   // ------------------------
   {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     sprintf(melody, ":o=5,b=160:a");
@@ -839,8 +864,7 @@ TestResult testControlSectionMissingControls() {
   // Test missing octave
   // ------------------------
   {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     sprintf(melody, ":d=16,b=160:a");
@@ -862,8 +886,7 @@ TestResult testControlSectionMissingControls() {
   // Test missing octave
   // ------------------------
   {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     sprintf(melody, ":d=16,o=5:a");
@@ -890,8 +913,7 @@ TestResult testDottedNoteNokiaSpecification() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, ":d=4,o=6,b=63:32a.");
@@ -915,29 +937,14 @@ TestResult testDottedNoteNokiaSimpsonsExample() {
   // Official Nokia's format is `[duration][note][.][octave]`.
   // This alternative format is `[duration][note][octave][.]`, matching Nokia's Simpsons example.
 
-  static const char * expected_notes[] = {
-    // 32p
-    "tone(pin,1047,562);", // c.6
-    "tone(pin,1319,375);", // e6
-    "tone(pin,1480,375);", // f#6
-    "tone(pin,1760,187);", // 8a6
-    "tone(pin,1568,562);", // g.6
-    "tone(pin,1319,375);", // e6
-    "tone(pin,1047,375);", // c6
-    "tone(pin,880,187);", // 8a
-    "tone(pin,740,187);", // 8f#
-    "tone(pin,740,187);", // 8f#
-    "tone(pin,740,187);", // 8f#
-    "tone(pin,784,750);", // 2g
-  };
-  static const int expected_notes_count = sizeof(expected_notes)/sizeof(expected_notes[0]);
+  static const char ** expected_notes = simpsons_expected_notes;
+  static const int expected_notes_count = simpsons_expected_notes_count;
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   sprintf(melody, simpsons);
   testTracesAppend("melody=`%s`\n", melody);
@@ -971,8 +978,7 @@ TestResult testPauseNotes() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, ":d=8,o=6,b=45:,a.,32p,2b.");
@@ -1023,8 +1029,7 @@ TestResult testInvalidNoteAreIgnored() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, ":d=4,o=6,b=63:2a,z,16b");
@@ -1061,8 +1066,7 @@ TestResult testSpacesInMelody() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody
   sprintf(melody, ":d=4,o=6,b=63:2a , 4b,8 c, 16 d , 32 a . , 2 a # 4 , 8 f # . 4 ");
@@ -1128,8 +1132,7 @@ TestResult testSpacesInControlSection() {
   for(int i = 0; i < test_inputs_count; i++) {
     const char * test_input = test_inputs[i];
 
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     testTracesAppend("i=%d", i);
 
@@ -1185,8 +1188,7 @@ TestResult testControlSectionAnyOrder() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
   for(int i = 0; i < permutations_count; i++) {
-    resetFakeTimer();
-    resetMelodyBuffer();
+    resetTestData();
 
     // build the melody
     permutation_t permutation = permutations[i];
@@ -1234,8 +1236,7 @@ TestResult testUpperCaseControlSectionAndMelody() {
   char melody[MELODY_BUFFER_SIZE] = {0};
   char expected_string[MELODY_BUFFER_SIZE] = {0};
 
-  resetFakeTimer();
-  resetMelodyBuffer();
+  resetTestData();
 
   // build the melody (custom control section to validate proper parsing)
   sprintf(melody, ":D=16,O=5,B=160:A,P,2B4,4C5,16D6,32E7,F,2G");
@@ -1279,20 +1280,117 @@ TestResult testUpperCaseControlSectionAndMelody() {
   return TestResult::Pass;
 }
 
-const char * getBoardDescriptor() {
-#if defined(ARDUINO_AVR_UNO)
-  return "Arduino Uno";
-#elif defined(ARDUINO_AVR_NANO)
-  return "Arduino Nano";
-#elif defined(ARDUINO_AVR_MEGA2560)
-  return "Arduino Mega 2560";
-#elif defined(ESP8266)
-  return "ESP8266";
-#elif defined(ESP32)
-  return "ESP32";
-#else
-  return "Unknown Board";
-#endif
+TestResult testNonBlocking() {
+  static const char ** expected_notes = simpsons_expected_notes;
+  static const int expected_notes_count = simpsons_expected_notes_count;
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetTestData();
+
+  sprintf(melody, simpsons);
+  testTracesAppend("melody=`%s`\n", melody);
+
+  // play non-blocking
+  anyrtttl::nonblocking::begin(BUZZER_PIN, melody);
+  while( !anyrtttl::nonblocking::done() ) // Loop until the melody has played
+  {
+    anyrtttl::nonblocking::play();
+    yield(); // prevent watchdog to reset the board.
+  }
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+  testTracesAppend("actual=`%s`\n", actual.c_str());
+
+  // assert all notes are found
+  for(int i = 0; i < expected_notes_count; i++) {
+    // build expected string
+    const char * expected_note = expected_notes[i];
+    sprintf(expected_string, "%s", expected_note);
+
+    // assert this note is found in the output
+    ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+  }
+
+  // Assert all tones are found
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ((size_t)expected_notes_count, count);
+
+  return TestResult::Pass;
+}
+
+TestResult testStop() {
+  static const unsigned long MAX_TONE_PLAY = 6;
+
+  static const char ** expected_notes = simpsons_expected_notes;
+  static const int expected_notes_count = simpsons_expected_notes_count;
+
+  static const size_t MELODY_BUFFER_SIZE = 256;
+  char melody[MELODY_BUFFER_SIZE] = {0};
+  char expected_string[MELODY_BUFFER_SIZE] = {0};
+
+  resetTestData();
+
+  sprintf(melody, simpsons);
+  testTracesAppend("melody=`%s`\n", melody);
+
+  // play non-blocking
+  bool hasForceStopped = false;
+  anyrtttl::nonblocking::begin(BUZZER_PIN, melody);
+  while( !anyrtttl::nonblocking::done() ) // Loop until the melody has played
+  {
+    anyrtttl::nonblocking::play();
+
+    // Force stopping after MAX_TONE_PLAY tone played
+    if (gTonesPlayedCount >= MAX_TONE_PLAY) {
+      anyrtttl::nonblocking::stop();
+      hasForceStopped = true;
+    }
+
+    yield(); // prevent watchdog to reset the board.
+  }
+
+  ASSERT_TRUE(hasForceStopped);
+  ASSERT_TRUE(anyrtttl::nonblocking::done());
+  ASSERT_FALSE(anyrtttl::nonblocking::isPlaying());
+
+  // get the melody calls with timestamps
+  std::string actual = gMelodyOutput;
+  testTracesAppend("actual=`%s`\n", actual.c_str());
+
+  // Assert only MAX_TONE_PLAY tones were played
+  size_t count = countTokens("tone(", actual.c_str());
+  ASSERT_EQ((size_t)MAX_TONE_PLAY, count);
+
+  // Run play() again multiple times to make sure we actualy stopped.
+  // If we did not, calling multiple play() would allow us to complete the melody.
+  for(int i = 0; i < 1000; i++) {
+    anyrtttl::nonblocking::play();
+  }
+
+  // assert the first MAX_TONE_PLAY notes were played.
+  // assert the remaining notes were not.
+  for(int i = 0; i < expected_notes_count; i++) {
+    // build expected string
+    const char * expected_note = expected_notes[i];
+    sprintf(expected_string, "%s", expected_note);
+
+    testTracesAppend("i=%d\n", i);
+
+    if (i < MAX_TONE_PLAY) {
+      // assert this note is found in the output
+      ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
+    }
+    else {
+      // assert this note IS NOT found in the output
+      ASSERT_STRING_NOT_CONTAINS(expected_string, actual.c_str());
+    }
+  }
+
+  return TestResult::Pass;
 }
 
 void setup() {
@@ -1336,6 +1434,8 @@ void setup() {
   TEST(testSpacesInControlSection);
   TEST(testControlSectionAnyOrder);
   TEST(testUpperCaseControlSectionAndMelody);
+  TEST(testNonBlocking);
+  TEST(testStop);
 
   //TEST(testTetrisRamBlocking);
   //TEST(testProgramMemoryBlocking);

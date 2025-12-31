@@ -160,48 +160,6 @@ namespace arduino { namespace test
   {
   }
   //--------------------------------------------------------------------------------------------------
-  TEST_F(TestAnyRtttl, testNonBlockingPlay)
-  {
-    //setup log file
-    std::string logFile = std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".log";
-    testarduino::setLogFile(logFile.c_str());
-
-    //play the actual content
-    anyrtttl::nonblocking::begin(PIEZO_PIN, tetris);
-    while( !anyrtttl::nonblocking::done() )
-    {
-      anyrtttl::nonblocking::play();
-    }
-
-    //assert
-
-    //load both files into memory
-    ra::strings::StringVector expectedCalls;
-    ASSERT_TRUE (ra::testing::GetTextFileContent("expected_call_stack.log", expectedCalls));
-    ra::strings::StringVector actualCalls;
-    ASSERT_TRUE (ra::testing::GetTextFileContent(logFile.c_str(), actualCalls));
-
-    //assert that file ends with a noTone();
-    std::string lastCall = actualCalls[actualCalls.size()-1];
-    ASSERT_NE(lastCall.find("noTone("), std::string::npos);
-
-    //compare tone() function calls with the "blocking" template
-    //file since its the only common thing betwwen blocking and
-    //non-blocking api.
-
-    //filter out anything that is not tone(...)
-    filterToneFunctions(expectedCalls);
-    filterToneFunctions(actualCalls);
-
-    ASSERT_EQ( expectedCalls.size(), actualCalls.size() );
-    for(size_t i=0; i<expectedCalls.size(); i++)
-    {
-      std::string expected = expectedCalls[i];
-      std::string actual = actualCalls[i];
-      ASSERT_EQ(expected, actual);
-    }
-  }
-  //--------------------------------------------------------------------------------------------------
   TEST_F(TestAnyRtttl, testInterruptedPlay)
   {
     //setup log file

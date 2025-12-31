@@ -179,6 +179,15 @@ do { \
     }\
   } while (0)
 
+#define ASSERT_STRING_NOT_CONTAINS(substring, actual) \
+  do { \
+    if (strstr((actual), (substring)) != 0) { \
+      testTracesAppend("ASSERT_STRING_NOT_CONTAINS failed: `%s` found in `%s` (file %s, line %d)", \
+                        (substring), (actual), __FILE__, __LINE__); \
+      return TestResult::Fail; \
+    }\
+  } while (0)
+
 #define ASSERT_TRUE(cond) \
   do { \
     if (!(cond)) { \
