@@ -1323,10 +1323,11 @@ TestResult testNonBlocking() {
 }
 
 TestResult testStop() {
-  static const unsigned long MAX_TONE_PLAY = 6;
-
   static const char ** expected_notes = simpsons_expected_notes;
   static const int expected_notes_count = simpsons_expected_notes_count;
+  
+  static const unsigned long MAX_PLAY_DURATION_MS = 2250; // how long should we play a melody
+  static const unsigned long EXPECTED_TONE_PLAYED = 6; // how many tones we are expected to play during MAX_PLAY_DURATION_MS.
 
   static const size_t MELODY_BUFFER_SIZE = 256;
   char melody[MELODY_BUFFER_SIZE] = {0};
@@ -1337,23 +1338,18 @@ TestResult testStop() {
   sprintf(melody, simpsons);
   testTracesAppend("melody=`%s`\n", melody);
 
-  // play non-blocking
-  bool hasForceStopped = false;
+  // play for 2.25 sec using non-blocking api then stop.
+  // note: this is a blocking code section
+  // use to demonstrate the use of stop()
   anyrtttl::nonblocking::begin(BUZZER_PIN, melody);
-  while( !anyrtttl::nonblocking::done() ) // Loop until the melody has played
+  unsigned long start = fakeMillis();
+  while( (fakeMillis() - start) < MAX_PLAY_DURATION_MS )
   {
     anyrtttl::nonblocking::play();
-
-    // Force stopping after MAX_TONE_PLAY tone played
-    if (gTonesPlayedCount >= MAX_TONE_PLAY) {
-      anyrtttl::nonblocking::stop();
-      hasForceStopped = true;
-    }
-
     yield(); // prevent watchdog to reset the board.
   }
+  anyrtttl::nonblocking::stop();
 
-  ASSERT_TRUE(hasForceStopped);
   ASSERT_TRUE(anyrtttl::nonblocking::done());
   ASSERT_FALSE(anyrtttl::nonblocking::isPlaying());
 
@@ -1361,9 +1357,9 @@ TestResult testStop() {
   std::string actual = gMelodyOutput;
   testTracesAppend("actual=`%s`\n", actual.c_str());
 
-  // Assert only MAX_TONE_PLAY tones were played
+  // Assert only EXPECTED_TONE_PLAYED tones were played
   size_t count = countTokens("tone(", actual.c_str());
-  ASSERT_EQ((size_t)MAX_TONE_PLAY, count);
+  ASSERT_EQ((size_t)EXPECTED_TONE_PLAYED, count);
 
   // Run play() again multiple times to make sure we actualy stopped.
   // If we did not, calling multiple play() would allow us to complete the melody.
@@ -1371,7 +1367,7 @@ TestResult testStop() {
     anyrtttl::nonblocking::play();
   }
 
-  // assert the first MAX_TONE_PLAY notes were played.
+  // assert the first EXPECTED_TONE_PLAYED notes were played.
   // assert the remaining notes were not.
   for(int i = 0; i < expected_notes_count; i++) {
     // build expected string
@@ -1380,7 +1376,7 @@ TestResult testStop() {
 
     testTracesAppend("i=%d\n", i);
 
-    if (i < MAX_TONE_PLAY) {
+    if (i < EXPECTED_TONE_PLAYED) {
       // assert this note is found in the output
       ASSERT_STRING_CONTAINS(expected_string, actual.c_str());
     }
