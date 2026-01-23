@@ -14,17 +14,19 @@
 
 AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2endzone.com/anyrtttl-a-feature-rich-arduino-library-for-playing-rtttl-melodies/#Quick_recall_of_the_RTTTL_format) melodies. The library offers much more interesting features than relying on the widely available `void play_rtttl(char *p)` function. The library supports all best RTTTL features.
 
-Library features:
+## Features ##
 
 * Really small increase in memory & code footprint compared to the usual blocking algorithm.
-* Blocking & Non-Blocking modes available.
-* Support for custom `tone()`, `noTone()` and `millis()` functions.
+* [Blocking](#blocking-mode) & [Non-Blocking](#non-blocking-mode) modes available.
+* Support custom `tone()`, `noTone()` and `millis()` functions.
 * Compatible with external Tone libraries.
 * Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
 * Compatible with any custom or arbitrary RTTTL format that can be decoded as legacy RTTTL.
-* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Support a STRICT or RELAXED parsing mode. See [Strict parsing mode](#strict-parsing-mode) and [Relaxed parsing mode](#relaxed-parsing-mode).
 * Support for playing 2 melodies simultaneously (using 2 speakers on two different pins). See [ESP32DualPlayRtttl](examples/ESP32DualPlayRtttl/ESP32DualPlayRtttl.ino) example.
-
+* Supports highly compressed RTTTL binary format. See [Play16Bits](examples\Play16Bits\Play16Bits.ino) or [Play10Bits](examples\Play10Bits\Play10Bits.ino) examples.
+* Supports names longer than the 10 character limit.
+* Supports dotted notes in format `[<duration>]<note>[<octave>][.]` (Nokia's specification) or the alternate format `[<duration>]<note>[.][<octave>]` (Nokia's Simpsons example).
 
 
 ## Status ##
@@ -47,13 +49,219 @@ Other libraries available which allows you to "play" a melody in [RTTTL](http://
 
 AnyRtttl is different since it packs multiple RTTTL related features in a single library. It supports [blocking](https://en.wikipedia.org/wiki/Blocking_(computing)) & [non-blocking](http://en.wikipedia.org/wiki/Non-blocking_algorithm) API which makes it suitable to be used by more advanced algorithm. For instance, when using the non-blocking API, the melody can be stopped when a button is pressed. The library is also compatible with external Tone libraries and it supports highly compressed RTTTL binary formats.
 
+**Existing Non-Blocking code**
 
-
-## Non-Blocking ##
-
-Most of the code that can "play" a melody on internet are build the same way: sequential calls to `tone()` and `delay()` functions using hardcoded values. This type of implementation might be good for robots but not for realtime application or projects that needs to monitor pins while the song is playing.
+Most of the code that can play a melody on internet are build the same way: sequential calls to `tone()` and `delay()` functions using hardcoded values. This type of implementation might be good for robots but not for realtime application or projects that needs to monitor pins while the song is playing.
 
 With AnyRtttl non-blocking mode, your program can read/write IOs pins while playing and react on changes. Implementing a "stop" or "next song" push button is easy!
+
+
+
+# Usage #
+
+The following instructions show how to use the library.
+
+
+
+## Blocking mode ##
+
+To play a RTTTL melody using the blocking mode API, you call `anyrtttl::blocking::play(BUZZER_PIN, melody);` with your buzzer pin and the RTTTL melody string. This function will play the entire melody sequentially, pausing execution until the melody finishes.
+
+The blocking api will:
+* Play the RTTTL string note by note.
+* Halt execution until the melody finishes, returning the control of the execution to the your sketch.
+* Uses Arduino's `tone()` and `millis()` internally to implement delay between notes.
+
+The blocking api can be used in your sketch `setup()` or `loop()` sections. 
+
+This is ideal for simple sketches where you do not need multitasking. For example:
+* Startup sounds
+* Simple demos
+* One-shot audio feedback
+
+
+
+## Non-blocking mode ##
+
+The non-blocking API will let the melody play in the background while your `loop()` keeps running. It will not freeze your sketch allowing you sketch to process other tasks simultaneously. 
+
+With the non-blocking api, you need to
+* Call `begin()` to initialize the library with a new melody.
+* Call `play()` in the `loop()` at a high and consistent rate to allow playback to advance notes at their scheduled times.
+* Make sure all other tasks in `loop()` execute quickly so they do not delay playback timing. Any long-running operations in `loop()` will introduce timing jitter and can delay note transitions.
+
+The non-blocking api can not be used in your sketch `setup()`. It must be used in the `loop()` section.
+
+This is ideal for sketches that are multitasks. For example, sketches that:
+* Read sensors continuously
+* Handle buttons and debouncing
+* Update displays
+* Maintain communication (Serial, I2C, SPI)
+* Run state machines
+
+In summary:
+
+Call `anyrtttl::nonblocking::begin()` to setup AnyRtttl library in non-blocking mode.
+
+Then call `anyrtttl::nonblocking::play()` to update the library's state and play notes as required.
+
+Use `anyrtttl::done()` or `anyrtttl::nonblocking::isPlaying()` to know if the library is done playing the given song.
+
+Anytime, one can call `anyrtttl::nonblocking::stop()` to stop playing the current song.
+
+The following code shows how to use the library in non-blocking mode:
+
+```cpp
+#include <anyrtttl.h>
+#include <binrtttl.h>
+#include <pitches.h>
+
+//project's constants
+#define BUZZER_PIN 8
+const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+const char * arkanoid = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
+const char * mario = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
+byte songIndex = 0; //which song to play when the previous one finishes
+
+void setup() {
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  Serial.begin(115200);
+  Serial.println();
+}
+
+void loop() {
+  // If we are not playing something 
+  if ( !anyrtttl::nonblocking::isPlaying() )
+  {
+    // Play a song based on songIndex.
+    if (songIndex == 0)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
+    else if (songIndex == 1)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
+    else if (songIndex == 2)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
+
+    //Set songIndex ready for next song
+    songIndex++;
+  }
+  else
+  {
+    anyrtttl::nonblocking::play();
+  }
+}
+```
+
+
+## Macros ##
+
+Use `ANY_RTTTL_VERSION` to get the current version of the library.
+
+Define `ANY_RTTTL_INFO` to enable library state debugging via the serial port.
+Define `ANY_RTTTL_DEBUG` to enable more detailed, advanced debugging of the library. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
+
+Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to disable linking with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link or depend on the tone library.
+
+Define the global macro `ANY_RTTTL_NO_DEFAULT_FUNCTIONS` to disable all default function assignments. In this mode, AnyRtttl will not provide default implementations for its internal function pointers.
+
+If you use either `ANY_RTTTL_DONT_USE_TONE_LIB` or `ANY_RTTTL_NO_DEFAULT_FUNCTIONS`, you must manually configure AnyRtttl at runtime by calling `anyrtttl::setToneFunction()`, `anyrtttl::setNoToneFunction()` or `anyrtttl::setMillisFunction()` before attempting to play a melody.
+
+> **Note:**  
+AnyRtttl is distributed with its own separate C++ source files (\*.cpp). A macro that is only defined at the start of your sketch does not propagate into the library's source files. As a result, AnyRtttl mostly remain unaffected by the sketch‑level macro definition.
+&nbsp;  
+&nbsp;  
+See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
+
+### Parsing modes ###
+
+This library supports two parsing modes: _Strict_ and _Relaxed_. It provides different levels of input quality and validation requirements. The selected mode determines how rigorously the parser validates input and how it reacts to malformed or ambiguous data.
+
+
+
+#### Strict parsing mode ####
+
+Strict mode do not validates the RTTTL melody content. It expect the melody to match the [original Nokia's specification](#format-specification).
+
+Use macro `RTTTL_PARSER_STRICT` to configure the library in strict parsing mode.
+
+* Strict has lowest memory and program footprint.
+* May fail with invalid syntax or unsupported constructs.
+* Has no error handling.
+* Parsing errors may result in potential crashes.
+* Supports names longer than the 10 character limit.
+
+
+
+#### Relaxed parsing mode ####
+
+Relaxed mode prioritizes robustness and usability. The parser attempts to interpret and recover from minor issues instead of failing.
+
+Use macro `RTTTL_PARSER_RELAXED` to configure the library in relaxed parsing mode. This mode is also the default mode when `RTTTL_PARSER_STRICT` and `RTTTL_PARSER_RELAXED` are not specified.
+
+* Relaxed is more resilient to invalid characters or parsing errors.
+* Supports RTTTL note duration of 64 or 128.
+* Supports any BPM values between 10 and 2000.
+* Supports RTTTL melodies with uppercase characters.
+* Supports RTTTL melodies with spaces.
+* Supports each control in the control section (d, o and b) to be specified in any order.
+
+
+
+## Playing RTTTL data stored in flash (program) memory ##
+
+AnyRtttl also supports RTTTL melodies stored in flash or Program Memory (PROGMEM).
+
+The `anyrtttl::nonblocking::begin()` function supports _Program Memory_ macros such as `FPSTR()` or `F()`.
+
+The following code shows how to use the library with RTTTL data stored in flash (program) memory instead of SRAM:
+
+```cpp
+#include <anyrtttl.h>
+#include <binrtttl.h>
+#include <pitches.h>
+
+//project's constants
+#define BUZZER_PIN 8
+const char tetris[] PROGMEM = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+const char arkanoid[] PROGMEM = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
+const char mario[] PROGMEM = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
+// James Bond theme defined in inline code below (also stored in flash memory) 
+byte songIndex = 0; //which song to play when the previous one finishes
+
+void setup() {
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  Serial.begin(115200);
+  Serial.println();
+}
+
+void loop() {
+  // If we are not playing something 
+  if ( !anyrtttl::nonblocking::isPlaying() )
+  {
+    // Play a song based on songIndex.
+    if (songIndex == 0)
+      anyrtttl::nonblocking::beginProgMem(BUZZER_PIN, tetris);
+    else if (songIndex == 1)
+      anyrtttl::nonblocking::begin_P(BUZZER_PIN, arkanoid);
+    else if (songIndex == 2)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, FPSTR(mario));
+    else if (songIndex == 3)
+      anyrtttl::nonblocking::begin(BUZZER_PIN, F("Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6"));
+
+    //Set songIndex ready for next song
+    songIndex++;
+  }
+  else
+  {
+    anyrtttl::nonblocking::play();
+  }
+}
+```
+
+
+
+# Advanced Usage #
 
 
 
@@ -114,148 +322,6 @@ For example, AnyRtttl library can be adapted to play RTTTL data which is stored 
 The [Play10Bits](examples/Play10Bits/Play10Bits.ino) and [Play16Bits](examples/Play10Bits/Play10Bits.ino) are examples for showing AnyRtttl's capability to adapt to custom formats.
 
 See [BinaryRTTTL.md](BinaryRTTTL.md) for a definition of this custom RTTTL format.
-
-
-
-# Usage #
-
-The following instructions show how to use the library.
-
-
-## Configuration ##
-
-
-### Macros ###
-
-Use `ANY_RTTTL_VERSION` to get the current version of the library.
-
-Define `ANY_RTTTL_INFO` to activate library state debugging via the serial port.  
-Define `ANY_RTTTL_DEBUG` to enable more detailed, advanced debugging of the library. See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
-
-Define the global macro `ANY_RTTTL_DONT_USE_TONE_LIB` to disable linking with Arduino's built‑in `tone()` and `noTone()` functions. When defined, AnyRtttl will not use these functions and your sketch will not link or depend on the tone library.
-
-Define the global macro `ANY_RTTTL_NO_DEFAULT_FUNCTIONS` to disable all default function assignments. In this mode, AnyRtttl will not provide default implementations for its internal function pointers.
-
-If you use either `ANY_RTTTL_DONT_USE_TONE_LIB` or `ANY_RTTTL_NO_DEFAULT_FUNCTIONS`, you must manually configure AnyRtttl at runtime by calling `anyrtttl::setToneFunction()`, `anyrtttl::setNoToneFunction()` or `anyrtttl::setMillisFunction()` before attempting to play a melody.
-
-> **Note:**  
-AnyRtttl is distributed with its own separate C++ source files (\*.cpp). A macro that is only defined at the start of your sketch does not propagate into the library's source files. As a result, AnyRtttl mostly remain unaffected by the sketch‑level macro definition.
-&nbsp;  
-&nbsp;  
-See [GlobalMacros.md](GlobalMacros.md) which provides instructions for creating global macros.
-
-
-## Non-blocking mode ##
-
-      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
-Call `anyrtttl::nonblocking::begin()` to setup AnyRtttl library in non-blocking mode.
-
-Then call `anyrtttl::nonblocking::play()` to update the library's state and play notes as required.
-
-Use `anyrtttl::done()` or `anyrtttl::nonblocking::isPlaying()` to know if the library is done playing the given song.
-
-Anytime, one can call `anyrtttl::nonblocking::stop()` to stop playing the current song.
-
-The following code shows how to use the library in non-blocking mode:
-
-```cpp
-#include <anyrtttl.h>
-#include <binrtttl.h>
-#include <pitches.h>
-
-//project's constants
-#define BUZZER_PIN 8
-const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
-const char * arkanoid = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
-const char * mario = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
-byte songIndex = 0; //which song to play when the previous one finishes
-
-void setup() {
-  pinMode(BUZZER_PIN, OUTPUT);
-
-  Serial.begin(115200);
-  Serial.println();
-}
-
-void loop() {
-  // If we are not playing something 
-  if ( !anyrtttl::nonblocking::isPlaying() )
-  {
-    // Play a song based on songIndex.
-    if (songIndex == 0)
-      anyrtttl::nonblocking::begin(BUZZER_PIN, tetris);
-    else if (songIndex == 1)
-      anyrtttl::nonblocking::begin(BUZZER_PIN, arkanoid);
-    else if (songIndex == 2)
-      anyrtttl::nonblocking::begin(BUZZER_PIN, mario);
-
-    //Set songIndex ready for next song
-    songIndex++;
-  }
-  else
-  {
-    anyrtttl::nonblocking::play();
-  }
-}
-```
-
-
-
-## Playing RTTTL data stored in flash (program) memory ##
-
-AnyRtttl also supports RTTTL melodies stored in flash or Program Memory (PROGMEM).
-
-The `anyrtttl::nonblocking::begin()` function supports _Program Memory_ macros such as `FPSTR()` or `F()`.
-
-The following code shows how to use the library with RTTTL data stored in flash (program) memory instead of SRAM:
-
-```cpp
-#include <anyrtttl.h>
-#include <binrtttl.h>
-#include <pitches.h>
-
-//project's constants
-#define BUZZER_PIN 8
-const char tetris[] PROGMEM = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
-const char arkanoid[] PROGMEM = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
-const char mario[] PROGMEM = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
-// James Bond theme defined in inline code below (also stored in flash memory) 
-byte songIndex = 0; //which song to play when the previous one finishes
-
-void setup() {
-  pinMode(BUZZER_PIN, OUTPUT);
-
-  Serial.begin(115200);
-  Serial.println();
-}
-
-void loop() {
-  // If we are not playing something 
-  if ( !anyrtttl::nonblocking::isPlaying() )
-  {
-    // Play a song based on songIndex.
-    if (songIndex == 0)
-      anyrtttl::nonblocking::beginProgMem(BUZZER_PIN, tetris);
-    else if (songIndex == 1)
-      anyrtttl::nonblocking::begin_P(BUZZER_PIN, arkanoid);
-    else if (songIndex == 2)
-      anyrtttl::nonblocking::begin(BUZZER_PIN, FPSTR(mario));
-    else if (songIndex == 3)
-      anyrtttl::nonblocking::begin(BUZZER_PIN, F("Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6"));
-
-    //Set songIndex ready for next song
-    songIndex++;
-  }
-  else
-  {
-    anyrtttl::nonblocking::play();
-  }
-}
-```
-
-
-
-# Advanced Usage #
 
 
 
@@ -373,14 +439,15 @@ More AnyRtttl examples are also available:
 
 
 
-# RTTTL #
+# RTTTL Format #
 
-## Format specification ##
+## Nokia's original specification ##
 
-This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs\nokia_rtttl.txt)).
+This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs/nokia_rtttl.txt)).
 
 This format is specified as the following:  
 `<name>:<control-section>:<tone-commands>,<tone-commands>...`
+
 
 ### Control Section: ###
 
@@ -391,11 +458,12 @@ It defines the following parameters for the melody:
 * `o=<value>` : Default octave of a note if unspecified.
 * `b=<value>` : Beats per minutes of a quarter note
 
+
 ### Tone commands: ###
 
 Tones can be represented in the following format:
 
-`<duration><note><octave><.>` where :
+`[<duration>] <note> [<scale>] [.] <delimiter>` where :
 
 * `duration` is the duration divider of full note duration, eg. 4 represents a quarter note.
 * `note` is the note name (one of `p`,`c`,`c#`,`d`,`d#`,`e`,`f`,`f#`,`g`,`g#`,`a`,`a#`,`b`). The note `p` is a special note that represents a pause, a silent note in the melody.
@@ -404,7 +472,15 @@ Tones can be represented in the following format:
 
 The duration, octave and dot are optional.
 
+
+## Nokia's ambiguity with dotted notes (Simpsons example) ##
+
+The original Nokia RTTTL specification defines the note format as `[<duration>] <note> [<scale>] [<special-duration>] <delimiter>`, which implies that the dot should appear after the optional `<scale>` character.
+
+However, the _Simpsons_ ringtone (see below) included in the specification  place the dot before the scale character (e.g., `c.6` and `g.6` instead of `c6.` and `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
+
 Example: `Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g`.
+
 
 ## Other specifications: ##
 
@@ -458,8 +534,9 @@ Please refer to file [INSTALL.md](INSTALL.md) for details on how installing/buil
 
 AnyRtttl has been tested with the following platform:
 
-  * Linux x86/x64
-  * Windows x86/x64
+  * Arduino Uno
+  * ESP8266 (NodeMCU)
+  * ESP32 (DevKit, ESP-WROOM-32)
 
 
 

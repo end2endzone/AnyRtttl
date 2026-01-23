@@ -11,6 +11,27 @@
 #include "Arduino.h"
 #include "pitches.h"
 
+#if defined(RTTTL_PARSER_STRICT) && defined(RTTTL_PARSER_RELAXED)
+#error "RTTTL_PARSER_STRICT and RTTTL_PARSER_RELAXED cannot be defined at the same time"
+#endif
+#if !defined(RTTTL_PARSER_STRICT) && !defined(RTTTL_PARSER_RELAXED)
+#define RTTTL_PARSER_RELAXED // RELAXED parsing rules by default
+#endif
+
+#ifndef RTTTL_PARSER_STRICT
+  // Strict RTTTL parsing rules
+  #define RTTTL_DURATION_MIN_VALUE 1
+  #define RTTTL_DURATION_MAX_VALUE 32
+  #define RTTTL_BMP_MIN_VALUE 25
+  #define RTTTL_BMP_MAX_VALUE 900
+#else
+  // Relaxed RTTTL parsing rules
+  #define RTTTL_DURATION_MIN_VALUE 1
+  #define RTTTL_DURATION_MAX_VALUE 128
+  #define RTTTL_BMP_MIN_VALUE 10
+  #define RTTTL_BMP_MAX_VALUE 2000
+#endif
+
 namespace anyrtttl
 {
 
@@ -39,13 +60,22 @@ static constexpr note_index_t       INVALID_NOTE_LETTER_INDEX     = (note_index_
 static constexpr octave_index_t     INVALID_OCTAVE_INDEX          = (octave_index_t)-1;
 static constexpr bpm_index_t        INVALID_BPM_INDEX             = (bpm_index_t)-1;
 
+static constexpr duration_value_t   INVALID_DURATION_VALUE        = (duration_value_t)-1;
+static constexpr note_value_t       INVALID_NOTE_LETTER_VALUE     = (note_value_t)-1;
+static constexpr octave_value_t     INVALID_OCTAVE_VALUE          = (octave_value_t)-1;
+static constexpr bpm_value_t        INVALID_BPM_VALUE             = (bpm_value_t)-1;
+
 static constexpr note_value_t gNoteValues[] = {'c','d','e','f','g','a','b','p'};
 static constexpr uint16_t gNoteValuesCount = sizeof(gNoteValues)/sizeof(gNoteValues[0]);
 
 static constexpr int gNoteOffsets[] = { 1, 3, 5, 6, 8, 10, 12, 0};
 static constexpr uint16_t gNoteOffsetsCount = sizeof(gNoteOffsets)/sizeof(gNoteOffsets[0]);
 
-static constexpr duration_value_t gNoteDurations[] = {1, 2, 4, 8, 16, 32};
+static constexpr duration_value_t gNoteDurations[] = {1, 2, 4, 8, 16, 32
+#ifdef RTTTL_PARSER_RELAXED
+, 64, 128
+#endif
+};
 static constexpr uint16_t gNoteDurationsCount = sizeof(gNoteDurations)/sizeof(gNoteDurations[0]);
 
 static constexpr octave_value_t gNoteOctaves[] = {4, 5, 6, 7};
@@ -54,11 +84,54 @@ static constexpr uint16_t gNoteOctavesCount = sizeof(gNoteOctaves)/sizeof(gNoteO
 static constexpr bpm_value_t gNoteBpms[] = {25, 28, 31, 35, 40, 45, 50, 56, 63, 70, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 285, 320, 355, 400, 450, 500, 565, 635, 715, 800, 900};
 static constexpr uint16_t gNoteBpmsCount = sizeof(gNoteBpms)/sizeof(gNoteBpms[0]);
 
+inline bool isValidBpm(bpm_value_t value)
+{
+  #ifdef RTTTL_PARSER_STRICT
+    for(bpm_index_t i=0; i<gNoteBpmsCount; i++)
+    {
+      if (gNoteBpms[i] == value)
+        return true;
+    }
+    return false;
+  #else
+    if (value >= RTTTL_BMP_MIN_VALUE && value <= RTTTL_BMP_MAX_VALUE)
+      return true;
+    return false;
+  #endif
+}
+
+inline bool isValidDuration(duration_value_t value)
+{
+  if (value >= RTTTL_DURATION_MIN_VALUE && value <= RTTTL_DURATION_MAX_VALUE)
+    return true;
+  return false;
+}
+
+inline bool isValidNoteValue(char c)
+{
+  if ((c >= 'a' && c <= 'g') || c == 'p')
+    return true;
+  return false;
+}
+
+inline bool isValidOctave(octave_value_t value)
+{
+  if (value >= 4 && value <= 7)
+    return true;
+  return false;
+}
+
+inline bool isValidOctave(char c)
+{
+  octave_value_t value = (octave_value_t)(c - '0'); // convert from ascii to integer
+  return isValidOctave(value);
+}
+
 inline note_value_t getNoteValueFromIndex(note_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteValuesCount)
     return gNoteValues[iIndex];
-  return -1;
+  return INVALID_NOTE_LETTER_VALUE;
 }
 
 inline note_index_t findNoteIndexFromNoteValue(note_value_t n)
@@ -70,7 +143,7 @@ inline note_index_t findNoteIndexFromNoteValue(note_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_NOTE_LETTER_INDEX;
 }
 
 inline int getNoteOffsetFromNoteIndex(note_index_t iIndex)
@@ -90,7 +163,7 @@ inline duration_value_t getDurationValueFromIndex(duration_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteDurationsCount)
     return gNoteDurations[iIndex];
-  return -1;
+  return INVALID_DURATION_VALUE;
 }
 
 inline duration_index_t findDurationIndexFromValue(duration_value_t n)
@@ -102,14 +175,14 @@ inline duration_index_t findDurationIndexFromValue(duration_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_DURATION_INDEX;
 }
 
 inline octave_value_t getOctaveValueFromIndex(octave_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteOctavesCount)
     return gNoteOctaves[iIndex];
-  return -1;
+  return INVALID_OCTAVE_VALUE;
 }
 
 inline octave_index_t findOctaveIndexFromValue(octave_value_t n)
@@ -121,14 +194,14 @@ inline octave_index_t findOctaveIndexFromValue(octave_value_t n)
       return i;
     }
   }
-  return -1;
+  return INVALID_OCTAVE_INDEX;
 }
 
 inline bpm_value_t getBpmValueFromIndex(bpm_index_t iIndex)
 {
   if (iIndex >= 0 && iIndex < gNoteBpmsCount)
     return gNoteBpms[iIndex];
-  return -1;
+  return INVALID_BPM_VALUE;
 }
 
 inline bpm_index_t findBpmIndexFromValue(bpm_value_t n)

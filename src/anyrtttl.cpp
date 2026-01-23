@@ -4,6 +4,7 @@
 //  The code & updates for the library can be found at https://github.com/end2endzone/AnyRtttl
 //  MIT License: http://www.opensource.org/licenses/mit-license.php
 // ---------------------------------------------------------------------------
+
 #include "Arduino.h"
 #include "anyrtttl.h"
 
@@ -28,19 +29,48 @@ static const byte NOTES_PER_OCTAVE = 12;
 // All legacy functions uses this default context as the first parameter for newer apis.
 rtttl_context_t gGlobalContext = {0};
 
-#define isDigitInlined(n) (n >= '0' && n <= '9')
+inline __attribute__((always_inline)) bool isDigitCharacter(char c) {
+  return (c >= '0' && c <= '9');
+}
 
-inline char peekChar(rtttl_context_t & c)
+inline __attribute__((always_inline)) bool isUpperCaseCharacter(char c) {
+  return (c >= 'A' && c <= 'Z');
+}
+
+inline __attribute__((always_inline)) char peekChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   return character;
 }
 
-inline char readChar(rtttl_context_t & c)
+inline __attribute__((always_inline)) char readChar(rtttl_context_t & c)
 {
   char character = c.getCharPtr(c.next);
   c.next++;
   return character;
+}
+
+inline __attribute__((always_inline)) char readLowerCaseChar(rtttl_context_t & c)
+{
+  char character = readChar(c);
+
+  // Support uppercase characters in melody
+  if (isUpperCaseCharacter(character)) {
+    character = (character - 'A' + 'a');
+  }
+
+  return character;
+}
+
+inline __attribute__((always_inline)) void skipCharacters(rtttl_context_t & c, char character)
+{
+    while(peekChar(c) == character)
+      c.next++; // ignore white space
+}
+
+inline __attribute__((always_inline)) void skipWhiteSpace(rtttl_context_t & c)
+{
+  skipCharacters(c, ' ');
 }
 
 int readInteger(rtttl_context_t & c)
@@ -49,7 +79,7 @@ int readInteger(rtttl_context_t & c)
 
   // read first character
   char character = peekChar(c); // peek only at the next character
-  while(isDigitInlined(character))
+  while(isDigitCharacter(character))
   {
     character = readChar(c); // actually move the read offset
     value = (value * 10) + (character - '0');
@@ -192,48 +222,83 @@ void begin(rtttl_context_t & c, byte iPin, const char * iBuffer, GetCharFuncPtr 
   // format: d=N,o=N,b=NNN:
   // find the start (skip name, etc)
 
-  //read buffer until first note
+  // skip melody name
   while(peekChar(c) != ':') c.next++; // ignore name
   c.next++;                           // skip ':'
 
-  // get default duration
-  if(peekChar(c) == 'd')
-  {
-    c.next += 2;                      // skip "d="
-    number = readInteger(c);
-    if(number > 0)
-      c.melodyDefaultDur = number;
-    c.next++;                         // skip comma
-  }
+  #if defined(RTTTL_PARSER_STRICT)
+    // get default duration
+    if(peekChar(c) == 'd')
+    {
+      c.next += 2;                      // skip "d="
+      number = readInteger(c);
+      if(isValidDuration((duration_value_t)number))
+        c.melodyDefaultDur = number;
+      c.next++;                         // skip comma
+    }
+    
+    // get default octave
+    if(peekChar(c) == 'o')
+    {
+      c.next += 2;                      // skip "o="
+      number = readInteger(c);
+      if(isValidOctave((octave_value_t)number))
+        c.melodyDefaultOct = number;
+      c.next++;                         // skip comma
+    }
+    
+    // get BPM
+    if(peekChar(c) == 'b')
+    {
+      c.next += 2;                      // skip "b="
+      number = readInteger(c);
+      c.bpm = number;
+      c.next++;                         // skip colon
+    }
+  #elif defined(RTTTL_PARSER_RELAXED)
+    char character = readLowerCaseChar(c);
+
+    while(character != ':') { // read until the end of control section.
+      switch(character) {
+        case 'd': {
+          // get default duration
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          if(isValidDuration((duration_value_t)number))
+            c.melodyDefaultDur = number;
+        }
+        break;
+        case 'o': {
+          // get default octave
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          if(isValidOctave((octave_value_t)number))
+            c.melodyDefaultOct = number;
+        }
+        break;
+        case 'b': {
+          // get BPM
+          c.next++;                         // skip "="
+          number = readInteger(c);
+          c.bpm = number;
+        }
+        break;
+        case '\0': {
+          // Parsing error: unexpected end of control section
+          stop(c);
+          return;
+        }
+        break;
+      }
+
+      // read next
+      character = readLowerCaseChar(c);
+    }
+  #endif // RTTTL_PARSER_STRICT / RTTTL_PARSER_RELAXED
 
   #ifdef ANY_RTTTL_INFO
   Serial.print("ddur: "); Serial.println(c.melodyDefaultDur, 10);
-  #endif
-  
-  // get default octave
-  if(peekChar(c) == 'o')
-  {
-    c.next += 2;                      // skip "o="
-    number = readInteger(c);
-    if(number >= 3 && number <= 7)
-      c.melodyDefaultOct = number;
-    c.next++;                         // skip comma
-  }
-
-  #ifdef ANY_RTTTL_INFO
   Serial.print("doct: "); Serial.println(c.melodyDefaultOct, 10);
-  #endif
-  
-  // get BPM
-  if(peekChar(c) == 'b')
-  {
-    c.next += 2;                      // skip "b="
-    number = readInteger(c);
-    c.bpm = number;
-    c.next++;                         // skip colon
-  }
-
-  #ifdef ANY_RTTTL_INFO
   Serial.print("bpm: "); Serial.println(c.bpm, 10);
   #endif
 
@@ -249,48 +314,100 @@ void nextNote(rtttl_context_t & c)
 {
   int number = 0;
 
-  //stop current note
+  //stop previous playing note, if any
   _noTone(c.pin);
 
-  // first, get note duration, if available
-  number = readInteger(c);
-  
-  if(number > 0)
-    c.duration = c.wholeNote / number;
-  else
-    c.duration = c.wholeNote / c.melodyDefaultDur;  // we will need to check if we are a dotted note after
+  // Set default values
+  c.duration = c.wholeNote / c.melodyDefaultDur;  // we will check if we are a dotted note later
+  c.scale = c.melodyDefaultOct; // default scale, if unspecified
+  c.noteOffset = 0; // default note is a pause/silence note, if unspecified
 
-  // now get the note
-  c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
-  c.next++;                           // skip note letter
+  #if defined(RTTTL_PARSER_STRICT)
+    // get note duration, if available
+    number = readInteger(c);
+    if(isValidDuration((duration_value_t)number))
+      c.duration = c.wholeNote / number;
 
-  // now, get optional '#' sharp
-  if(peekChar(c) == '#')
-  {
-    c.noteOffset++;
-    c.next++;                         // skip '#'
-  }
+    // now get the note
+    c.noteOffset = findNoteOffsetFromNoteValue(peekChar(c));
+    c.next++;                           // skip note letter
 
-  // now, get optional '.' dotted note
-  if(peekChar(c) == '.')
-  {
-    c.duration += c.duration/2;
-    c.next++;                         // skip '.'
-  }
+    // now, get optional '#' sharp
+    if(peekChar(c) == '#')
+    {
+      c.noteOffset++;
+      c.next++;                         // skip '#'
+    }
 
-  // now, get scale
-  if(isdigit(peekChar(c)))
-  {
-    c.scale = peekChar(c) - '0';
-    c.next++;                         // skip scale
-  }
-  else
-  {
-    c.scale = c.melodyDefaultOct;
-  }
+    // now, get optional '.' dotted note (Nokia's Simpsons example)
+    if(peekChar(c) == '.')
+    {
+      c.duration += c.duration/2;
+      c.next++;                         // skip '.'
+    }
 
-  if(peekChar(c) == ',')
-    c.next++;                         // skip comma for next note (or we may be at the end)
+    // now, get scale
+    if(isdigit(peekChar(c)))
+    {
+      c.scale = peekChar(c) - '0';
+      c.next++;                         // skip scale
+    }
+    else
+    {
+      c.scale = c.melodyDefaultOct;
+    }
+
+    // now, get optional '.' dotted note (Nokia's original specification)
+    if(peekChar(c) == '.')
+    {
+      c.duration += c.duration/2;
+      c.next++;                         // skip '.'
+    }
+
+    if(peekChar(c) == ',')
+      c.next++;                         // skip comma for next note (or we may be at the end)
+  #elif defined(RTTTL_PARSER_RELAXED)
+    skipWhiteSpace(c);
+
+    // get note duration, if available
+    number = readInteger(c);
+    if(isValidDuration((duration_value_t)number))
+      c.duration = c.wholeNote / number;
+    
+    // Parse note characters 1 by 1, until note separator or end of buffer
+    while (peekChar(c) != '\0') {
+      char character = readLowerCaseChar(c);
+
+      if(character == '#')
+      {
+        // optional '#' sharp
+        c.noteOffset++;
+      }
+      else if(character == '.')
+      {
+        // optional '.' dotted note
+        c.duration += c.duration/2;
+      }
+      else if(isValidOctave(character))
+      {
+        // scale
+        c.scale = (character - '0');
+      }
+      else if (isValidNoteValue(character))
+      {
+        // now get the note
+        c.noteOffset = findNoteOffsetFromNoteValue(character);
+      }
+      else if(character == ',')
+      {
+        // end of note
+        break;
+      }
+      else {
+        // unknown character
+      }
+    }
+  #endif // RTTTL_PARSER_STRICT / RTTTL_PARSER_RELAXED
 
   // now play the note
   if(c.noteOffset)
@@ -303,7 +420,7 @@ void nextNote(rtttl_context_t & c)
     Serial.print(") ");
     Serial.println(c.duration, 10);
     #endif
-    
+ 
     uint16_t frequency = gNotes[(c.scale - 4) * NOTES_PER_OCTAVE + c.noteOffset];
     _tone(c.pin, frequency, c.duration);
     
