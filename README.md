@@ -17,7 +17,7 @@ AnyRtttl is a feature rich arduino library for playing [RTTTL](http://www.end2en
 ## Features ##
 
 * Really small increase in memory & code footprint compared to the usual blocking algorithm.
-* Blocking & Non-Blocking modes available.
+* [Blocking](#blocking-mode) & [Non-Blocking](#non-blocking-mode) modes available.
 * Support custom `tone()`, `noTone()` and `millis()` functions.
 * Compatible with external Tone libraries.
 * Supports RTTTL melodies stored in RAM or Program Memory (`PROGMEM`).
@@ -443,7 +443,7 @@ More AnyRtttl examples are also available:
 
 ## Nokia's original specification ##
 
-This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs\nokia_rtttl.txt)).
+This library implements the [original Nokia Phone specification](http://merwin.bespin.org/t4a/specs/nokia_rtttl.txt) ([backup copy here](docs/nokia_rtttl.txt)).
 
 This format is specified as the following:  
 `<name>:<control-section>:<tone-commands>,<tone-commands>...`
@@ -477,7 +477,7 @@ The duration, octave and dot are optional.
 
 The original Nokia RTTTL specification defines the note format as `[<duration>] <note> [<scale>] [<special-duration>] <delimiter>`, which implies that the dot should appear after the optional `<scale>` character.
 
-However, the official example of the _Simpsons_ ringtone included in the specification, place the dot before the scale character (e.g., `c.6` and `g.6` instead of `c6.` and `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
+However, the _Simpsons_ ringtone (see below) included in the specification  place the dot before the scale character (e.g., `c.6` and `g.6` instead of `c6.` and `g6.`). This inconsistency suggests that both placements were accepted by early Nokia implementations, and parsers should be tolerant of either ordering when interpreting RTTTL strings.
 
 Example: `Simpsons:d=4,o=5,b=160:32p,c.6,e6,f#6,8a6,g.6,e6,c6,8a,8f#,8f#,8f#,2g`.
 
@@ -534,8 +534,9 @@ Please refer to file [INSTALL.md](INSTALL.md) for details on how installing/buil
 
 AnyRtttl has been tested with the following platform:
 
-  * Linux x86/x64
-  * Windows x86/x64
+  * Arduino Uno
+  * ESP8266 (NodeMCU)
+  * ESP32 (DevKit, ESP-WROOM-32)
 
 
 
